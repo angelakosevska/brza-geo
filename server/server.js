@@ -23,8 +23,14 @@ app.use('/api/auth', authRoute);
 const gameRoute = require('./routes/game');
 app.use('/api/game', gameRoute);
 
+const roomRoutes = require('./routes/room');
+app.use('/api/rooms', roomRoutes);
+
 // Start the server
 const PORT = process.env.PORT || 5000;
+
+
+
 app.listen(PORT, () => {
   console.log(`⚡ Server running on http://localhost:${PORT}`);
 });
