@@ -88,5 +88,32 @@ router.post("/start", verifyToken, async (req, res) => {
   }
 });
 
+// POST /api/rooms/set-categories
+router.post('/set-categories', verifyToken, async (req, res) => {
+  const { code, categories } = req.body;
+
+  if (!Array.isArray(categories) || categories.length === 0) {
+    return res.status(400).json({ message: 'Мора да внесите барем три категории.' });
+  }
+
+  try {
+    const room = await Room.findOne({ code });
+    if (!room) return res.status(404).json({ message: 'Собата не постои.' });
+
+    // Only host can set categories
+    if (room.host.toString() !== req.user.userId) {
+      return res.status(403).json({ message: 'Само домаќинот може да ги постави категориите.' });
+    }
+
+    room.categories = categories;
+    await room.save();
+
+    res.status(200).json({ message: 'Категориите се успешно постаавени!', categories });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Грешка при поставување на категориите.' });
+  }
+});
+
 
 module.exports = router;

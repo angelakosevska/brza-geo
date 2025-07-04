@@ -26,9 +26,9 @@ const roomSchema = new mongoose.Schema(
       type: Number,
       default: 120,
     }, // seconds per round
-    category: {
-      type: String,
-      default: "Default",
+    categories: {
+      type: [String],
+      default: [],
     },
     currentRound: {
       type: Number,

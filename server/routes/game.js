@@ -5,43 +5,44 @@ const Room = require("../models/Room");
 const Submission = require("../models/Submission");
 const User = require("../models/User");
 
-// POST /api/game/submit
-router.post("/submit", verifyToken, async (req, res) => {
-  const { code, words } = req.body;
-
+// POST /api/game/submit/:code
+router.post("/submit/:code", verifyToken, async (req, res) => {
   try {
+    const { code } = req.params;
+    const { words } = req.body;
+
     const room = await Room.findOne({ code });
     if (!room) return res.status(404).json({ message: "Собата не постои." });
-    if (!room.started)
-      return res.status(400).json({ message: "Играта не е започната." });
 
-    // Check if already submitted this round
+    const currentRound = room.currentRound;
+    const letter = room.letter;
+
+    // Check if already submitted
     const existing = await Submission.findOne({
       room: room._id,
       user: req.user.userId,
-      round: room.currentRound,
+      round: currentRound,
     });
 
     if (existing) {
       return res
         .status(400)
-        .json({ message: "Веќе сте ги поднеле зборовите за оваа рунда." });
+        .json({ message: "Веќе сте поднеле одговори за оваа рунда." });
     }
 
-    const newSubmission = new Submission({
+    const submission = new Submission({
       room: room._id,
       user: req.user.userId,
-      round: room.currentRound,
-      letter: room.letter,
+      round: currentRound,
+      letter,
       words,
     });
 
-    await newSubmission.save();
-
-    res.status(201).json({ message: "Успешно поднесено!" });
+    await submission.save();
+    res.status(201).json({ message: "Одговорите се успешно зачувани!" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Грешка при поднесување зборови." });
+    res.status(500).json({ message: "Грешка при поднесување на одговорите." });
   }
 });
 
