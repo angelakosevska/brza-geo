@@ -1,9 +1,9 @@
 // src/components/Layout.jsx
 import React from "react";
 
-export default function Layout({ children }) {
+export default function LetterBackground({ children }) {
   return (
-    <div className="min-h-screen bg-isabelline text-eerie dark:bg-eerie dark:text-isabelline relative overflow-hidden">
+    <div className="w-full h-screen z-0 bg-isabelline text-eerie dark:bg-eerie dark:text-isabelline relative overflow-hidden">
       {/* Floating letters background */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         {Array.from({ length: 30 }).map((_, i) => {
