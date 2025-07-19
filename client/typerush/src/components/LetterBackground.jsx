@@ -29,7 +29,7 @@ export default function LetterBackground({ children }) {
           return (
             <span
               key={i}
-              className="absolute font-bold opacity-70 animate-float"
+              className="absolute font-extrabold opacity-60 animate-float"
               style={{
                 top: `${top}vh`,
                 left: `${left}vw`,

@@ -1,7 +1,6 @@
 import { cva } from "class-variance-authority";
-
 export const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-[3px] ",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-[3px] shadow-[0_4px_16px_rgba(0,0,0,0.04)] transition active:translate-y-[2px] active:shadow-inner active:scale-95 hover:translate-y-[1px]",
   {
     variants: {
       variant: {
@@ -10,7 +9,7 @@ export const buttonVariants = cva(
         destructive:
           "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-400/50",
         outline:
-          "border-t-1 border-r-3 border-b-3 border-l-1  border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)]/70 hover:text-[var(--background)]",
+          "border-t-1 border-r-3 border-b-3 border-l-1 border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)]/70 hover:text-[var(--background)]",
         secondary:
           "bg-[var(--secondary)] text-[var(--background)] hover:bg-[var(--secondary)]/80",
         ghost: "hover:bg-[var(--accent)]/10 text-[var(--text)]",
