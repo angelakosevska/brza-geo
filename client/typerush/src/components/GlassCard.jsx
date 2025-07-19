@@ -5,13 +5,14 @@ export default function GlassCard({ children, className = "" }) {
   return (
     <Card
       className={`
-        w-full max-w-4xl
-        bg-white/10 
-        backdrop-blur-md 
-        rounded-2xl 
-        shadow-lg 
-        text-center       
-        flex flex-col items-center justify-center
+        w-full max-w-[90vh]
+        bg-[var(--background)]/20
+        border border-[var(--background)]/30
+        backdrop-blur-md
+        rounded-2xl
+        p-4
+        shadow-lg
+        text-center
         ${className}
       `}
     >

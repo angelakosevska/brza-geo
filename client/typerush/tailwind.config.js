@@ -1,28 +1,27 @@
-// tailwind.config.js
+/** @type {import('tailwindcss').Config} */
 export default {
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
-  darkMode: 'class',
+  content: [
+    "./index.html",
+    "./src/**/*.{js,jsx,ts,tsx}",
+    "./components/**/*.{js,jsx,ts,tsx}",
+  ],
   theme: {
     extend: {
-      colors: {
-        // LIGHT THEME
-        lightTheme: {
-          imperial: "#ff4747",       // bright red
-          verdigris: "#36bfb6",      // teal green
-          gold: "#ffd633",           // yellow-gold
-          celestial: "#4e9ad0",      // blue
-          isabelline: "#f8f6f2",     // light background
-          eerie: "#1f1f1f",          // text black
+      keyframes: {
+        fadeIn: {
+          "0%, 25%": { opacity: 0 },
+          "35%, 65%": { opacity: 1 },
+          "100%": { opacity: 0 },
         },
-        // DARK THEME
-        darkTheme: {
-          imperial: "#ff6b6b",       // slightly brighter red
-          verdigris: "#2fa9a1",      // cooler green
-          gold: "#ffc400",           // gold in dark
-          celestial: "#2c6ca8",      // darker blue
-          isabelline: "#1f1f1f",     // dark background
-          eerie: "#f8f6f2",          // light text
+        fadeOut: {
+          "0%, 25%": { opacity: 1 },
+          "35%, 65%": { opacity: 0 },
+          "100%": { opacity: 1 },
         },
+      },
+      animation: {
+        fadeIn: "fadeIn 6s ease-in-out infinite",
+        fadeOut: "fadeOut 6s ease-in-out infinite",
       },
     },
   },
