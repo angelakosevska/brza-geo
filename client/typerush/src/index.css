@@ -40,6 +40,7 @@ body {
   --primary: #37cda5;
   --secondary: #e392c8;
   --accent: #db8470;
+  --glass: #ffffff;
 }
 
 /* Dark theme */
@@ -47,8 +48,24 @@ body {
   :root {
     --text: #ebfaf6;
     --background: #04100c;
-    --primary: #32c8a0;
+    --primary: #37cda5;
     --secondary: #6d1c52;
     --accent: #8f3724;
+    --glass: #141414;
+  }
+}
+
+.blink-cursor {
+  animation: blink-fade-subtle 2s ease-in-out infinite;
+}
+@keyframes blink-fade-subtle {
+  0%, 40% {
+    opacity: 1;
+  }
+  55%, 65% {
+    opacity: 0.6;
+  }
+  80%, 100% {
+    opacity: 1;
   }
 }

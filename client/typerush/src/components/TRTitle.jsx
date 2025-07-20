@@ -1,39 +1,24 @@
-export default function TRTitle() {
+import React from "react";
+import TRTitle2 from "@/components/TRTitle2"; // Adjust path if needed
+
+export default function ResponsiveTRTitle2() {
   return (
-    <div className="flex flex-col items-center justify-center text-center gap-1 mt-8">
-      {/* Top halves */}
-      <div className="flex gap-8">
-        <div className="overflow-hidden h-[2rem]">
-          <span className="block text-6xl md:text-7xl uppercase font-black text-[var(--accent)] leading-none">
-            TYPE
-          </span>
-        </div>
-        <div className="overflow-hidden h-[2rem]">
-          <span className="block text-6xl md:text-7xl uppercase font-black text-[var(--secondary)] leading-none">
-            RUSH
-          </span>
-        </div>
+    <>
+      {/* Animated TRTitle2 on desktop and larger */}
+      <div className="hidden md:flex">
+        <TRTitle2 />
       </div>
 
-      {/* Middle sentence */}
-      <div className="flex gap-12 text-[var(--text)] font-bold text-lg md:text-xl ">
-        <span>faster than them</span>
-        <span>against the clock</span>
-      </div>
+      {/* Simple stacked version for mobile and tablets */}
+      <div className="flex flex-col md:hidden items-center gap-1">
+        <span className="text-3xl sm:text-4xl font-black uppercase text-[var(--primary)] leading-none">
+          TYPE
+        </span>
 
-      {/* Bottom halves */}
-      <div className="flex gap-8">
-        <div className="overflow-hidden h-[2.5rem]">
-          <span className="block text-6xl md:text-7xl uppercase font-black text-[var(--accent)] leading-none translate-y-[-2.5rem]">
-            TYPE
-          </span>
-        </div>
-        <div className="overflow-hidden h-[2.5rem]">
-          <span className="block text-6xl md:text-7xl uppercase font-black text-[var(--secondary)] leading-none translate-y-[-2.5rem]">
-            RUSH
-          </span>
-        </div>
+        <span className="text-3xl sm:text-4xl font-black uppercase text-[var(--primary)] leading-none">
+          RUSH
+        </span>
       </div>
-    </div>
+    </>
   );
 }
