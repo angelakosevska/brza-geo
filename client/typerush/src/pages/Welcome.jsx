@@ -17,13 +17,8 @@ export default function Welcome({ onStart }) {
 
           <div className="md:w-1/2 p-6 flex flex-col justify-center items-center text-center text-gray-800 dark:text-gray-200">
             <CardHeader className="w-full flex flex-col items-center">
-              <CardTitle className="w-full text-4xl font-extrabold text-gray-900 dark:text-white text-center">
-                Welcome to{" "}
-                <img
-                  src="/TR.svg"
-                  alt="Type Rush Logo"
-                  className="h-12 md:h-16 mb-6"
-                />
+              <CardTitle className=" adorable w-full text-4xl text-gray-900 dark:text-white text-center">
+                Welcome to
               </CardTitle>
             </CardHeader>
 
