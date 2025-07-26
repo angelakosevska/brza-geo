@@ -114,7 +114,6 @@ export default function AuthPanel() {
           </div>
         </div>
       </div>
-      {/* Only utility for hiding backface */}
       <style>{`
         .backface-hidden { backface-visibility: hidden; }
       `}</style>

@@ -4,6 +4,7 @@ import AuthPanel from "./pages/Login";
 import Layout from "./Layout";
 import Layout1 from "./Layout1";
 import MainPage from "./pages/MainPage";
+import AuthPage from "./pages/AuthPage";
 
 export default function AppRoutes() {
   return (
@@ -13,7 +14,7 @@ export default function AppRoutes() {
         <Route path="/main" element={<MainPage />} />
       </Route>
       <Route element={<Layout1 />}>
-        <Route path="/auth" element={<AuthPanel />} />
+        <Route path="/auth" element={<AuthPage />} />
       </Route>
     </Routes>
   );

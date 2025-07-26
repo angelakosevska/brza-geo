@@ -40,7 +40,7 @@ body {
   --primary: #37cda5;
   --secondary: #e392c8;
   --accent: #db8470;
-  --glass: #ffffff;
+  --glass: #000000;
 }
 
 /* Dark theme */
@@ -51,7 +51,7 @@ body {
     --primary: #37cda5;
     --secondary: #6d1c52;
     --accent: #8f3724;
-    --glass: #141414;
+    --glass: #be9292;
   }
 }
 

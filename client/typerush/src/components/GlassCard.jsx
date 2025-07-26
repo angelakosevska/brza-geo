@@ -10,7 +10,8 @@ export default function GlassCard({ children }) {
         border border-[var(--background)]
         backdrop-blur-xs
         rounded-4xl        
-        shadow-sm       
+        shadow-xl
+        shadow-gray-500/20    
         p-4 
       `}
     >
