@@ -4,7 +4,6 @@ import { LoginForm } from "@/components/LoginForm";
 import { RegisterForm } from "@/components/RegisterForm";
 import { useNavigate } from "react-router-dom";
 
-
 export default function AuthPage() {
   const [flipped, setFlipped] = useState(false);
   const [loginData, setLoginData] = useState({ email: "", password: "" });
@@ -29,6 +28,8 @@ export default function AuthPage() {
       const data = await res.json();
       if (res.ok && data.token) {
         localStorage.setItem("token", data.token);
+        localStorage.setItem("userId", data.user._id); // ✅ Add this
+        localStorage.setItem("username", data.user.username);
         alert("Login successful!");
         navigate("/main");
       } else {

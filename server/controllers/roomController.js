@@ -4,7 +4,7 @@ const { getIO } = require("../sockets/ioInstance");
 
 exports.createRoom = async (req, res) => {
   try {
-    const { rounds, timer } = req.body;
+    const { rounds = 3, timer = 120 } = req.body;
     const code = crypto.randomBytes(3).toString("hex").toUpperCase();
 
     const newRoom = new Room({
@@ -79,10 +79,10 @@ exports.setCategories = async (req, res) => {
 
 exports.getRoomInfo = async (req, res) => {
   try {
-    const room = await Room.findOne({ code: req.params.code }).populate(
-      "players",
-      "username"
-    );
+    const room = await Room.findOne({ code: req.params.code })
+      .populate("players", "username")
+      .populate("host", "username"); // 👈 Add this line
+
     if (!room) return res.status(404).json({ message: "Собата не постои." });
 
     res.json({ room });

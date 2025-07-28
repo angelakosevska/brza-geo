@@ -6,5 +6,8 @@
     "start": "concurrently \"npm run server\" \"npm run client\"",
     "client": "cd client/typerush && npm run dev",
     "server": "cd server && node server.js"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.8.1"
   }
 }
