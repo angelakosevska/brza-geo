@@ -2,9 +2,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CardFooter } from "@/components/ui/card";
 import TRTitle from "@/components/TRTitle";
+import { useNavigate } from "react-router-dom";
 
 export default function Welcome({ onStart }) {
   const [showHowToPlay, setShowHowToPlay] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <div className="flex flex-col  md:flex-row w-full h-full  align-middle justify-center">
@@ -29,7 +31,11 @@ export default function Welcome({ onStart }) {
           >
             Start Playing as Guest
           </Button>
-          <Button size="lg" className="w-full">
+          <Button
+            size="lg"
+            className="w-full"
+            onClick={() => navigate("/auth")}
+          >
             Login or Register
           </Button>
 
@@ -56,8 +62,8 @@ export default function Welcome({ onStart }) {
             />
             <h2 className="text-2xl font-semibold mb-4">How to Play</h2>
             <p className="text-base md:text-lg max-w-md mx-auto">
-              This section will explain how the game is played with simple
-              steps and visuals.
+              This section will explain how the game is played with simple steps
+              and visuals.
             </p>
           </div>
         </div>

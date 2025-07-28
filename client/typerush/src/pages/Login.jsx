@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import clsx from "clsx";
-import GlassCard from "@/components/GlassCard";
+import { useNavigate } from "react-router-dom";
 
 export default function AuthPanel() {
   const [flipped, setFlipped] = useState(false);

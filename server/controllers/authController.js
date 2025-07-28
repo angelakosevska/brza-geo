@@ -7,7 +7,9 @@ exports.register = async (req, res) => {
     const { username, password } = req.body;
 
     if (!username || !password) {
-      return res.status(400).json({ message: "Внесете корисничко име и лозинка." });
+      return res
+        .status(400)
+        .json({ message: "Внесете корисничко име и лозинка." });
     }
 
     const existingUser = await User.findOne({ username });
@@ -33,17 +35,23 @@ exports.login = async (req, res) => {
     const { username, password } = req.body;
 
     if (!username || !password) {
-      return res.status(400).json({ message: "Внесете валидно корисничко име и лозинка." });
+      return res
+        .status(400)
+        .json({ message: "Внесете валидно корисничко име и лозинка." });
     }
 
     const user = await User.findOne({ username });
     if (!user) {
-      return res.status(400).json({ message: "Грешно корисничко име или лозинка." });
+      return res
+        .status(400)
+        .json({ message: "Грешно корисничко име или лозинка." });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Грешно корисничко име или лозинка." });
+      return res
+        .status(400)
+        .json({ message: "Грешно корисничко име или лозинка." });
     }
 
     const token = jwt.sign(
@@ -52,7 +60,7 @@ exports.login = async (req, res) => {
       { expiresIn: "1h" }
     );
 
-    res.json({ token });
+    res.json({ token, username: user.username });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });

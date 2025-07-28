@@ -2,11 +2,18 @@ import React, { useState } from "react";
 import clsx from "clsx";
 import { LoginForm } from "@/components/LoginForm";
 import { RegisterForm } from "@/components/RegisterForm";
+import { useNavigate } from "react-router-dom";
+
 
 export default function AuthPage() {
   const [flipped, setFlipped] = useState(false);
   const [loginData, setLoginData] = useState({ email: "", password: "" });
-  const [registerData, setRegisterData] = useState({ email: "", password: "", confirmPassword: "" });
+  const [registerData, setRegisterData] = useState({
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -14,12 +21,16 @@ export default function AuthPage() {
       const res = await fetch("http://localhost:5000/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: loginData.email, password: loginData.password }),
+        body: JSON.stringify({
+          username: loginData.email,
+          password: loginData.password,
+        }),
       });
       const data = await res.json();
       if (res.ok && data.token) {
         localStorage.setItem("token", data.token);
         alert("Login successful!");
+        navigate("/main");
       } else {
         alert(data.message || "Login error");
       }
@@ -30,13 +41,17 @@ export default function AuthPage() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    if (registerData.password !== registerData.confirmPassword) return alert("Passwords do not match!");
+    if (registerData.password !== registerData.confirmPassword)
+      return alert("Passwords do not match!");
 
     try {
       const res = await fetch("http://localhost:5000/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: registerData.email, password: registerData.password }),
+        body: JSON.stringify({
+          username: registerData.email,
+          password: registerData.password,
+        }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -75,7 +90,10 @@ export default function AuthPage() {
           </div>
           <div
             className="absolute inset-0 flex justify-center items-center backface-hidden"
-            style={{ transform: "rotateY(180deg)", backfaceVisibility: "hidden" }}
+            style={{
+              transform: "rotateY(180deg)",
+              backfaceVisibility: "hidden",
+            }}
           >
             <RegisterForm
               registerData={registerData}
