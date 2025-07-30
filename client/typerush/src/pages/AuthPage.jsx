@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { LoginForm } from "@/components/LoginForm";
 import { RegisterForm } from "@/components/RegisterForm";
 import { useNavigate } from "react-router-dom";
+import api from "@/lib/axios";
 
 export default function AuthPage() {
   const [flipped, setFlipped] = useState(false);
@@ -14,56 +15,41 @@ export default function AuthPage() {
   });
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: loginData.email,
-          password: loginData.password,
-        }),
-      });
-      const data = await res.json();
-      if (res.ok && data.token) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("userId", data.user._id); // ✅ Add this
-        localStorage.setItem("username", data.user.username);
-        alert("Login successful!");
-        navigate("/main");
-      } else {
-        alert(data.message || "Login error");
-      }
+      const res = await api.post("/auth/register", registerData);
+      const { token, user } = res.data;
+      localStorage.setItem("token", token);
+      localStorage.setItem("username", user.username);
+      navigate("/main");
     } catch (err) {
-      alert("Server error");
+      const message = err.response?.data?.message || "Registration failed";
+      alert(message);
     }
   };
 
-  const handleRegister = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (registerData.password !== registerData.confirmPassword)
-      return alert("Passwords do not match!");
-
     try {
-      const res = await fetch("http://localhost:5000/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: registerData.email,
-          password: registerData.password,
-        }),
+      const res = await api.post("/auth/login", {
+        login: loginData.email,
+        password: loginData.password,
       });
-      const data = await res.json();
-      if (res.ok) {
-        alert("Registration successful! Now login.");
-        setFlipped(false);
-      } else {
-        alert(data.message || "Register error");
-      }
+
+      const { token, user } = res.data;
+      localStorage.setItem("token", token);
+      localStorage.setItem("username", user.username);
+
+      navigate("/main");
     } catch (err) {
-      alert("Server error");
+      const message = err.response?.data?.message || "Login failed";
+      alert(message);
     }
+  };
+
+  const handleForgotPassword = () => {
+    navigate("/auth/forgot-password");
   };
 
   return (
@@ -87,6 +73,7 @@ export default function AuthPage() {
               setLoginData={setLoginData}
               handleLogin={handleLogin}
               onFlip={() => setFlipped(true)}
+              onForgotPassword={handleForgotPassword}
             />
           </div>
           <div

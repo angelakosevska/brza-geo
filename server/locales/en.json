@@ -1,0 +1,16 @@
+{
+	"all_fields_required": "All fields are required",
+	"invalid_email": "Invalid email address",
+	"password_too_short": "Password must be at least 6 characters",
+	"passwords_do_not_match": "Passwords do not match",
+	"username_or_email_taken": "Username or email already taken",
+	"registration_failed": "Registration failed",
+	"login_failed": "Invalid credentials",
+	"user_not_found": "No account found",
+	"reset_code_sent": "Reset code sent to your email",
+	"reset_code_invalid": "Invalid reset code",
+	"reset_code_expired": "Reset code expired",
+	"password_reset_success": "Password reset successful",
+	"invalid_or_expired_code": "invalid_or_expired_code",
+	"password_reset_successful": "password_reset_successful"
+}

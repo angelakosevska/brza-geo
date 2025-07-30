@@ -1,11 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 export default function Header() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const username = localStorage.getItem("username") || "User";
+  const [username, setUsername] = useState("User");
+  useEffect(() => {
+    const stored = localStorage.getItem("username");
+    if (stored) setUsername(stored);
+  }, []);
 
+  const navigate = useNavigate();
   return (
     <>
       <div className="w-full flex items-center justify-between px-4 py-3">
@@ -49,7 +55,7 @@ export default function Header() {
               className="w-full max-w-xs"
               onClick={() => {
                 localStorage.clear();
-                window.location.href = "/auth";
+                navigate("/auth");
               }}
             >
               Log Out

@@ -1,0 +1,16 @@
+{
+	"all_fields_required": "Сите полиња се задолжителни",
+	"invalid_email": "Невалидна е-пошта",
+	"password_too_short": "Лозинката мора да содржи најмалку 6 карактери",
+	"passwords_do_not_match": "Лозинките не се совпаѓаат",
+	"username_or_email_taken": "Корисничкото име или е-поштата веќе постојат",
+	"registration_failed": "Регистрацијата не успеа",
+	"login_failed": "Неточни податоци за најава",
+	"user_not_found": "Нема пронајден корисник",
+	"reset_code_sent": "Кодот за ресетирање е испратен на вашата е-пошта",
+	"reset_code_invalid": "Невалиден код за ресетирање",
+	"reset_code_expired": "Кодот за ресетирање е истечен",
+	"password_reset_success": "Лозинката е успешно променета",
+	"reset_email_sent": "reset_email_sent",
+	"password_reset_successful": "password_reset_successful"
+}
