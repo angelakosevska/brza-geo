@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { CardFooter } from "@/components/ui/card";
 import TRTitle from "@/components/TRTitle";
@@ -6,10 +6,23 @@ import { useNavigate } from "react-router-dom";
 
 export default function Welcome({ onStart }) {
   const [showHowToPlay, setShowHowToPlay] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
+
   const navigate = useNavigate();
 
+  useEffect(() => {
+    function handleResize() {
+      setIsDesktop(window.innerWidth >= 768);
+    }
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Decide when to show instructions
+  const showInstructions = isDesktop || showHowToPlay;
+
   return (
-    <div className="flex flex-col  md:flex-row w-full h-full  align-middle justify-center">
+    <div className="flex flex-col md:flex-row w-full h-full align-middle justify-center">
       {/* Left side (mobile = top half): Logo + Content */}
       <div className="w-full h-full md:w-1/2 flex flex-col items-center justify-center text-center p-6 gap-6">
         {/* Logo on top (visible only on small screens) */}
@@ -41,9 +54,9 @@ export default function Welcome({ onStart }) {
 
           {/* Toggle button for How to Play (on small screens only) */}
           <Button
-            variant="ghost"
+            variant="link"
             className="md:hidden"
-            onClick={() => setShowHowToPlay(!showHowToPlay)}
+            onClick={() => setShowHowToPlay((prev) => !prev)}
           >
             {showHowToPlay ? "Hide Instructions" : "How to Play"}
           </Button>
@@ -51,7 +64,7 @@ export default function Welcome({ onStart }) {
       </div>
 
       {/* Right side: How to Play (always shown on desktop, collapsible on mobile) */}
-      {(showHowToPlay || window.innerWidth >= 768) && (
+      {showInstructions && (
         <div className="w-full md:w-1/2 p-6 flex items-center justify-center text-center text-[var(--text)] rounded-xl">
           <div>
             {/* Show logo only on desktop */}

@@ -2,67 +2,85 @@ import { useState, useEffect } from "react";
 import { UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import GlassCard from "./GlassCard";
 
 export default function Header() {
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [username, setUsername] = useState("User");
+  const navigate = useNavigate();
+
   useEffect(() => {
     const stored = localStorage.getItem("username");
     if (stored) setUsername(stored);
   }, []);
 
-  const navigate = useNavigate();
   return (
     <>
-      <div className="w-full flex items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-2">
-          <img
-            src="/tr1.svg"
-            alt="Type Rush Logo"
-            className="w-12 h-12 blink-cursor"
-          />
-          <span className="text-4xl font-black uppercase text-[var(--primary)] leading-none">
-            TYPE RUSH
-          </span>
-        </div>
-
-        {/* User Icon (always visible) */}
-        <UserRound
-          className="w-10 h-10 text-[var(--primary)] cursor-pointer"
-          onClick={() => setShowProfileMenu(!showProfileMenu)}
-        />
-      </div>
-
-      {/* Dropdown Menu */}
-      {showProfileMenu && (
-        <div className="flex flex-col items-center gap-4 px-4 mt-2">
+      <GlassCard>
+        <div className="w-full flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
-            <UserRound className="w-6 h-6 text-[var(--primary)]" />
-            <span className="text-sm font-semibold text-[var(--text)]">
-              {username}
+            <img
+              src="/tr1.svg"
+              alt="Type Rush Logo"
+              className="w-12 h-12 blink-cursor"
+            />
+            <span className="text-4xl font-black uppercase text-[var(--primary)] leading-none">
+              TYPE RUSH
             </span>
           </div>
-
-          <div className="flex flex-col items-center gap-3 w-full">
-            <Button variant="secondary" className="w-full max-w-xs">
-              Profile
-            </Button>
-            <Button variant="secondary" className="w-full max-w-xs">
-              Settings
-            </Button>
-            <Button
-              variant="destructive"
-              className="w-full max-w-xs"
-              onClick={() => {
-                localStorage.clear();
-                navigate("/auth");
-              }}
+          {/* Profile DropdownMenu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <UserRound className="w-10 h-10 text-[var(--primary)] cursor-pointer" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="w-auto min-w-[20vw] mt-2
+          bg-[var(--background)]/30
+          backdrop-blur-sm
+          border border-[var(--background)] 
+          rounded-3xl
+          shadow-xl shadow-gray-500/20 "
             >
-              Log Out
-            </Button>
-          </div>
+              <div className="flex items-center gap-2 px-2 py-2">
+                <UserRound className="w-7 h-7 text-[var(--primary)]" />
+                <span className="text-md lg:text-lg font-semibold text-[var(--text)]">
+                  {username}
+                </span>
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => navigate("/profile")}
+                className="cursor-pointer text-md lg:text-lg "
+              >
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate("/settings")}
+                className="cursor-pointer text-md lg:text-lg "
+              >
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="h-px w-[95%] mx-auto bg-white/40 border-0" />
+              <DropdownMenuItem
+                onClick={() => {
+                  localStorage.clear();
+                  navigate("/auth");
+                }}
+                className="cursor-pointer text-destructive text-md lg:text-lg "
+              >
+                Log Out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-      )}
+      </GlassCard>
     </>
   );
 }

@@ -4,7 +4,7 @@ import LetterBackground from "./components/LetterBackground";
 export default function Layout1() {
   return (
     <LetterBackground>
-      <div className="w-full min-h-screen flex z-1 items-center justify-center">
+      <div className="w-full min-h-screen flex flex-col gap-1 z-1 items-center justify-center">
         <Outlet />
       </div>
     </LetterBackground>

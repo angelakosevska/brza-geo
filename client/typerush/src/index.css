@@ -29,11 +29,6 @@ body {
 :root {
   --font-rubik: "Rubik", sans-serif;
   --font-rubik-mono: "Rubik Mono One", monospace;
-  --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 40px;
-
-  --spacing-7: 1.75rem;
 
   --text: #051410;
   --background: #effbf7;
@@ -59,13 +54,16 @@ body {
   animation: blink-fade-subtle 2s ease-in-out infinite;
 }
 @keyframes blink-fade-subtle {
-  0%, 40% {
+  0%,
+  40% {
     opacity: 1;
   }
-  55%, 65% {
+  55%,
+  65% {
     opacity: 0.6;
   }
-  80%, 100% {
+  80%,
+  100% {
     opacity: 1;
   }
 }

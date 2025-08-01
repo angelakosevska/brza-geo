@@ -3,6 +3,7 @@ import Welcome from "./pages/WelcomePage";
 import Layout from "./Layout";
 import Layout1 from "./Layout1";
 import MainPage from "./pages/MainPage";
+import TestPage from "./pages/TestPage";
 import AuthPage from "./pages/AuthPage";
 import RoomPage from "./pages/RoomPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
@@ -13,13 +14,14 @@ export default function AppRoutes() {
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<Welcome />} />
-        <Route path="/main" element={<MainPage />} />
+       
         <Route path="/room/:code" element={<RoomPage />} />
       </Route>
-      <Route element={<Layout1 />}>
-        <Route path="/auth" element={<AuthPage />} />
+      <Route element={<Layout1 />}> //just letter background
+        <Route path="/auth" element={<AuthPage />} /> <Route path="/main" element={<MainPage />} />
         <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/test" element={<TestPage />} />
       </Route>
     </Routes>
   );

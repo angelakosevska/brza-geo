@@ -65,11 +65,7 @@ export default function AuthPage() {
           }}
         >
           <div
-            className="absolute inset-0 flex justify-center items-center backface-hidden bg-[var(--background)]/30
-          backdrop-blur-sm
-          border border-[var(--background)] 
-          rounded-3xl
-          shadow-xl shadow-gray-500/20"
+            className="absolute inset-0 flex justify-center items-center backface-hidden"
             style={{ backfaceVisibility: "hidden" }}
           >
             <LoginForm
@@ -81,11 +77,7 @@ export default function AuthPage() {
             />
           </div>
           <div
-            className="absolute inset-0 flex justify-center items-center bg-[var(--background)]/30
-          backdrop-blur-sm
-          border border-[var(--background)] 
-          rounded-3xl
-          shadow-xl shadow-gray-500/20 backface-hidden"
+            className="absolute inset-0 flex justify-center items-center backface-hidden"
             style={{
               transform: "rotateY(180deg)",
               backfaceVisibility: "hidden",
