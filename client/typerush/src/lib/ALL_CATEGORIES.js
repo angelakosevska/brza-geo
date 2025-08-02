@@ -1,0 +1,28 @@
+
+export const ALL_CATEGORIES = [
+  "City",
+  "Country",
+  "Animal",
+  "Plant",
+  "Movie",
+  "Food",
+  "Sport",
+  "Celebrity",
+  "River",
+  "Car Brand",
+  "Song",
+  "Book",
+  "Color",
+  "Occupation",
+  "Clothing",
+  "Language",
+  "Mountain",
+  "Island",
+  "Brand",
+  "Instrument",
+  "Drink",
+  "Game",
+  "Insect",
+  "Planet",
+  "Chemical Element"
+];
