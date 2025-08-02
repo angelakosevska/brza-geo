@@ -1,16 +1,19 @@
 import { Card } from "@/components/ui/card";
+import React from "react";
 
-export default function GlassCard({
-  children,
-  className = "",
-  width = "max-w-[90vw]",
-  ...props
-}) {
+/*
+bg-[var(--background)]/30
+          backdrop-blur-sm
+          border border-[var(--background)] 
+          rounded-3xl
+          shadow-xl shadow-gray-500/20
+*/
+
+export default function GlassCardFlex({ children, className = "", ...props }) {
   return (
     <Card
       className={`
-        w-full
-        ${width}
+         
         h-auto
         bg-[var(--background)]/20
         border border-[var(--background)]

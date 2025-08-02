@@ -13,14 +13,17 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route element={<Layout />}>
+        {" "}
+        //one glass card main
         <Route path="/" element={<Welcome />} />
-       
-        <Route path="/room/:code" element={<RoomPage />} />
       </Route>
-      <Route element={<Layout1 />}> //just letter background
-        <Route path="/auth" element={<AuthPage />} /> <Route path="/main" element={<MainPage />} />
+      <Route element={<Layout1 />}>
+        //just letter background
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/main" element={<MainPage />} />
         <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />{" "}
+        <Route path="/room/:code" element={<RoomPage />} />
         <Route path="/test" element={<TestPage />} />
       </Route>
     </Routes>

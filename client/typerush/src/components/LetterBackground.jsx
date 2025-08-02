@@ -3,7 +3,7 @@ import React from "react";
 
 export default function LetterBackground({ children }) {
   return (
-    <div className="w-full h-screen z-0 bg-[var(--background)] text-text relative overflow-hidden">
+    <div className="w-full h-auto z-0 bg-[var(--background)] text-text relative overflow-hidden">
       {/* Floating letters background */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         {Array.from({ length: 80 }).map((_, i) => {

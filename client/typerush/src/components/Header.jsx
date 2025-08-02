@@ -22,8 +22,8 @@ export default function Header() {
 
   return (
     <>
-      <GlassCard>
-        <div className="w-full flex items-center justify-between px-4 py-3">
+      <GlassCard className="w-[90vw]">
+        <div className="w-full flex items-center justify-between">
           <div className="flex items-center gap-2">
             <img
               src="/tr1.svg"
@@ -57,13 +57,13 @@ export default function Header() {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => navigate("/profile")}
-                className="cursor-pointer text-md lg:text-lg "
+                className="cursor-pointer text-md lg:text-lg text-[var(--text)]"
               >
                 Profile
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => navigate("/settings")}
-                className="cursor-pointer text-md lg:text-lg "
+                className="cursor-pointer text-md lg:text-lg text-[var(--text)]"
               >
                 Settings
               </DropdownMenuItem>
@@ -73,7 +73,7 @@ export default function Header() {
                   localStorage.clear();
                   navigate("/auth");
                 }}
-                className="cursor-pointer text-destructive text-md lg:text-lg "
+                className="cursor-pointer text-destructive text-md lg:text-lg text-[var(--secondary)] font-bold"
               >
                 Log Out
               </DropdownMenuItem>

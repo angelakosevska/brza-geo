@@ -16,7 +16,7 @@ export default function MainPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({}), 
+        body: JSON.stringify({}), // optional rounds, timer could still be passed
       });
 
       const data = await res.json();
@@ -34,23 +34,21 @@ export default function MainPage() {
   return (
     <>
       <Header />
-      <div className="flex flex-col lg:flex-row  max-w-[90vw] w-full mx-auto gap-6 py-8 ">
-        <GlassCard className="">
-          <div className="flex w-full lg:w-2/3 mx-auto gap-8 px-2">
-            <div className="flex-1 flex flex-col items-center justify-center gap-3">
-              <Button className="w-full max-w-xs" onClick={handleCreateRoom}>
-                Create a room
-              </Button>
-              <span className="text-sm text-gray-500">or</span>
-              <Button className="w-full max-w-xs">Join a room</Button>
-              <Button variant="outline" className="w-full max-w-xs">
-                Categories
-              </Button>
-            </div>
+
+      <GlassCard className="w-[90vw]">
+        <div className="flex w-full max-w-4xl mx-auto mt-8 gap-8 px-2">
+          <div className="flex-1 flex flex-col items-center justify-center gap-3">
+            <Button className="w-full max-w-xs" onClick={handleCreateRoom}>
+              Create a room
+            </Button>
+            <span className="text-sm text-gray-500">or</span>
+            <Button className="w-full max-w-xs">Join a room</Button>
+            <Button variant="outline" className="w-full max-w-xs">
+              Categories
+            </Button>
           </div>
-        </GlassCard>
-        <GlassCard className="w-full lg:w-1/3 "> image</GlassCard>
-      </div>
+        </div>
+      </GlassCard>
     </>
   );
 }

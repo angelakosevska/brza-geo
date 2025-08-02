@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { socket } from "@/lib/socket";
+import GlassCard from "@/components/GlassCard";
 
 export default function RoomPage() {
   const { code } = useParams();
@@ -113,136 +114,157 @@ export default function RoomPage() {
   return (
     <>
       <Header />
-      <div className="max-w-3xl mx-auto mt-8 px-4">
-        <h2 className="text-2xl font-bold text-[var(--primary)] mb-2 text-center">
-          Room Code: {room.code}
-        </h2>
+      <div className="flex flex-col lg:flex-row  max-w-[90vw] w-full mx-auto my-auto min-h-[80vh] gap-4 py-8 h-auto">
+        <GlassCard className="w-full lg:w-1/4 text-[var(--primary)]">
+          Players will be seperate component later{" "}
+        </GlassCard>
+        <GlassCard className="w-full lg:w-2/4">
+          <div className="max-w-3xl mx-auto mt-8 px-4">
+            <h2 className="text-2xl font-bold text-[var(--primary)] mb-2 text-center">
+              Room Code: {room.code}
+            </h2>
 
-        <div className="flex flex-col items-center gap-4 mt-4">
-          <div>
-            <h3 className="text-lg font-semibold">Players:</h3>
-            <ul className="text-sm text-[var(--text)]">
-              {room.players.map((player, idx) => (
-                <li key={idx}>{player.username || "Unknown"}</li>
-              ))}
-            </ul>
+            <div className="flex flex-col items-center gap-4 mt-4">
+              <div>
+                <h3 className="text-lg font-semibold">Players:</h3>
+                <ul className="text-sm text-[var(--text)]">
+                  {room.players.map((player, idx) => (
+                    <li key={idx}>{player.username || "Unknown"}</li>
+                  ))}
+                </ul>
+              </div>
+
+              {isHost ? (
+                <div className="w-full max-w-md mt-4 flex flex-col gap-4">
+                  <label>
+                    Rounds:
+                    <input
+                      type="number"
+                      value={room.rounds}
+                      onChange={(e) =>
+                        setRoom((prev) => ({
+                          ...prev,
+                          rounds: Number(e.target.value),
+                        }))
+                      }
+                      className="w-full p-2 rounded border"
+                    />
+                  </label>
+
+                  <label>
+                    Timer (seconds):
+                    <input
+                      type="number"
+                      value={room.timer}
+                      onChange={(e) =>
+                        setRoom((prev) => ({
+                          ...prev,
+                          timer: Number(e.target.value),
+                        }))
+                      }
+                      className="w-full p-2 rounded border"
+                    />
+                  </label>
+
+                  <label>
+                    Categories (comma-separated):
+                    <input
+                      type="text"
+                      value={room.categories?.join(", ") || ""}
+                      onChange={(e) =>
+                        setRoom((prev) => ({
+                          ...prev,
+                          categories: e.target.value
+                            .split(",")
+                            .map((c) => c.trim())
+                            .filter((c) => c !== ""),
+                        }))
+                      }
+                      className="w-full p-2 rounded border"
+                    />
+                  </label>
+
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      socket.emit("updateSettings", {
+                        roomCode: room.code,
+                        rounds: room.rounds,
+                        timer: room.timer,
+                      });
+
+                      socket.emit("setCategories", {
+                        roomCode: room.code,
+                        categories: room.categories,
+                      });
+
+                      alert("Settings sent to players.");
+                    }}
+                  >
+                    Save Settings
+                  </Button>
+
+                  <Button
+                    className="w-full"
+                    onClick={async () => {
+                      const res = await fetch(
+                        "http://localhost:5000/api/rooms/start",
+                        {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                          },
+                          body: JSON.stringify({ code: room.code }),
+                        }
+                      );
+
+                      const data = await res.json();
+                      if (res.ok) {
+                        socket.emit("startGame", {
+                          roomCode: room.code,
+                          letter: data.room.letter,
+                          round: data.room.currentRound,
+                        });
+                      } else {
+                        alert(data.message);
+                      }
+                    }}
+                  >
+                    Start Game
+                  </Button>
+                </div>
+              ) : (
+                <div className="w-full max-w-md mt-4 flex flex-col gap-4 text-center">
+                  <p>Rounds: {room.rounds}</p>
+                  <p>Timer: {room.timer} seconds</p>
+                  <p>
+                    Categories:{" "}
+                    {room.categories?.length > 0
+                      ? room.categories.join(", ")
+                      : "Not set yet"}
+                  </p>
+                  <p className="text-sm text-[var(--secondary)]">
+                    Waiting for host to start the game...
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
+        </GlassCard>
 
-          {isHost ? (
-            <div className="w-full max-w-md mt-4 flex flex-col gap-4">
-              <label>
-                Rounds:
-                <input
-                  type="number"
-                  value={room.rounds}
-                  onChange={(e) =>
-                    setRoom((prev) => ({
-                      ...prev,
-                      rounds: Number(e.target.value),
-                    }))
-                  }
-                  className="w-full p-2 rounded border"
-                />
-              </label>
-
-              <label>
-                Timer (seconds):
-                <input
-                  type="number"
-                  value={room.timer}
-                  onChange={(e) =>
-                    setRoom((prev) => ({
-                      ...prev,
-                      timer: Number(e.target.value),
-                    }))
-                  }
-                  className="w-full p-2 rounded border"
-                />
-              </label>
-
-              <label>
-                Categories (comma-separated):
-                <input
-                  type="text"
-                  value={room.categories?.join(", ") || ""}
-                  onChange={(e) =>
-                    setRoom((prev) => ({
-                      ...prev,
-                      categories: e.target.value
-                        .split(",")
-                        .map((c) => c.trim())
-                        .filter((c) => c !== ""),
-                    }))
-                  }
-                  className="w-full p-2 rounded border"
-                />
-              </label>
-
-              <Button
-                variant="outline"
-                onClick={() => {
-                  socket.emit("updateSettings", {
-                    roomCode: room.code,
-                    rounds: room.rounds,
-                    timer: room.timer,
-                  });
-
-                  socket.emit("setCategories", {
-                    roomCode: room.code,
-                    categories: room.categories,
-                  });
-
-                  alert("Settings sent to players.");
-                }}
-              >
-                Save Settings
-              </Button>
-
-              <Button
-                className="w-full"
-                onClick={async () => {
-                  const res = await fetch(
-                    "http://localhost:5000/api/rooms/start",
-                    {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                      },
-                      body: JSON.stringify({ code: room.code }),
-                    }
-                  );
-
-                  const data = await res.json();
-                  if (res.ok) {
-                    socket.emit("startGame", {
-                      roomCode: room.code,
-                      letter: data.room.letter,
-                      round: data.room.currentRound,
-                    });
-                  } else {
-                    alert(data.message);
-                  }
-                }}
-              >
-                Start Game
-              </Button>
-            </div>
-          ) : (
-            <div className="w-full max-w-md mt-4 flex flex-col gap-4 text-center">
-              <p>Rounds: {room.rounds}</p>
-              <p>Timer: {room.timer} seconds</p>
-              <p>
-                Categories:{" "}
-                {room.categories?.length > 0
-                  ? room.categories.join(", ")
-                  : "Not set yet"}
-              </p>
-              <p className="text-sm text-gray-400">
-                Waiting for host to start the game...
-              </p>
-            </div>
-          )}
+        <div className="w-full lg:w-1/4  flex flex-col gap-6">
+          <GlassCard className="w-full items-center">
+            <h3 className="text-xl font-semibold text-center text-[var(--secondary)]">
+              Room Code
+            </h3>
+            <p className="text-center text-[var(--primary)] text-2xl font-bold">
+              {room.code}
+            </p>
+            {isHost && <Button className="w-full">Start the Game</Button>}
+            <Button className="w-[80%]">Start the Game</Button>
+          </GlassCard>
+          <GlassCard className="h-full w-full items-center">Image</GlassCard>
         </div>
       </div>
     </>

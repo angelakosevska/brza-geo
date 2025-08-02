@@ -21,6 +21,7 @@ export default function AuthPage() {
       const res = await api.post("/auth/register", registerData);
       const { token, user } = res.data;
       localStorage.setItem("token", token);
+      localStorage.setItem("userId", user.id);
       localStorage.setItem("username", user.username);
       navigate("/main");
     } catch (err) {
@@ -39,6 +40,7 @@ export default function AuthPage() {
 
       const { token, user } = res.data;
       localStorage.setItem("token", token);
+      localStorage.setItem("userId", user.id);
       localStorage.setItem("username", user.username);
 
       navigate("/main");

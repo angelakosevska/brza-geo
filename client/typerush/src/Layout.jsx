@@ -6,7 +6,7 @@ export default function Layout() {
   return (
     <LetterBackground>
       <div className="w-full min-h-screen flex items-center justify-center">
-        <GlassCard className="">
+        <GlassCard className="w-[90vw]">
           <Outlet />
         </GlassCard>
       </div>

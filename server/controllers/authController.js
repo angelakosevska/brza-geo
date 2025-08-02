@@ -52,9 +52,13 @@ exports.register = async (req, res) => {
     }
 
     // 7. Create JWT
-    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
+    const token = jwt.sign(
+      { id: newUser._id, username: newUser.username },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "7d",
+      }
+    );
 
     // 8. Respond with success
     res.status(201).json({
@@ -96,9 +100,13 @@ exports.login = async (req, res) => {
   }
 
   // 4. Create JWT
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
-  });
+  const token = jwt.sign(
+    { id: user._id, username: user.username },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "7d",
+    }
+  );
 
   // 5. Return user data
   res.status(200).json({
