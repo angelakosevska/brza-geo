@@ -18,11 +18,15 @@ export default function MainPage() {
     }
 
     try {
-      const res = await api.post("/room/create", {}, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await api.post(
+        "/room/create",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       const { room } = res.data;
       navigate(`/room/${room.code}`);
     } catch (err) {
@@ -45,30 +49,36 @@ export default function MainPage() {
 
   return (
     <>
-      <Header />
-      <div className="flex flex-col lg:flex-row max-w-[90vw] w-full mx-auto gap-6 py-8">
-        <GlassCard>
-          <div className="flex w-full lg:w-2/3 mx-auto gap-8 px-2">
-            <div className="flex-1 flex flex-col items-center justify-center gap-3">
-              <Button className="w-full max-w-xs" onClick={handleCreateRoom}>
-                Create a room
-              </Button>
-              <span className="text-sm text-gray-500">or</span>
-              <div className="w-full max-w-xs flex flex-col gap-2">
-                <Input
-                  placeholder="Enter room code"
-                  value={joinCode}
-                  onChange={(e) => setJoinCode(e.target.value)}
-                />
-                <Button onClick={handleJoinRoom}>Join a room</Button>
-              </div>
-              <Button variant="outline" className="w-full max-w-xs">
-                Categories
-              </Button>
+      <div className="flex flex-col lg:flex-row max-w-[90vw] h-[100%] mx-auto gap-6 py-8">
+        {/* Main card: 3/4 width on desktop, full width on mobile */}
+        <GlassCard className="flex-1 lg:flex-[3] flex items-center justify-center">
+          <div className="w-full flex flex-col items-center justify-center gap-6 px-2">
+            <Button className="w-full max-w-xs" onClick={handleCreateRoom}>
+              Create a room
+            </Button>
+            <span className="text-sm text-gray-500">or</span>
+            <div className="w-full max-w-xs flex flex-col gap-2">
+              <Input
+                placeholder="Enter room code"
+                value={joinCode}
+                onChange={(e) => setJoinCode(e.target.value)}
+              />
+              <Button onClick={handleJoinRoom}>Join a room</Button>
             </div>
+            <Button variant="outline" className="w-full max-w-xs">
+              Categories
+            </Button>
           </div>
         </GlassCard>
-        <GlassCard className="w-full lg:w-1/3"> image</GlassCard>
+
+        {/* Image card: 1/4 width on desktop, full width on mobile */}
+        <GlassCard className="flex-1 lg:flex-[1] flex items-center justify-center">
+          <img
+            src="/your-image.jpg"
+            alt="Preview"
+            className="max-w-full max-h-64 object-contain rounded-xl"
+          />
+        </GlassCard>
       </div>
     </>
   );

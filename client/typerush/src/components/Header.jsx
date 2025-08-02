@@ -22,7 +22,7 @@ export default function Header() {
 
   return (
     <>
-      <GlassCard className="w-[90vw]">
+      <GlassCard className="w-[90vw] p-4 max-h-25 align-middle">
         <div className="w-full flex items-center justify-between">
           <div className="flex items-center gap-2">
             <img
@@ -30,7 +30,10 @@ export default function Header() {
               alt="Type Rush Logo"
               className="w-12 h-12 blink-cursor"
             />
-            <span className="text-4xl font-black uppercase text-[var(--primary)] leading-none">
+            <span
+              className="text-3xl font-black uppercase text-[var(--primary)] leading-none cursor-pointer"
+              onClick={() => navigate("/main")}
+            >
               TYPE RUSH
             </span>
           </div>

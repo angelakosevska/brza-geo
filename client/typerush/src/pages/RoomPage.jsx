@@ -1,18 +1,22 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { socket } from "@/lib/socket";
 import GlassCard from "@/components/GlassCard";
+import { useAuth } from "@/context/AuthContext";
+import { InputCat } from "@/components/ui/inputCat";
+import PlayersList from "@/components/PlayersList";
+import RoomCodeCard from "@/components/RoomCodeCard";
 
 export default function RoomPage() {
   const { code } = useParams();
+  const { user } = useAuth();
+  const currentUserId = user?.id;
   const navigate = useNavigate();
   const [room, setRoom] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const token = localStorage.getItem("token");
-  const currentUserId = localStorage.getItem("userId");
 
   // 1. Fetch Room Info
   useEffect(() => {
@@ -100,168 +104,180 @@ export default function RoomPage() {
     };
   }, [room, currentUserId]);
 
-  if (loading) return <div className="text-center mt-10">Loading room...</div>;
+  if (loading) return <div className="mt-10 text-center">Loading room...</div>;
   if (!room) return null;
 
   const isHost =
     room.host &&
     (room.host._id === currentUserId || room.host === currentUserId);
 
-  console.log("room.host:", room.host);
-  console.log("currentUserId:", currentUserId);
-  console.log("isHost:", isHost);
-
   return (
-    <>
-      <Header />
-      <div className="flex flex-col lg:flex-row  max-w-[90vw] w-full mx-auto my-auto min-h-[80vh] gap-4 py-8 h-auto">
-        <GlassCard className="w-full lg:w-1/4 text-[var(--primary)]">
-          Players will be seperate component later{" "}
-        </GlassCard>
-        <GlassCard className="w-full lg:w-2/4">
-          <div className="max-w-3xl mx-auto mt-8 px-4">
-            <div className="flex flex-col items-center gap-4 mt-4">
-              <div>
-                <h3 className="text-lg font-semibold">Players:</h3>
-                <ul className="text-sm text-[var(--text)]">
-                  {room.players.map((player, idx) => (
-                    <li key={idx}>{player.username || "Unknown"}</li>
-                  ))}
-                </ul>
+    <div className="flex flex-col gap-4 mx-auto py-8 w-full max-w-[90vw] min-h-[80vh]">
+      <div className="flex lg:flex-row flex-col gap-2 w-full">
+        <PlayersList players={room.players} className="w-full lg:w-3/4" />
+        <RoomCodeCard
+          code={room.code}
+          isHost={isHost}
+          className="w-full lg:w-1/4"
+        />
+      </div>
+      <div className="flex lg:flex-row flex-col gap-4 w-full">
+        <GlassCard className="gap-4 p-4 w-full lg:w-3/4">
+          <div className="flex flex-col items-center">
+            {isHost ? (
+              <div className="flex flex-col gap-6 w-full">
+                {/* Rounds, Timer, Categories, Save/Start buttons */}
+                <InputCat
+                  type="number"
+                  value={room.rounds}
+                  onChange={(e) =>
+                    setRoom((prev) => ({
+                      ...prev,
+                      rounds: Number(e.target.value),
+                    }))
+                  }
+                  label="Number of rounds"
+                  placeholder="Total number of Rounds"
+                  min={1}
+                  className="mb-2"
+                />
+
+                <InputCat
+                  type="number"
+                  value={room.timer}
+                  onChange={(e) =>
+                    setRoom((prev) => ({
+                      ...prev,
+                      timer: Number(e.target.value),
+                    }))
+                  }
+                  label="Time per round (seconds)"
+                  placeholder="Time in seconds"
+                  min={10}
+                  className="mb-2"
+                />
+
+                <InputCat
+                  type="text"
+                  value={room.categories?.join(", ") || ""}
+                  onChange={(e) =>
+                    setRoom((prev) => ({
+                      ...prev,
+                      categories: e.target.value
+                        .split(",")
+                        .map((c) => c.trim())
+                        .filter((c) => c !== ""),
+                    }))
+                  }
+                  label="Select categories"
+                  placeholder="e.g. City, Country, Animal"
+                  className="mb-2"
+                />
+                <span className="-mt-2 mb-4 ml-2 text-[var(--secondary)] text-xs">
+                  (Separate categories with commas)
+                </span>
+
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    socket.emit("updateSettings", {
+                      roomCode: room.code,
+                      rounds: room.rounds,
+                      timer: room.timer,
+                    });
+
+                    socket.emit("setCategories", {
+                      roomCode: room.code,
+                      categories: room.categories,
+                    });
+
+                    alert("Settings sent to players.");
+                  }}
+                >
+                  Save Settings
+                </Button>
+
+                <Button
+                  className="w-full"
+                  onClick={async () => {
+                    const res = await fetch(
+                      "http://localhost:5000/api/rooms/start",
+                      {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                          Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({ code: room.code }),
+                      }
+                    );
+
+                    const data = await res.json();
+                    if (res.ok) {
+                      socket.emit("startGame", {
+                        roomCode: room.code,
+                        letter: data.room.letter,
+                        round: data.room.currentRound,
+                      });
+                    } else {
+                      alert(data.message);
+                    }
+                  }}
+                >
+                  Start Game
+                </Button>
               </div>
-
-              {isHost ? (
-                <div className="w-full max-w-md mt-4 flex flex-col gap-4">
-                  <label>
-                    Rounds:
-                    <input
-                      type="number"
-                      value={room.rounds}
-                      onChange={(e) =>
-                        setRoom((prev) => ({
-                          ...prev,
-                          rounds: Number(e.target.value),
-                        }))
-                      }
-                      className="w-full p-2 rounded border"
-                    />
-                  </label>
-
-                  <label>
-                    Timer (seconds):
-                    <input
-                      type="number"
-                      value={room.timer}
-                      onChange={(e) =>
-                        setRoom((prev) => ({
-                          ...prev,
-                          timer: Number(e.target.value),
-                        }))
-                      }
-                      className="w-full p-2 rounded border"
-                    />
-                  </label>
-
-                  <label>
-                    Categories (comma-separated):
-                    <input
-                      type="text"
-                      value={room.categories?.join(", ") || ""}
-                      onChange={(e) =>
-                        setRoom((prev) => ({
-                          ...prev,
-                          categories: e.target.value
-                            .split(",")
-                            .map((c) => c.trim())
-                            .filter((c) => c !== ""),
-                        }))
-                      }
-                      className="w-full p-2 rounded border"
-                    />
-                  </label>
-
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      socket.emit("updateSettings", {
-                        roomCode: room.code,
-                        rounds: room.rounds,
-                        timer: room.timer,
-                      });
-
-                      socket.emit("setCategories", {
-                        roomCode: room.code,
-                        categories: room.categories,
-                      });
-
-                      alert("Settings sent to players.");
-                    }}
-                  >
-                    Save Settings
-                  </Button>
-
-                  <Button
-                    className="w-full"
-                    onClick={async () => {
-                      const res = await fetch(
-                        "http://localhost:5000/api/rooms/start",
-                        {
-                          method: "POST",
-                          headers: {
-                            "Content-Type": "application/json",
-                            Authorization: `Bearer ${token}`,
-                          },
-                          body: JSON.stringify({ code: room.code }),
-                        }
-                      );
-
-                      const data = await res.json();
-                      if (res.ok) {
-                        socket.emit("startGame", {
-                          roomCode: room.code,
-                          letter: data.room.letter,
-                          round: data.room.currentRound,
-                        });
-                      } else {
-                        alert(data.message);
-                      }
-                    }}
-                  >
-                    Start Game
-                  </Button>
+            ) : (
+              <div className="flex flex-col gap-4 p-6 w-full max-w-md">
+                {/* Stats */}
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-3">
+                    <span className="bg-[var(--primary)]/10 px-3 py-1 rounded-full font-semibold text-[var(--primary)]">
+                      Rounds
+                    </span>
+                    <span className="ml-auto font-bold text-[var(--primary)]">
+                      {room.rounds}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="bg-[var(--primary)]/10 px-3 py-1 rounded-full font-semibold text-[var(--primary)]">
+                      Timer
+                    </span>
+                    <span className="ml-auto font-bold text-[var(--primary)]">
+                      {room.timer}{" "}
+                      <span className="font-normal text-xs">sec</span>
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="bg-[var(--primary)]/10 px-3 py-1 rounded-full font-semibold text-[var(--primary)]">
+                      Categories
+                    </span>
+                    <span className="ml-auto text-right">
+                      {room.categories?.length > 0 ? (
+                        <span className="font-bold text-[var(--primary)]">
+                          {room.categories.join(", ")}
+                        </span>
+                      ) : (
+                        <span className="text-[var(--secondary)] italic">
+                          Not set yet
+                        </span>
+                      )}
+                    </span>
+                  </div>
                 </div>
-              ) : (
-                <div className="w-full max-w-md mt-4 flex flex-col gap-4 text-center">
-                  <p>Rounds: {room.rounds}</p>
-                  <p>Timer: {room.timer} seconds</p>
-                  <p>
-                    Categories:{" "}
-                    {room.categories?.length > 0
-                      ? room.categories.join(", ")
-                      : "Not set yet"}
-                  </p>
-                  <p className="text-sm text-[var(--secondary)]">
-                    Waiting for host to start the game...
-                  </p>
-                </div>
-              )}
-            </div>
+                {/* Status message */}
+                <p className="mt-2 text-[var(--secondary)] text-sm text-center">
+                  Waiting for host to start the game...
+                </p>
+              </div>
+            )}
           </div>
         </GlassCard>
-
-        <div className="w-full lg:w-1/4  flex flex-col gap-6">
-          <GlassCard className="w-full items-center">
-            <h3 className="text-xl font-semibold text-center text-[var(--secondary)]">
-              Room Code
-            </h3>
-            <p className="text-center text-[var(--primary)] text-2xl font-bold">
-              {room.code}
-            </p>
-            {isHost && <Button className="w-full">Start the Game</Button>}
-          </GlassCard>
-          <GlassCard className="h-full w-full items-center">Image</GlassCard>
-        </div>
+        <GlassCard className="flex justify-center items-center w-full lg:w-1/4 min-h-[200px]">
+          {/* Your image or placeholder here */}
+          Image
+        </GlassCard>
       </div>
-    </>
+    </div>
   );
 }

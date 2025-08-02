@@ -14,12 +14,12 @@ const inputFocus =
 const inputInvalid =
   "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive";
 
-function InputCat({ className, type, ...props }) {
+function InputCat({ className, type,label, ...props }) {
   return (
     <>
-      <div className="flex flex-col gap-1 ">
-        <span className="ml-2 text-md font-bold text-[var(--primary)]">
-          Category Name
+      <div className="flex flex-col gap-1">
+        <span className="ml-2 font-bold text-[var(--primary)] text-md">
+          {label}
         </span>
         <input
           type={type}
