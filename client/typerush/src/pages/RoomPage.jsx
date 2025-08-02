@@ -18,7 +18,7 @@ export default function RoomPage() {
   useEffect(() => {
     const fetchRoom = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/rooms/${code}`, {
+        const res = await fetch(`http://localhost:5000/api/room/${code}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -120,10 +120,6 @@ export default function RoomPage() {
         </GlassCard>
         <GlassCard className="w-full lg:w-2/4">
           <div className="max-w-3xl mx-auto mt-8 px-4">
-            <h2 className="text-2xl font-bold text-[var(--primary)] mb-2 text-center">
-              Room Code: {room.code}
-            </h2>
-
             <div className="flex flex-col items-center gap-4 mt-4">
               <div>
                 <h3 className="text-lg font-semibold">Players:</h3>
@@ -262,7 +258,6 @@ export default function RoomPage() {
               {room.code}
             </p>
             {isHost && <Button className="w-full">Start the Game</Button>}
-            <Button className="w-[80%]">Start the Game</Button>
           </GlassCard>
           <GlassCard className="h-full w-full items-center">Image</GlassCard>
         </div>

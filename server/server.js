@@ -35,7 +35,7 @@ app.use(i18n.init);
 // Routes
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/game", require("./routes/game"));
-app.use("/api/rooms", require("./routes/room"));
+app.use("/api/room", require("./routes/room"));
 
 app.get("/", (req, res) => {
   res.send("🚀 Backend is running!");

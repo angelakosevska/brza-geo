@@ -4,6 +4,7 @@ import { LoginForm } from "@/components/LoginForm";
 import { RegisterForm } from "@/components/RegisterForm";
 import { useNavigate } from "react-router-dom";
 import api from "@/lib/axios";
+import { useAuth } from "@/context/AuthContext";
 
 export default function AuthPage() {
   const [flipped, setFlipped] = useState(false);
@@ -14,15 +15,15 @@ export default function AuthPage() {
     confirmPassword: "",
   });
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
       const res = await api.post("/auth/register", registerData);
       const { token, user } = res.data;
-      localStorage.setItem("token", token);
-      localStorage.setItem("userId", user.id);
-      localStorage.setItem("username", user.username);
+      login(token);
+
       navigate("/main");
     } catch (err) {
       const message = err.response?.data?.message || "Registration failed";
@@ -39,9 +40,7 @@ export default function AuthPage() {
       });
 
       const { token, user } = res.data;
-      localStorage.setItem("token", token);
-      localStorage.setItem("userId", user.id);
-      localStorage.setItem("username", user.username);
+    login(token);
 
       navigate("/main");
     } catch (err) {

@@ -4,6 +4,7 @@ const { getIO } = require("../sockets/ioInstance");
 
 exports.createRoom = async (req, res) => {
   try {
+     console.log("👤 Authenticated user:", req.user);
     const { rounds = 3, timer = 120 } = req.body;
     const code = crypto.randomBytes(3).toString("hex").toUpperCase();
 
@@ -11,6 +12,8 @@ exports.createRoom = async (req, res) => {
       code,
       host: req.user.userId,
       players: [req.user.userId],
+      rounds,
+      timer,
       started: false,
       currentRound: 0,
     });
@@ -25,11 +28,21 @@ exports.createRoom = async (req, res) => {
 
 exports.joinRoom = async (req, res) => {
   const { code } = req.body;
+
   try {
     const room = await Room.findOne({ code });
-    if (!room) return res.status(404).json({ message: "Собата не постои." });
-    if (room.players.includes(req.user.userId))
+    if (!room) {
+      return res.status(404).json({ message: "Собата не постои." });
+    }
+
+    const isAlreadyInRoom = room.players.some(
+      (id) => id.toString() === req.user.userId
+    );
+
+    if (isAlreadyInRoom) {
+      console.log("Already in room:", req.user.userId, "in room", code);
       return res.status(400).json({ message: "Веќе сте во собата." });
+    }
 
     room.players.push(req.user.userId);
     await room.save();
