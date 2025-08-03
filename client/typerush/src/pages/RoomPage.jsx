@@ -41,7 +41,7 @@ export default function RoomPage() {
   // === 2. When room is loaded, join/leave socket room for real-time updates ===
   useEffect(() => {
     if (room?.code) {
-      socket.emit("joinRoom", { code: room.code });
+      socket.emit("joinRoom", { code: room.code, userId: currentUserId });
     }
     return () => {
       if (room?.code) {
@@ -56,10 +56,11 @@ export default function RoomPage() {
       console.log("Received roomUpdated!", room);
       setRoom(room);
     }
-    socket.on("roomUpdated", onRoomUpdated);
-
+    socket.on("roomUpdated", ({ room }) => {
+      setRoom(room);
+    });
     return () => {
-      socket.off("roomUpdated", onRoomUpdated);
+      socket.off("roomUpdated");
     };
   }, []);
 
@@ -84,13 +85,23 @@ export default function RoomPage() {
   const isHost =
     room.host &&
     (room.host._id === currentUserId || room.host === currentUserId);
-
+  const handleLeave = () => {
+    // 1) tell server we’re leaving
+    socket.emit("leaveRoom", { roomCode: code });
+    // 2) optionally clear local state here (e.g. setRoom(null))
+    // 3) go back to main screen
+    navigate("/main");
+  };
   // === Render the UI ===
   return (
     <div className="flex flex-col gap-4 mx-auto py-8 w-full max-w-[90vw] min-h-[80vh]">
       {/* Row 1: Player list and Room code */}
       <div className="flex lg:flex-row flex-col gap-2 w-full">
-        <PlayersList players={room.players} className="w-full lg:w-3/4" />
+        <PlayersList
+          players={room.players}
+          onLeave={handleLeave}
+          className="w-full lg:w-3/4"
+        />
         <RoomCodeCard
           code={room.code}
           isHost={isHost}
