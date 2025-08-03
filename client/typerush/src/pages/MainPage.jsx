@@ -5,28 +5,14 @@ import { Input } from "@/components/ui/input copy";
 import api from "@/lib/axios";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useAuth } from "@/context/AuthContext";
 
 export default function MainPage() {
   const navigate = useNavigate();
   const [joinCode, setJoinCode] = useState("");
-  const { token } = useAuth();
 
   const handleCreateRoom = async () => {
-    if (!token) {
-      return alert("Мора да сте логирани за да креирате соба.");
-    }
-
     try {
-      const res = await api.post(
-        "/room/create",
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await api.post("/room/create", {});
       const { room } = res.data;
       navigate(`/room/${room.code}`);
     } catch (err) {
@@ -37,7 +23,6 @@ export default function MainPage() {
 
   const handleJoinRoom = async () => {
     if (!joinCode.trim()) return alert("Внесете код за соба.");
-
     try {
       await api.post("/room/join", { code: joinCode.toUpperCase() });
       navigate(`/room/${joinCode.toUpperCase()}`);
@@ -49,15 +34,15 @@ export default function MainPage() {
 
   return (
     <>
-      <div className="flex flex-col lg:flex-row max-w-[90vw] h-[100%] mx-auto gap-6 py-8">
+      <div className="flex lg:flex-row flex-col gap-6 mx-auto py-8 max-w-[90vw] h-[100%]">
         {/* Main card: 3/4 width on desktop, full width on mobile */}
-        <GlassCard className="flex-1 lg:flex-[3] flex items-center justify-center">
-          <div className="w-full flex flex-col items-center justify-center gap-6 px-2">
+        <GlassCard className="flex flex-1 lg:flex-[3] justify-center items-center">
+          <div className="flex flex-col justify-center items-center gap-6 px-2 w-full">
             <Button className="w-full max-w-xs" onClick={handleCreateRoom}>
               Create a room
             </Button>
-            <span className="text-sm text-gray-500">or</span>
-            <div className="w-full max-w-xs flex flex-col gap-2">
+            <span className="text-gray-500 text-sm">or</span>
+            <div className="flex flex-col gap-2 w-full max-w-xs">
               <Input
                 placeholder="Enter room code"
                 value={joinCode}
@@ -72,11 +57,11 @@ export default function MainPage() {
         </GlassCard>
 
         {/* Image card: 1/4 width on desktop, full width on mobile */}
-        <GlassCard className="flex-1 lg:flex-[1] flex items-center justify-center">
+        <GlassCard className="flex flex-1 lg:flex-[1] justify-center items-center">
           <img
             src="/your-image.jpg"
             alt="Preview"
-            className="max-w-full max-h-64 object-contain rounded-xl"
+            className="rounded-xl max-w-full max-h-64 object-contain"
           />
         </GlassCard>
       </div>

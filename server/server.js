@@ -10,9 +10,9 @@ const app = express();
 const server = http.createServer(app);
 
 const { initSocket } = require("./sockets/ioInstance");
-
 const io = initSocket(server);
 const socketHandlers = require("./sockets/socketHandlers");
+socketHandlers(io);
 
 i18n.configure({
   locales: ["en", "mk"],
@@ -36,6 +36,7 @@ app.use(i18n.init);
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/game", require("./routes/game"));
 app.use("/api/room", require("./routes/room"));
+app.use("/api/categories", require("./routes/category"));
 
 app.get("/", (req, res) => {
   res.send("🚀 Backend is running!");

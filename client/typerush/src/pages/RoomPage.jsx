@@ -1,120 +1,94 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { socket } from "@/lib/socket";
 import GlassCard from "@/components/GlassCard";
 import { useAuth } from "@/context/AuthContext";
-import { InputCat } from "@/components/ui/inputCat";
 import PlayersList from "@/components/PlayersList";
 import RoomCodeCard from "@/components/RoomCodeCard";
 import CategorySelector from "@/components/CategorySelector";
-import RoomSettingsForm from "@/components/RoomSettingsrm";
+import RoomSettingsForm from "@/components/RoomSettingsForm";
+import api from "@/lib/axios";
 
 export default function RoomPage() {
-  const { code } = useParams();
+  const { code } = useParams(); // Room code from URL param
   const { user } = useAuth();
   const currentUserId = user?.id;
   const navigate = useNavigate();
   const [room, setRoom] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const token = localStorage.getItem("token");
+  // Fetch the latest room info from API
+  const fetchRoom = async () => {
+    try {
+      const res = await api.get(`/room/${code}`);
+      setRoom(res.data.room);
+    } catch (err) {
+      const msg =
+        err.response?.data?.message || "Грешка при вчитување на собата.";
+      alert(msg);
+      navigate("/main");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // 1. Fetch Room Info
+  // === 1. On mount, fetch room data from backend ===
   useEffect(() => {
-    const fetchRoom = async () => {
-      try {
-        const res = await fetch(`http://localhost:5000/api/room/${code}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const data = await res.json();
+    fetchRoom();
+    // eslint-disable-next-line
+  }, [code, navigate]);
 
-        if (res.ok) {
-          setRoom(data.room);
-        } else {
-          alert(data.message);
-          navigate("/main");
-        }
-      } catch (err) {
-        console.error(err);
-        alert("Грешка при вчитување на собата.");
-        navigate("/main");
-      } finally {
-        setLoading(false);
+  // === 2. When room is loaded, join/leave socket room for real-time updates ===
+  useEffect(() => {
+    if (room?.code) {
+      socket.emit("joinRoom", { code: room.code });
+    }
+    return () => {
+      if (room?.code) {
+        socket.emit("leaveRoom", { code: room.code });
       }
     };
+  }, [room?.code]);
 
-    fetchRoom();
-  }, [code, token, navigate]);
-
-  // 2. Socket Join + Sync
+  // === 3. Listen for real-time full-room updates (host changes anything) ===
   useEffect(() => {
-    if (!room || !currentUserId) return;
-
-    const currentUser = room.players.find((p) => p._id === currentUserId);
-    if (!currentUser) return;
-
-    socket.emit("joinRoom", {
-      roomCode: room.code,
-      username: currentUser.username,
-    });
-
-    const handleSettings = ({ rounds, timer }) => {
-      setRoom((prev) => ({ ...prev, rounds, timer }));
-    };
-
-    const handleCategories = ({ categories }) => {
-      setRoom((prev) => ({ ...prev, categories }));
-    };
-
-    socket.on("settingsUpdated", handleSettings);
-    socket.on("categoriesSet", handleCategories);
+    function onRoomUpdated({ room }) {
+      console.log("Received roomUpdated!", room);
+      setRoom(room);
+    }
+    socket.on("roomUpdated", onRoomUpdated);
 
     return () => {
-      socket.off("settingsUpdated", handleSettings);
-      socket.off("categoriesSet", handleCategories);
-    };
-  }, [room, currentUserId]);
-
-  // 3. Listen for gameStarted
-  useEffect(() => {
-    const handleGameStarted = ({ letter, round }) => {
-      console.log("Game started with letter:", letter, "round:", round);
-      // You can navigate to /play here
-    };
-
-    socket.on("gameStarted", handleGameStarted);
-    return () => {
-      socket.off("gameStarted", handleGameStarted);
+      socket.off("roomUpdated", onRoomUpdated);
     };
   }, []);
 
-  // 4. Leave Room on Unmount
+  // === 4. Listen for user join/leave events (update player list if someone enters or leaves) ===
   useEffect(() => {
-    return () => {
-      if (room && currentUserId) {
-        const currentUser = room.players.find((p) => p._id === currentUserId);
-        if (currentUser) {
-          socket.emit("leaveRoom", {
-            roomCode: room.code,
-            username: currentUser.username,
-          });
-        }
-      }
-    };
-  }, [room, currentUserId]);
+    const handleUserChange = () => fetchRoom(); // Refetch room from backend
+    socket.on("userJoined", handleUserChange);
+    socket.on("userLeft", handleUserChange);
 
+    return () => {
+      socket.off("userJoined", handleUserChange);
+      socket.off("userLeft", handleUserChange);
+    };
+    // eslint-disable-next-line
+  }, [code]);
+
+  // === Loading / Error State UI ===
   if (loading) return <div className="mt-10 text-center">Loading room...</div>;
   if (!room) return null;
 
+  // === Host Check (host gets to edit settings/categories) ===
   const isHost =
     room.host &&
     (room.host._id === currentUserId || room.host === currentUserId);
 
+  // === Render the UI ===
   return (
     <div className="flex flex-col gap-4 mx-auto py-8 w-full max-w-[90vw] min-h-[80vh]">
+      {/* Row 1: Player list and Room code */}
       <div className="flex lg:flex-row flex-col gap-2 w-full">
         <PlayersList players={room.players} className="w-full lg:w-3/4" />
         <RoomCodeCard
@@ -123,26 +97,32 @@ export default function RoomPage() {
           className="w-full lg:w-1/4"
         />
       </div>
+      {/* Row 2: Room settings, Categories, and (placeholder) image */}
       <div className="flex lg:flex-row flex-col gap-4 w-full">
         <RoomSettingsForm
           room={room}
-          onUpdate={({ rounds, timer }) =>
-            setRoom((prev) => ({ ...prev, rounds, timer }))
-          }
+          onUpdate={async ({ rounds, timer }) => {
+            await api.patch("/room/update-settings", {
+              code: room.code.toUpperCase(),
+              rounds,
+              timer,
+            });
+          }}
           readOnly={!isHost}
           className="lg:w-1/4"
         />
-
         <CategorySelector
           room={room}
           selected={room.categories}
-          onUpdate={(cats) =>
-            setRoom((prev) => ({ ...prev, categories: cats }))
-          }
+          onUpdate={async (categories) => {
+            await api.post("/room/set-categories", {
+              code: room.code.toUpperCase(),
+              categories,
+            });
+          }}
           readOnly={!isHost}
-          className="lg:w-2/4"
+          className="p-4 lg:w-2/4"
         />
-
         <GlassCard className="flex justify-center items-center w-full lg:w-1/4 min-h-[200px]">
           {/* Your image or placeholder here */}
           Image

@@ -52,7 +52,7 @@ export default function RoomPage() {
     if (!currentUser) return;
 
     socket.emit("joinRoom", {
-      roomCode: room.code,
+      code: room.code,
       username: currentUser.username,
     });
 
@@ -93,7 +93,7 @@ export default function RoomPage() {
         const currentUser = room.players.find((p) => p._id === currentUserId);
         if (currentUser) {
           socket.emit("leaveRoom", {
-            roomCode: room.code,
+            code: room.code,
             username: currentUser.username,
           });
         }
@@ -101,7 +101,7 @@ export default function RoomPage() {
     };
   }, [room, currentUserId]);
 
-  if (loading) return <div className="text-center mt-10">Loading room...</div>;
+  if (loading) return <div className="mt-10 text-center">Loading room...</div>;
   if (!room) return null;
 
   const isHost =
@@ -115,15 +115,15 @@ export default function RoomPage() {
   return (
     <>
       <Header />
-      <div className="max-w-3xl mx-auto mt-8 px-4">
-        <h2 className="text-2xl font-bold text-[var(--primary)] mb-2 text-center">
+      <div className="mx-auto mt-8 px-4 max-w-3xl">
+        <h2 className="mb-2 font-bold text-[var(--primary)] text-2xl text-center">
           Room Code: {room.code}
         </h2>
 
         <div className="flex flex-col items-center gap-4 mt-4">
           <div>
-            <h3 className="text-lg font-semibold">Players:</h3>
-            <ul className="text-sm text-[var(--text)]">
+            <h3 className="font-semibold text-lg">Players:</h3>
+            <ul className="text-[var(--text)] text-sm">
               {room.players.map((player, idx) => (
                 <li key={idx}>{player.username || "Unknown"}</li>
               ))}
@@ -131,7 +131,7 @@ export default function RoomPage() {
           </div>
 
           {isHost ? (
-            <div className="w-full max-w-md mt-4 flex flex-col gap-4">
+            <div className="flex flex-col gap-4 mt-4 w-full max-w-md">
               <label>
                 Rounds:
                 <input
@@ -143,7 +143,7 @@ export default function RoomPage() {
                       rounds: Number(e.target.value),
                     }))
                   }
-                  className="w-full p-2 rounded border"
+                  className="p-2 border rounded w-full"
                 />
               </label>
 
@@ -158,7 +158,7 @@ export default function RoomPage() {
                       timer: Number(e.target.value),
                     }))
                   }
-                  className="w-full p-2 rounded border"
+                  className="p-2 border rounded w-full"
                 />
               </label>
 
@@ -176,7 +176,7 @@ export default function RoomPage() {
                         .filter((c) => c !== ""),
                     }))
                   }
-                  className="w-full p-2 rounded border"
+                  className="p-2 border rounded w-full"
                 />
               </label>
 
@@ -184,13 +184,13 @@ export default function RoomPage() {
                 variant="outline"
                 onClick={() => {
                   socket.emit("updateSettings", {
-                    roomCode: room.code,
+                    code: room.code,
                     rounds: room.rounds,
                     timer: room.timer,
                   });
 
                   socket.emit("setCategories", {
-                    roomCode: room.code,
+                    code: room.code,
                     categories: room.categories,
                   });
 
@@ -218,7 +218,7 @@ export default function RoomPage() {
                   const data = await res.json();
                   if (res.ok) {
                     socket.emit("startGame", {
-                      roomCode: room.code,
+                      code: room.code,
                       letter: data.room.letter,
                       round: data.room.currentRound,
                     });
@@ -231,7 +231,7 @@ export default function RoomPage() {
               </Button>
             </div>
           ) : (
-            <div className="w-full max-w-md mt-4 flex flex-col gap-4 text-center">
+            <div className="flex flex-col gap-4 mt-4 w-full max-w-md text-center">
               <p>Rounds: {room.rounds}</p>
               <p>Timer: {room.timer} seconds</p>
               <p>
@@ -240,7 +240,7 @@ export default function RoomPage() {
                   ? room.categories.join(", ")
                   : "Not set yet"}
               </p>
-              <p className="text-sm text-gray-400">
+              <p className="text-gray-400 text-sm">
                 Waiting for host to start the game...
               </p>
             </div>

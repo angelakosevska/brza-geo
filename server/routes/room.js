@@ -5,10 +5,12 @@ const roomController = require("../controllers/roomController");
 
 router.post("/create", verifyToken, roomController.createRoom);
 router.post("/join", verifyToken, roomController.joinRoom);
-router.post("/set-categories", verifyToken, roomController.setCategories);
-router.get("/:code", verifyToken, roomController.getRoomInfo);
+router.get("/:code", verifyToken, roomController.getRoom); // FIXED HERE
+
+router.post("/set-categories", verifyToken, roomController.updateCategories); // FIXED HERE
+
 router.patch("/update-settings", verifyToken, roomController.updateSettings);
-router.post("/start", verifyToken, roomController.startGame);
+//router.post("/start", verifyToken, roomController.startGame); // Make sure you have this in your controller!
 router.post("/leave", verifyToken, roomController.leaveRoom);
 
 module.exports = router;

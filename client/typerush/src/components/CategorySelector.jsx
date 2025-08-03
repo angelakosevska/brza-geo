@@ -1,78 +1,125 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ALL_CATEGORIES } from "@/lib/ALL_CATEGORIES";
 import { socket } from "@/lib/socket";
 import GlassCard from "./GlassCard";
+import api from "@/lib/axios";
 
+/**
+ * CategorySelector
+ * - Host can select and save categories for the game
+ * - Non-hosts see the live updated categories (but cannot interact)
+ * - Updates are synced in real time via socket.io
+ */
 export default function CategorySelector({
-  room,
-  selected,
-  onUpdate,
-  readOnly = false,
-  className,
+  room, // Room object (must have .code and .categories)
+  selected, // Array of currently selected category IDs (from parent/room)
+  onUpdate, // Callback to parent if needed
+  readOnly = false, // If true, disables interaction (for non-hosts)
+  className, // Optional additional classes for styling
 }) {
+  // List of all categories fetched from the server
+  const [categories, setCategories] = useState([]);
+  // Which categories are currently selected (local state, synced from props & sockets)
   const [selectedCategories, setSelectedCategories] = useState(selected || []);
+  // Loading state for fetch
+  const [loading, setLoading] = useState(true);
 
+  // Fetch all categories from backend on mount
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const { data } = await api.get("/categories");
+        setCategories(Array.isArray(data.categories) ? data.categories : []);
+      } catch (err) {
+        setCategories([]);
+        console.error("Failed to load categories:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchCategories();
+  }, []);
+  // When parent changes 'selected', update local selection
   useEffect(() => {
     setSelectedCategories(selected || []);
   }, [selected]);
 
-  const toggleCategory = (cat) => {
-    setSelectedCategories((prev) =>
-      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+  // Allow the host to toggle selection of a category
+  const toggleCategory = (catId) => {
+    setSelectedCategories(
+      (prev) =>
+        prev.includes(catId)
+          ? prev.filter((c) => c !== catId) // Remove if already selected
+          : [...prev, catId] // Add if not selected
     );
   };
-
   const handleSave = () => {
-    socket.emit("updateRoomSettings", {
-      roomCode: room.code,
-      rounds: room.rounds,
-      timer: room.timer,
+    console.log("Emitting setCategories:", selectedCategories);
+    socket.emit("setCategories", {
+      code: room.code,
       categories: selectedCategories,
     });
     if (onUpdate) onUpdate(selectedCategories);
-    alert("Categories saved!");
   };
 
+  useEffect(() => {
+    const handleCategoriesSet = ({ categories }) => {
+      console.log("Received categoriesSet:", categories);
+      setSelectedCategories(categories);
+    };
+    socket.on("categoriesSet", handleCategoriesSet);
+    return () => {
+      socket.off("categoriesSet", handleCategoriesSet);
+    };
+  }, []);
   return (
-    <>
-      <GlassCard className={className}>
-        <h4 className="p-4font-bold text-[var(--primary)]">Categories</h4>
+    <GlassCard className={className}>
+      {/* Title */}
+      <h4 className="p-4 font-bold text-[var(--primary)]">Категории</h4>
+      {loading ? (
+        // Loading indicator
+        <div className="p-4 text-gray-400 text-sm">Вчитување...</div>
+      ) : (
+        // List of all available categories as buttons
         <div className="flex flex-wrap gap-2 mb-4">
-          {ALL_CATEGORIES.map((cat) => {
-            const isSelected = selectedCategories.includes(cat);
-
-            return (
-              <button
-                key={cat}
-                type="button"
-                className={`px-4 py-2 rounded-full border transition
+          {categories.length === 0 && (
+            <div className="text-muted-foreground">
+              Нема пронајдено категории.
+            </div>
+          )}
+          {categories.map((cat) => (
+            <button
+              key={cat._id}
+              type="button"
+              // Styling for selected/unselected/readOnly states
+              className={`px-4 py-2 rounded-full border transition
                 ${
-                  isSelected
+                  selectedCategories.includes(cat._id)
                     ? "bg-[var(--primary)] text-white"
                     : "bg-transparent text-[var(--primary)] border-[var(--primary)]"
                 }
                 ${readOnly ? "opacity-60 cursor-not-allowed" : ""}
               `}
-                onClick={() => !readOnly && toggleCategory(cat)}
-                disabled={readOnly}
-                tabIndex={readOnly ? -1 : 0}
-              >
-                {cat}
-              </button>
-            );
-          })}
+              // Only host can interact
+              onClick={() => !readOnly && toggleCategory(cat._id)}
+              disabled={readOnly}
+              tabIndex={readOnly ? -1 : 0}
+            >
+              {cat.displayName?.mk || cat.name}
+            </button>
+          ))}
         </div>
-        {!readOnly && (
-          <Button
-            variant="outline"
-            onClick={handleSave}
-            disabled={selectedCategories.length === 0}
-          >
-            Save Categories
-          </Button>
-        )}
-      </GlassCard>
-    </>
+      )}
+      {/* Show Save button only for host */}
+      {!readOnly && (
+        <Button
+          variant="outline"
+          onClick={handleSave}
+          disabled={selectedCategories.length === 0}
+        >
+          Зачувај категории
+        </Button>
+      )}
+    </GlassCard>
   );
 }
