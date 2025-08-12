@@ -71,9 +71,9 @@ export default function Header() {
                   localStorage.clear();
                   navigate("/auth");
                 }}
-                className="font-bold text-destructive text-md lg:text-lg cursor-pointer"
+                className="font-bold text-[var(--text)] text-destructive text-md lg:text-lg cursor-pointer"
               >
-                <span className="text-[var(--accent)]">Одлогирај се</span>
+                <span className="text-[var(--primary)]"> Одлогирај се</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
