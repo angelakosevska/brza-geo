@@ -1,47 +1,51 @@
 const mongoose = require("mongoose");
 
-const roomSchema = new mongoose.Schema(
+// Flexible per-category answers (keys = category names)
+const AnswersSchema = new mongoose.Schema({}, { _id: false, strict: false });
+
+const SubmissionSchema = new mongoose.Schema(
   {
-    code: {
-      //room invite code
-      type: String,
-      required: true,
-      unique: true,
-    },
-    host: {
+    player: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      required: true,
     },
-    players: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
-    rounds: {
-      type: Number,
-      default: 3,
-    },
-    timer: {
-      type: Number,
-      default: 120,
-    }, // seconds per round
-    categories: {
-      type: [String],
-      default: [],
-    },
-    currentRound: {
-      type: Number,
-      default: 0,
-    },
-    started: {
-      type: Boolean,
-      default: false,
-    },
-    letter: {
-      type: String,
-      default: null,
-    },
+    answers: { type: AnswersSchema, default: {} }, // e.g. { City: "Skopje", Country: "Spain" }
+    points: { type: Number, default: 0 }, // points earned this round
+  },
+  { _id: false }
+);
+
+const RoundSchema = new mongoose.Schema(
+  {
+    roundNumber: { type: Number, required: true },
+    letter: { type: String, required: true },
+    startedAt: { type: Date, default: Date.now },
+    endedAt: { type: Date, default: null },
+    submissions: { type: [SubmissionSchema], default: [] },
+  },
+  { _id: false }
+);
+
+const roomSchema = new mongoose.Schema(
+  {
+    code: { type: String, required: true, unique: true },
+    host: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    players: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+
+    // Game settings
+    rounds: { type: Number, default: 3 },
+    timer: { type: Number, default: 120 }, // seconds per round
+    categories: { type: [String], default: [] },
+
+    // Live state
+    currentRound: { type: Number, default: 0 },
+    started: { type: Boolean, default: false },
+    letter: { type: String, default: null },
+    roundEndTime: { type: Date, default: null },
+
+    // Full history of all rounds in this game
+    roundsData: { type: [RoundSchema], default: [] },
   },
   { timestamps: true }
 );

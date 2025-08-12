@@ -22,8 +22,8 @@ export default function Header() {
 
   return (
     <>
-      <GlassCard className="w-[90vw] p-4 max-h-25 align-middle">
-        <div className="w-full flex items-center justify-between">
+      <GlassCard className="p-4 w-[90vw] max-h-25 align-middle">
+        <div className="flex justify-between items-center w-full">
           <div className="flex items-center gap-2">
             <img
               src="/tr1.svg"
@@ -31,7 +31,7 @@ export default function Header() {
               className="w-12 h-12 blink-cursor"
             />
             <span
-              className="text-3xl font-black uppercase text-[var(--primary)] leading-none cursor-pointer"
+              className="font-black text-[var(--primary)] text-3xl uppercase leading-none cursor-pointer"
               onClick={() => navigate("/main")}
             >
               TYPE RUSH
@@ -44,41 +44,36 @@ export default function Header() {
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="w-auto min-w-[20vw] mt-2
-          bg-[var(--background)]/30
-          backdrop-blur-sm
-          border border-[var(--background)] 
-          rounded-3xl
-          shadow-xl shadow-gray-500/20 "
+              className="bg-[var(--background)]/30 shadow-gray-500/20 shadow-xl backdrop-blur-sm mt-2 border border-[var(--background)] rounded-3xl w-auto min-w-[20vw]"
             >
               <div className="flex items-center gap-2 px-2 py-2">
                 <UserRound className="w-7 h-7 text-[var(--primary)]" />
-                <span className="text-md lg:text-lg font-semibold text-[var(--text)]">
+                <span className="font-semibold text-[var(--text)] text-md lg:text-lg">
                   {username}
                 </span>
               </div>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => navigate("/profile")}
-                className="cursor-pointer text-md lg:text-lg text-[var(--text)]"
+                className="text-[var(--text)] text-md lg:text-lg cursor-pointer"
               >
-                Profile
+                Профил
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => navigate("/settings")}
-                className="cursor-pointer text-md lg:text-lg text-[var(--text)]"
+                className="text-[var(--text)] text-md lg:text-lg cursor-pointer"
               >
-                Settings
+                Опции
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="h-px w-[95%] mx-auto bg-white/40 border-0" />
+              <DropdownMenuSeparator className="bg-white/40 mx-auto border-0 w-[95%] h-px" />
               <DropdownMenuItem
                 onClick={() => {
                   localStorage.clear();
                   navigate("/auth");
                 }}
-                className="cursor-pointer text-destructive text-md lg:text-lg text-[var(--secondary)] font-bold"
+                className="font-bold text-destructive text-md lg:text-lg cursor-pointer"
               >
-                Log Out
+                <span className="text-[var(--accent)]">Одлогирај се</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { socket } from "@/lib/socket";
 import GlassCard from "@/components/GlassCard";
@@ -10,15 +10,18 @@ import RoomSettingsForm from "@/components/RoomSettingsForm";
 import api from "@/lib/axios";
 
 export default function RoomPage() {
-  const { code } = useParams(); // Room code from URL param
+  // ---- Router / Auth ----
+  const { code } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const currentUserId = user?.id;
-  const navigate = useNavigate();
+
+  // ---- State ----
   const [room, setRoom] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch the latest room info from API
-  const fetchRoom = async () => {
+  // ---- API: fetch latest room (REST) ----
+  const fetchRoom = useCallback(async () => {
     try {
       const res = await api.get(`/room/${code}`);
       setRoom(res.data.room);
@@ -30,72 +33,97 @@ export default function RoomPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  // === 1. On mount, fetch room data from backend ===
-  useEffect(() => {
-    fetchRoom();
-    // eslint-disable-next-line
   }, [code, navigate]);
 
-  // === 2. When room is loaded, join/leave socket room for real-time updates ===
+  // 1) Initial fetch on mount / code change
   useEffect(() => {
-    if (room?.code) {
-      socket.emit("joinRoom", { code: room.code, userId: currentUserId });
-    }
-    return () => {
-      if (room?.code) {
-        socket.emit("leaveRoom", { code: room.code });
-      }
-    };
-  }, [room?.code]);
+    fetchRoom();
+  }, [fetchRoom]);
 
-  // === 3. Listen for real-time full-room updates (host changes anything) ===
+  // 2) Join the socket room when we have both room code and userId; leave on unmount
   useEffect(() => {
-    function onRoomUpdated({ room }) {
-      console.log("Received roomUpdated!", room);
-      setRoom(room);
-    }
-    socket.on("roomUpdated", ({ room }) => {
-      setRoom(room);
-    });
-    return () => {
-      socket.off("roomUpdated");
-    };
+    if (!room?.code || !currentUserId) return;
+    socket.emit("joinRoom", { code: room.code, userId: currentUserId });
+  }, [room?.code, currentUserId]);
+
+  // 3) Realtime room updates (authoritative push from server)
+  useEffect(() => {
+    const onRoomUpdated = ({ room }) => setRoom(room);
+    socket.on("roomUpdated", onRoomUpdated);
+    return () => socket.off("roomUpdated", onRoomUpdated);
   }, []);
 
-  // === 4. Listen for user join/leave events (update player list if someone enters or leaves) ===
+  // 4) Optional: if your server emits userJoined/userLeft (otherwise you can remove this)
   useEffect(() => {
-    const handleUserChange = () => fetchRoom(); // Refetch room from backend
+    const handleUserChange = () => fetchRoom();
     socket.on("userJoined", handleUserChange);
     socket.on("userLeft", handleUserChange);
-
     return () => {
       socket.off("userJoined", handleUserChange);
       socket.off("userLeft", handleUserChange);
     };
-    // eslint-disable-next-line
-  }, [code]);
+  }, [fetchRoom]);
 
-  // === Loading / Error State UI ===
+  // 5) Game flow navigation: when first round starts, move everyone to /game/:code
+  useEffect(() => {
+    const onRoundStarted = (payload) => {
+      console.log("roundStarted ->", payload);
+      navigate(`/game/${code}`);
+    };
+    const onGameStarted = (payload) => {
+      console.log("gameStarted ->", payload);
+      // fallback: some servers emit this slightly earlier
+      navigate(`/game/${code}`);
+    };
+
+    socket.on("roundStarted", onRoundStarted);
+    socket.on("gameStarted", onGameStarted);
+
+    return () => {
+      socket.off("roundStarted", onRoundStarted);
+      socket.off("gameStarted", onGameStarted);
+    };
+  }, [code, navigate]);
+
+  // ---- Derived ----
   if (loading) return <div className="mt-10 text-center">Loading room...</div>;
   if (!room) return null;
 
-  // === Host Check (host gets to edit settings/categories) ===
   const isHost =
     room.host &&
     (room.host._id === currentUserId || room.host === currentUserId);
+
+  // ---- Handlers ----
   const handleLeave = () => {
-    // 1) tell server we’re leaving
-    socket.emit("leaveRoom", { roomCode: code });
-    // 2) optionally clear local state here (e.g. setRoom(null))
-    // 3) go back to main screen
+    socket.emit("leaveRoom", { code });
     navigate("/main");
   };
-  // === Render the UI ===
+
+  const handleStartGame = async () => {
+    // Optional: save latest settings right before starting
+    // await api.patch("/room/update-settings", { code: room.code, rounds: room.rounds, timer: room.timer });
+    socket.emit("startGame"); // server uses socket.data.{roomCode,userId}
+  };
+
+  const handleUpdateSettings = async ({ rounds, timer }) => {
+    await api.patch("/room/update-settings", {
+      code: room.code.toUpperCase(),
+      rounds,
+      timer,
+    });
+  };
+
+  const handleUpdateCategories = async (categories) => {
+    await api.post("/room/set-categories", {
+      code: room.code.toUpperCase(),
+      categories,
+    });
+  };
+
+  // ---- UI ----
   return (
     <div className="flex flex-col gap-4 mx-auto py-8 w-full max-w-[90vw] min-h-[80vh]">
-      {/* Row 1: Player list and Room code */}
+      {/* Row 1: Players + Room Code */}
       <div className="flex lg:flex-row flex-col gap-2 w-full">
         <PlayersList
           players={room.players}
@@ -108,34 +136,26 @@ export default function RoomPage() {
           className="w-full lg:w-1/4"
         />
       </div>
-      {/* Row 2: Room settings, Categories, and (placeholder) image */}
+
+      {/* Row 2: Settings + Categories + Placeholder */}
       <div className="flex lg:flex-row flex-col gap-4 w-full">
         <RoomSettingsForm
           room={room}
-          onUpdate={async ({ rounds, timer }) => {
-            await api.patch("/room/update-settings", {
-              code: room.code.toUpperCase(),
-              rounds,
-              timer,
-            });
-          }}
+          onUpdate={handleUpdateSettings}
+          onStart={isHost ? handleStartGame : undefined}
           readOnly={!isHost}
           className="lg:w-1/4"
         />
+
         <CategorySelector
           room={room}
           selected={room.categories}
-          onUpdate={async (categories) => {
-            await api.post("/room/set-categories", {
-              code: room.code.toUpperCase(),
-              categories,
-            });
-          }}
+          onUpdate={handleUpdateCategories}
           readOnly={!isHost}
           className="p-4 lg:w-2/4"
         />
+
         <GlassCard className="flex justify-center items-center w-full lg:w-1/4 min-h-[200px]">
-          {/* Your image or placeholder here */}
           Image
         </GlassCard>
       </div>

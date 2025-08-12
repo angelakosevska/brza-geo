@@ -7,6 +7,7 @@ import MainPage from "./pages/MainPage";
 import TestPage from "./pages/TestPage";
 import AuthPage from "./pages/AuthPage";
 import RoomPage from "./pages/RoomPage";
+import GamePage from "./pages/GamePage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 
@@ -28,6 +29,7 @@ export default function AppRoutes() {
       <Route element={<Layout2 />}>
         <Route path="/main" element={<MainPage />} />
         <Route path="/room/:code" element={<RoomPage />} />
+        <Route path="/game/:code" element={<GamePage />} />
       </Route>
     </Routes>
   );

@@ -92,10 +92,10 @@ export default function CategorySelector({
               key={cat._id}
               type="button"
               // Styling for selected/unselected/readOnly states
-              className={`px-4 py-2 rounded-full border transition
+              className={`px-4 py-2 rounded-full border-2 transition
                 ${
                   selectedCategories.includes(cat._id)
-                    ? "bg-[var(--primary)] text-white"
+                    ? "bg-[var(--primary)] text-white border-[var(--primary)]"
                     : "bg-transparent text-[var(--primary)] border-[var(--primary)]"
                 }
                 ${readOnly ? "opacity-60 cursor-not-allowed" : ""}

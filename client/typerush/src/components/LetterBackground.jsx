@@ -3,9 +3,9 @@ import React from "react";
 
 export default function LetterBackground({ children }) {
   return (
-    <div className="w-full h-auto z-0 bg-[var(--background)] text-text relative overflow-hidden">
+    <div className="z-0 relative bg-[var(--background)] w-full h-auto overflow-hidden text-text">
       {/* Floating letters background */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
+      <div className="z-0 absolute inset-0 pointer-events-none">
         {Array.from({ length: 80 }).map((_, i) => {
           const letter = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[
             Math.floor(Math.random() * 26)
@@ -16,20 +16,17 @@ export default function LetterBackground({ children }) {
           const left = Math.random() * 100;
 
           // Pick a random theme color
-          const colors = [
-            "var(--primary)",
-            "var(--secondary)",
-            "var(--accent)",
-          ];
+          const colors = ["var(--primary)"];
           const color = colors[Math.floor(Math.random() * colors.length)];
 
           const delay = Math.random() * 6;
           const duration = 4 + Math.random() * 4;
+          const opacity = 0.2 + Math.random() * 0.6;
 
           return (
             <span
               key={i}
-              className="absolute font-extrabold opacity-60 animate-float"
+              className="absolute opacity-60 font-extrabold animate-float"
               style={{
                 top: `${top}vh`,
                 left: `${left}vw`,
@@ -37,6 +34,7 @@ export default function LetterBackground({ children }) {
                 color: color,
                 animationDuration: `${duration}s`,
                 animationDelay: `${delay}s`,
+                opacity: opacity,
               }}
             >
               {letter}
@@ -46,7 +44,7 @@ export default function LetterBackground({ children }) {
       </div>
 
       {/* Page content */}
-      <div className="relative z-10">{children}</div>
+      <div className="z-10 relative">{children}</div>
     </div>
   );
 }

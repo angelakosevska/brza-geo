@@ -48,8 +48,6 @@ mongoose
   .then(() => console.log("✅ MongoDB е поврзана"))
   .catch((err) => console.error("❌ MongoDB проблем со конекцијата:", err));
 
-socketHandlers(io);
-
 module.exports.io = io;
 
 const PORT = process.env.PORT || 5000;
