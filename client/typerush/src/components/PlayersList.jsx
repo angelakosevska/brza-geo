@@ -8,7 +8,7 @@ export default function PlayersList({ players = [], onLeave, className }) {
       <div className="flex justify-between items-center w-full">
         <h3 className="flex items-center gap-2 font-bold text-[var(--accent)] text-lg">
           <Users className="w-5 h-5" />
-          Players
+         Играчи
           <span className="font-normal">({players.length})</span>
         </h3>
 

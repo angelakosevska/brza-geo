@@ -35,7 +35,7 @@ export default function RoomSettingsForm({
           type="number"
           value={rounds}
           onChange={(e) => setRounds(Number(e.target.value))}
-          label="Number of rounds"
+          label="Број на рунди"
           placeholder="Total number of rounds"
           min={1}
           disabled={readOnly}
@@ -46,7 +46,7 @@ export default function RoomSettingsForm({
           type="number"
           value={timer}
           onChange={(e) => setTimer(Number(e.target.value))}
-          label="Time per round (seconds)"
+          label="Време за рунда (секунди)"
           placeholder="Time in seconds"
           min={60}
           className="mb-2"
@@ -54,10 +54,10 @@ export default function RoomSettingsForm({
         />
         {!readOnly && (
           <Button variant="outline" onClick={handleSave}>
-            Save Settings
+            Зачлувај
           </Button>
         )}
-        {!readOnly && <Button>Start Game</Button>}
+        {!readOnly && <Button>Започни ја играта!</Button>}
       </div>
     </GlassCard>
   );

@@ -21,15 +21,11 @@ export default function RoomCodeCard({
   };
 
   return (
-    <GlassCard
-      className={`flex justify-between p-4 w-full ${
-        className ?? ""
-      }`}
-    >
+    <GlassCard className={`flex justify-between p-4 w-full ${className ?? ""}`}>
       {/* Left: Label above code on lg, row on smaller */}
       <div className="flex flex-row lg:flex-col items-center lg:items-start gap-2">
         <h3 className="font-semibold text-[var(--secondary)] text-xl">
-          Room Code
+          Код на собата
         </h3>
         <div className="flex items-center gap-2">
           <span className="font-bold text-[var(--primary)] text-2xl tracking-widest select-all">
@@ -38,7 +34,7 @@ export default function RoomCodeCard({
           <Button
             variant="link"
             onClick={handleCopy}
-            aria-label="Copy room code"
+            aria-label="Копирај го кодот на собата"
             className="hover:bg-[var(--secondary)]/10 p-2 rounded"
           >
             {copied ? (
@@ -48,7 +44,7 @@ export default function RoomCodeCard({
             )}
           </Button>
         </div>
-        {copied && <span className="text-green-400 text-xs">Copied!</span>}
+        {copied && <span className="text-green-400 text-xs">Копирано!</span>}
       </div>
     </GlassCard>
   );
