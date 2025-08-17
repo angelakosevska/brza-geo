@@ -4,8 +4,8 @@ server/node_modules/
 **/node_modules
 
 # Ignore environment variables files
-client/.env
-server/.env
+client/.env*
+server/.env*
 
 # Build output (for React/Vite)
 client/dist/

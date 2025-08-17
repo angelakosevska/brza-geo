@@ -10,6 +10,7 @@ export default function AuthPage() {
   const [flipped, setFlipped] = useState(false);
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [registerData, setRegisterData] = useState({
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -19,16 +20,15 @@ export default function AuthPage() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    try {
-      const res = await api.post("/auth/register", registerData);
-      const { token, user } = res.data;
-      login(token);
-
-      navigate("/main");
-    } catch (err) {
-      const message = err.response?.data?.message || "Registration failed";
-      alert(message);
-    }
+    const res = await api.post("/auth/register", {
+      username: registerData.username, 
+      email: registerData.email,
+      password: registerData.password,
+      confirmPassword: registerData.confirmPassword,
+    });
+    const { token } = res.data;
+    login(token);
+    navigate("/main");
   };
 
   const handleLogin = async (e) => {
@@ -40,7 +40,7 @@ export default function AuthPage() {
       });
 
       const { token, user } = res.data;
-    login(token);
+      login(token);
 
       navigate("/main");
     } catch (err) {

@@ -5,63 +5,58 @@ const validator = require("validator");
 const crypto = require("crypto");
 const { sendPasswordResetEmail } = require("../utils/email");
 
+// controllers/authController.js
 exports.register = async (req, res) => {
   const { username, email, password, confirmPassword } = req.body;
 
-  // 1. Validate presence of all fields
   if (!username || !email || !password || !confirmPassword) {
     return res.status(400).json({ message: res.__("all_fields_required") });
   }
-
-  // 2. Validate email format
   if (!validator.isEmail(email)) {
     return res.status(400).json({ message: res.__("invalid_email") });
   }
-
-  // 3. Validate password length
   if (password.length < 6) {
     return res.status(400).json({ message: res.__("password_too_short") });
   }
-
-  // 4. Validate password confirmation
   if (password !== confirmPassword) {
     return res.status(400).json({ message: res.__("passwords_do_not_match") });
   }
 
   try {
-    // 5. Check if username or email is taken
-    const existing = await User.findOne({ $or: [{ email }, { username }] });
+    const existing = await User.findOne({
+      $or: [
+        { email: email.toLowerCase().trim() },
+        { username: username.trim() },
+      ],
+    });
     if (existing) {
       return res
         .status(400)
         .json({ message: res.__("username_or_email_taken") });
     }
 
-    // 6. Hash password and create user
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hash = await bcrypt.hash(password, 10);
     const newUser = await User.create({
-      username,
-      email,
-      password: hashedPassword,
+      username: username.trim(),
+      email: email.toLowerCase().trim(),
+      password: hash, // legacy field (for compatibility)
+      passwordHash: hash, // preferred field
     });
 
+    // optional welcome email
     try {
       await require("../utils/email").sendWelcomeEmail(newUser);
     } catch (err) {
       console.warn("📭 Failed to send welcome email:", err.message);
     }
 
-    // 7. Create JWT
     const token = jwt.sign(
-      { userId: user._id, username: user.username },
+      { userId: newUser._id, username: newUser.username }, // <-- fixed
       process.env.JWT_SECRET,
-      {
-        expiresIn: "7d",
-      }
+      { expiresIn: "7d" }
     );
 
-    // 8. Respond with success
-    res.status(201).json({
+    return res.status(201).json({
       token,
       user: {
         id: newUser._id,
@@ -71,49 +66,58 @@ exports.register = async (req, res) => {
     });
   } catch (err) {
     console.error("❌ Registration Error:", err);
-    res.status(500).json({ message: res.__("registration_failed") });
+    return res.status(500).json({ message: res.__("registration_failed") });
   }
 };
 
+// controllers/authController.js
 exports.login = async (req, res) => {
-  const { login, password } = req.body;
+  try {
+    const { login, password } = req.body;
 
-  // 1. Check presence
-  if (!login || !password) {
-    return res.status(400).json({ message: res.__("all_fields_required") });
-  }
-
-  // 2. Determine if login is email or username
-  const isEmail = validator.isEmail(login);
-  const user = await User.findOne(
-    isEmail ? { email: login } : { username: login }
-  );
-
-  if (!user) {
-    return res.status(400).json({ message: res.__("login_failed") });
-  }
-
-  // 3. Compare password
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) {
-    return res.status(400).json({ message: res.__("login_failed") });
-  }
-
-  // 4. Create JWT
-  const token = jwt.sign(
-    { userId: user._id, username: user.username },
-    process.env.JWT_SECRET,
-    {
-      expiresIn: "7d",
+    if (!login || !password) {
+      return res.status(400).json({ message: res.__("all_fields_required") });
     }
-  );
 
-  // 5. Return user data
-  res.status(200).json({
-    token,
-    user: { id: user._id, username: user.username, email: user.email },
-  });
+    // email or username
+    const isEmail = validator.isEmail((login || "").trim());
+    const query = isEmail
+      ? { email: login.toLowerCase().trim() }
+      : { username: login.trim() };
+
+    // Try to fetch both fields: password (legacy) and passwordHash (new)
+    const user = await User.findOne(query).select("+password +passwordHash");
+    if (!user) {
+      return res.status(401).json({ message: res.__("login_failed") });
+    }
+
+    const hash = user.passwordHash || user.password;
+    if (!hash) {
+      // No hash at all -> treat as invalid creds
+      return res.status(401).json({ message: res.__("login_failed") });
+    }
+
+    const isMatch = await bcrypt.compare(password, hash);
+    if (!isMatch) {
+      return res.status(401).json({ message: res.__("login_failed") });
+    }
+
+    const token = jwt.sign(
+      { userId: user._id, username: user.username },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    return res.status(200).json({
+      token,
+      user: { id: user._id, username: user.username, email: user.email },
+    });
+  } catch (err) {
+    console.error("LOGIN ERROR:", err);
+    return res.status(500).json({ message: res.__("server_error") });
+  }
 };
+
 exports.requestPasswordReset = async (req, res) => {
   const { email } = req.body;
   if (!email || !validator.isEmail(email)) {

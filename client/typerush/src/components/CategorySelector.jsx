@@ -4,12 +4,7 @@ import { socket } from "@/lib/socket";
 import GlassCard from "./GlassCard";
 import api from "@/lib/axios";
 
-/**
- * CategorySelector
- * - Host can select and save categories for the game
- * - Non-hosts see the live updated categories (but cannot interact)
- * - Updates are synced in real time via socket.io
- */
+
 export default function CategorySelector({
   room, // Room object (must have .code and .categories)
   selected, // Array of currently selected category IDs (from parent/room)

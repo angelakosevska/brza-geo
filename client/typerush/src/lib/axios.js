@@ -1,11 +1,17 @@
 import axios from "axios";
 
+const DEV = import.meta.env.DEV;
+export const API_BASE = DEV
+  ? "http://localhost:5000"
+  : import.meta.env.VITE_API_URL; // e.g. https://your-backend.koyeb.app
+
 const api = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: `${API_BASE}/api`, // <-- use the env-based base
   headers: {
     "Content-Type": "application/json",
-    "Accept-Language": "mk", 
+    "Accept-Language": "mk",
   },
+  // withCredentials: false, // keep false if you use JWT in Authorization header
 });
 
 api.interceptors.request.use((config) => {
@@ -15,6 +21,5 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
-
 
 export default api;
