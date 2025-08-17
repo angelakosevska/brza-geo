@@ -1,5 +1,5 @@
 import React from "react";
-import { TRTitle2 } from "@/components/TRtitle2"; // Adjust path if needed
+import { TRTitle2 } from "@/components/TRTitle2"; // Adjust path if needed
 
 export default function TRTitle() {
   return (
