@@ -1,7 +1,7 @@
 import React from "react";
 import TRTitle2 from "@/components/TRtitle2"; // Adjust path if needed
 
-export default function ResponsiveTRTitle2() {
+export default function TRTitle() {
   return (
     <>
       {/* Animated TRTitle2 on desktop and larger */}
