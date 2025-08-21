@@ -64,6 +64,7 @@ exports.leaveRoom = async (req, res) => {
   const { code } = req.body;
   try {
     const userId = req.user.userId;
+
     let room = await Room.findOne({ code });
     if (!room) return res.status(404).json({ message: "Room not found" });
 
@@ -76,6 +77,7 @@ exports.leaveRoom = async (req, res) => {
     io.to(code).emit("roomUpdated", { room });
 
     res.json({ message: "Left room", room });
+    console.log("Left room:", { code, userId });
   } catch (err) {
     res.status(500).json({ message: "Error leaving room" });
   }
@@ -99,7 +101,7 @@ exports.getRoom = async (req, res) => {
 exports.updateSettings = async (req, res) => {
   const { code, rounds, timer } = req.body;
   try {
-    const roomCode=code.toUpperCase();
+    const roomCode = code.toUpperCase();
     let room = await Room.findOneAndUpdate(
       { code: roomCode },
       { rounds, timer },
@@ -122,7 +124,7 @@ exports.updateSettings = async (req, res) => {
 exports.updateCategories = async (req, res) => {
   const { code, categories } = req.body;
   try {
-    const roomCode= code.toUpperCase();
+    const roomCode = code.toUpperCase();
     let room = await Room.findOneAndUpdate(
       { code: roomCode },
       { categories },

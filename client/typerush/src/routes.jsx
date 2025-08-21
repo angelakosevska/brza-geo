@@ -17,13 +17,13 @@ export default function AppRoutes() {
       <Route element={<Layout />}>
         //one glass card main
         <Route path="/" element={<Welcome />} />
+        <Route path="/test" element={<TestPage />} />
       </Route>
       <Route element={<Layout1 />}>
         //just letter background
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />{" "}
-        <Route path="/test" element={<TestPage />} />
       </Route>
       // letters with header
       <Route element={<Layout2 />}>

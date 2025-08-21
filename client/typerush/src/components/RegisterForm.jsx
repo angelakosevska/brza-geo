@@ -5,7 +5,7 @@ export function RegisterForm({ registerData, setRegisterData, handleRegister, on
   return (
     <form
       onSubmit={handleRegister}
-      className="flex flex-col gap-4 p-5 sm:p-8 w-full max-w-xs mx-auto"
+      className="flex flex-col gap-4 p-4 sm:p-8 w-full max-w-xs mx-auto"
     >
       <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold mb-2 text-[var(--primary)] text-center">
         Register 🎉

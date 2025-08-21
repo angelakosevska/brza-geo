@@ -21,7 +21,7 @@ export default function AuthPage() {
   const handleRegister = async (e) => {
     e.preventDefault();
     const res = await api.post("/auth/register", {
-      username: registerData.username, 
+      username: registerData.username,
       email: registerData.email,
       password: registerData.password,
       confirmPassword: registerData.confirmPassword,
@@ -82,7 +82,7 @@ export default function AuthPage() {
             />
           </div>
           <div
-            className="absolute inset-0 flex justify-center items-center bg-[var(--background)]/30
+            className="absolute p-4 inset-0 flex justify-center items-center bg-[var(--background)]/30
           backdrop-blur-sm
           border border-[var(--background)] 
           rounded-3xl

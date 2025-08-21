@@ -10,7 +10,7 @@ const SubmissionSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    answers: { type: AnswersSchema, default: {} }, 
+    answers: { type: AnswersSchema, default: {} },
     points: { type: Number, default: 0 }, // points earned this round
   },
   { _id: false }
@@ -34,8 +34,8 @@ const roomSchema = new mongoose.Schema(
     players: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 
     // Game settings
-    rounds: { type: Number, default: 3 },
-    timer: { type: Number, default: 60 }, // seconds per round
+    rounds: { type: Number },
+    timer: { type: Number }, // seconds per round
     categories: { type: [String], default: [] },
 
     // Live state

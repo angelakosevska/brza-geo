@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { socket } from "@/lib/socket";
-import GlassCard from "./GlassCard";
+import GlassCard from "@/components/GlassCard";
 import api from "@/lib/axios";
-
 
 export default function CategorySelector({
   room, // Room object (must have .code and .categories)

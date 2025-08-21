@@ -11,15 +11,15 @@ export function LoginForm({
   return (
     <form
       onSubmit={handleLogin}
-      className="flex flex-col gap-4 p-5 sm:p-8 w-full max-w-xs mx-auto"
+      className="flex flex-col gap-4 p-4 sm:p-8 w-full max-w-xs mx-auto"
     >
-      <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold mb-2 text-[var(--primary)] text-center">
-        Login 🚀
-      </h2>
+      <p className="text-xl sm:text-2xl md:text-3xl font-extrabold mb-2 text-[var(--primary)] text-center">
+        Логирај се!
+      </p>
 
       <Input
         type="text"
-        placeholder="Username or Email"
+        placeholder="Корисничко име или е-пошта"
         autoComplete="username"
         value={loginData.email}
         onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
@@ -27,7 +27,7 @@ export function LoginForm({
 
       <Input
         type="password"
-        placeholder="Password"
+        placeholder="Лозинка"
         autoComplete="current-password"
         value={loginData.password}
         onChange={(e) =>
@@ -42,12 +42,12 @@ export function LoginForm({
           className="text-xs sm:text-sm p-0 h-auto text-[var(--primary)]"
           onClick={onForgotPassword}
         >
-          Forgot password?
+          Заборавена лозинка?
         </Button>
       </div>
 
       <Button className="mt-2 w-full" type="submit">
-        Log In
+        Логирај се
       </Button>
 
       <Button
@@ -56,7 +56,7 @@ export function LoginForm({
         onClick={onFlip}
         type="button"
       >
-        👉 No account? <span className="font-semibold">Register</span>
+        👉 Немаш профил?<span className="font-semibold">Регистрирај се</span>
       </Button>
     </form>
   );

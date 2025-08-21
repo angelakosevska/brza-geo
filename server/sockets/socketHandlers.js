@@ -3,14 +3,21 @@ const mongoose = require("mongoose");
 const Room = require("../models/Room");
 const Category = require("../models/Category");
 
-const BREAK_MS = 5000; // pause between rounds
-const LATE_GRACE_MS = 150; // tiny buffer to account for client clock skew
+const BREAK_MS = 10000;     // pause between rounds (ms)
+const LATE_GRACE_MS = 150;  // tiny buffer to account for client clock skew
 
 // ================== runtime helpers ==================
-const runtime = new Map(); // roomCode -> { roundTO:null, breakTO:null, ending:false }
+// runtime: roomCode -> { roundTO, breakTO, ending, breakEndsAt }
+const runtime = new Map();
 function getRT(roomCode) {
-  if (!runtime.has(roomCode))
-    runtime.set(roomCode, { roundTO: null, breakTO: null, ending: false });
+  if (!runtime.has(roomCode)) {
+    runtime.set(roomCode, {
+      roundTO: null,
+      breakTO: null,
+      ending: false,
+      breakEndsAt: null,
+    });
+  }
   return runtime.get(roomCode);
 }
 function clearAllTimers(rt) {
@@ -67,25 +74,46 @@ function toMkCyrillic(input = "") {
 
   // digraphs / trigraphs (order matters)
   const pairs = [
-    [/dzh/gi, "џ"], // keep before dz
-    [/dz/gi,  "ѕ"],
-    [/gj/gi,  "ѓ"],
-    [/kj/gi,  "ќ"],
-    [/zh/gi,  "ж"],
-    [/ch/gi,  "ч"],
-    [/sh/gi,  "ш"],
-    [/lj/gi,  "љ"],
-    [/nj/gi,  "њ"],
+    [/dzh/gi, "џ"],
+    [/dz/gi, "ѕ"],
+    [/gj/gi, "ѓ"],
+    [/kj/gi, "ќ"],
+    [/zh/gi, "ж"],
+    [/ch/gi, "ч"],
+    [/sh/gi, "ш"],
+    [/lj/gi, "љ"],
+    [/nj/gi, "њ"],
   ];
   for (const [re, rep] of pairs) {
-    s = s.replace(re, (m) => (m[0] === m[0].toUpperCase() ? rep.toUpperCase() : rep));
+    s = s.replace(re, (m) =>
+      m[0] === m[0].toUpperCase() ? rep.toUpperCase() : rep
+    );
   }
 
   // single letters
   const map = {
-    a:"а", b:"б", v:"в", g:"г", d:"д", e:"е", z:"з", i:"и", j:"ј", k:"к",
-    l:"л", m:"м", n:"н", o:"о", p:"п", r:"р", s:"с", t:"т", u:"у", f:"ф",
-    h:"х", c:"ц", y:"и", w:"в", q:"к", x:"кс",
+    a: "а",
+    b: "б",
+    v: "в",
+    g: "г",
+    d: "д",
+    e: "е",
+    z: "з",
+    i: "и",
+    j: "ј",
+    k: "к",
+    l: "л",
+    m: "м",
+    n: "н",
+    o: "о",
+    p: "п",
+    r: "р",
+    s: "с",
+    t: "т",
+    u: "у",
+    f: "ф",
+    h: "х",
+    c: "ц",
   };
   s = s.replace(/[A-Za-z]/g, (ch) => {
     const lower = ch.toLowerCase();
@@ -137,6 +165,8 @@ module.exports = (io) => {
     socket.data = {};
 
     // === JOIN ROOM ===
+    // - Adds player to room, broadcasts players/room,
+    // - If a round is active, syncs newcomer with 'roundStarted'
     socket.on("joinRoom", async ({ code, userId }) => {
       const roomCode = (code || "").toUpperCase();
       if (!roomCode || !userId) return;
@@ -158,7 +188,12 @@ module.exports = (io) => {
       io.to(roomCode).emit("roomUpdated", { room });
 
       // If a round is in progress, sync newcomer so they can play immediately
-      if (room.started && room.currentRound && room.roundEndTime && room.letter) {
+      if (
+        room.started &&
+        room.currentRound &&
+        room.roundEndTime &&
+        room.letter
+      ) {
         const ids = (room.categories || []).map(String);
 
         let categoryMeta = [];
@@ -180,6 +215,13 @@ module.exports = (io) => {
           categoryMeta = ids.map((id) => ({ id, name: String(id) }));
         }
 
+        const rn = room.currentRound;
+        const hasSubmitted = Boolean(
+          (room.roundsData || [])
+            .find((r) => r.roundNumber === rn)
+            ?.submissions?.some((s) => String(s.player) === String(userId))
+        );
+
         socket.emit("roundStarted", {
           currentRound: room.currentRound,
           totalRounds: room.rounds,
@@ -188,11 +230,89 @@ module.exports = (io) => {
           categoryMeta,
           roundEndTime: new Date(room.roundEndTime).toISOString(),
           serverNow: Date.now(),
+          hasSubmitted,
+          endMode: room.endMode || "ALL_SUBMIT", // <-- mode propagated
         });
       }
     });
 
+    // === GET ROUND STATE ===
+    // - Snapshot for late joiners / refresh (phase, timers, category meta)
+    socket.on("getRoundState", async ({ code }, ack) => {
+      const roomCode = (code || socket.data.roomCode || "").toUpperCase();
+      if (!roomCode) return ack?.(null);
+
+      const room = await Room.findOne({ code: roomCode })
+        .select(
+          "started currentRound rounds timer categories letter roundEndTime roundsData endMode"
+        )
+        .lean();
+      if (!room) return ack?.(null);
+
+      const ids = (room.categories || []).map(String);
+      let categoryMeta = [];
+      try {
+        if (ids.length) {
+          const cats = await Category.find({ _id: { $in: ids } })
+            .select("displayName name")
+            .lean();
+          const nameById = Object.fromEntries(
+            cats.map((c) => [
+              String(c._id),
+              c.displayName?.mk || c.name || String(c._id),
+            ])
+          );
+          categoryMeta = ids.map((id) => ({ id, name: nameById[id] || id }));
+        }
+      } catch {
+        categoryMeta = ids.map((id) => ({ id, name: String(id) }));
+      }
+
+      const rn = room.currentRound;
+      const now = Date.now();
+      let phase = null;
+      let breakEndTime = null;
+
+      // Determine phase ("play" if roundEndTime in future, "review" if break running)
+      if (room.started && room.roundEndTime && new Date(room.roundEndTime).getTime() > now) {
+        phase = "play";
+      } else {
+        const rt = getRT(roomCode);
+        if (rt.breakEndsAt && rt.breakEndsAt.getTime() > now) {
+          phase = "review";
+          breakEndTime = rt.breakEndsAt.toISOString();
+        } else if (room.started) {
+          // started but no active timers -> still consider "review" until next round starts
+          phase = "review";
+        }
+      }
+
+      const userId = socket.data.userId;
+      const hasSubmitted = Boolean(
+        (room.roundsData || [])
+          .find((r) => r.roundNumber === rn)
+          ?.submissions?.some((s) => String(s.player) === String(userId))
+      );
+
+      ack?.({
+        currentRound: room.currentRound,
+        totalRounds: room.rounds,
+        letter: room.letter,
+        categories: ids,
+        categoryMeta,
+        roundEndTime: room.roundEndTime
+          ? new Date(room.roundEndTime).toISOString()
+          : null,
+        breakEndTime,
+        serverNow: Date.now(),
+        phase,
+        hasSubmitted,
+        endMode: room.endMode || "ALL_SUBMIT",
+      });
+    });
+
     // === LEAVE ROOM (button) ===
+    // - Removes player; if host leaves and room empty -> delete room
     socket.on("leaveRoom", async ({ code }) => {
       const roomCode = (code || socket.data.roomCode || "").toUpperCase();
       const userId = socket.data.userId;
@@ -203,6 +323,7 @@ module.exports = (io) => {
     });
 
     // === DISCONNECT ===
+    // - Treat like leave; do not delete if others remain
     socket.on("disconnect", async () => {
       const { roomCode, userId } = socket.data || {};
       if (!roomCode || !userId) return;
@@ -210,12 +331,13 @@ module.exports = (io) => {
     });
 
     // === START GAME (host only) ===
+    // - Resets room to round 0 and immediately starts round 1
     socket.on("startGame", async () => {
       const { roomCode, userId } = socket.data || {};
       if (!roomCode || !userId) return;
 
       const room = await Room.findOne({ code: roomCode }).select(
-        "host rounds timer categories started currentRound"
+        "host rounds timer categories started currentRound endMode"
       );
       if (!room) return socket.emit("error", "Room not found");
       if (String(room.host) !== String(userId))
@@ -239,6 +361,7 @@ module.exports = (io) => {
       );
 
       if (!updated) {
+        // If it was already started, just notify
         io.to(roomCode).emit("gameStarted");
         return;
       }
@@ -247,12 +370,14 @@ module.exports = (io) => {
         totalRounds: updated.rounds,
         timer: updated.timer,
         categories: (updated.categories || []).map(String),
+        endMode: updated.endMode || "ALL_SUBMIT",
       });
 
       await startRound(updated);
     });
 
     // === HOST CAN SKIP BREAK ===
+    // - Skips break; goes to next round or ends game if last round done
     socket.on("nextRound", async () => {
       const { roomCode, userId } = socket.data || {};
       if (!roomCode || !userId) return;
@@ -265,6 +390,7 @@ module.exports = (io) => {
       const rt = getRT(roomCode);
       clearAllTimers(rt);
       rt.ending = false;
+      rt.breakEndsAt = null;
 
       const fresh = await Room.findOne({ code: roomCode });
       if (fresh && fresh.currentRound < fresh.rounds) {
@@ -288,13 +414,79 @@ module.exports = (io) => {
       }
     });
 
+    // === HOST FORCE-END ROUND ===
+    // - Ends the current round immediately (emergency override)
+    socket.on("endRound", async () => {
+      const { roomCode, userId } = socket.data || {};
+      if (!roomCode || !userId) return;
+      const room = await Room.findOne({ code: roomCode }).select("host started");
+      if (!room || !room.started) return;
+      if (String(room.host) !== String(userId)) return;
+
+      const rt = getRT(roomCode);
+      if (rt.ending) return;
+      rt.ending = true;
+      clearAllTimers(rt);
+      try {
+        await endRound(roomCode);
+      } finally {
+        rt.ending = false;
+      }
+    });
+
+    // === PLAYER STOP ROUND (Mode "PLAYER_STOP") ===
+    // - Any player who filled *all* inputs can end the round for everyone
+    socket.on("playerStopRound", async () => {
+      const { roomCode, userId } = socket.data || {};
+      if (!roomCode || !userId) return;
+
+      const room = await Room.findOne({ code: roomCode })
+        .select("started currentRound roundEndTime categories roundsData endMode")
+        .lean();
+      if (!room || !room.started || !room.currentRound) return;
+      if ((room.endMode || "ALL_SUBMIT") !== "PLAYER_STOP") return;
+
+      const rn = room.currentRound;
+      const round = (room.roundsData || []).find((r) => r.roundNumber === rn);
+      if (!round) return;
+
+      const sub = (round.submissions || []).find(
+        (s) => String(s.player) === String(userId)
+      );
+      if (!sub) return;
+
+      const catIds = (room.categories || []).map(String);
+      const allFilled =
+        catIds.length > 0 &&
+        catIds.every((cid) => String(sub.answers?.[cid] || "").trim().length > 0);
+
+      if (!allFilled) return;
+
+      const rt = getRT(roomCode);
+      if (rt.ending) return;
+      rt.ending = true;
+      clearAllTimers(rt);
+      try {
+        await endRound(roomCode);
+      } finally {
+        rt.ending = false;
+      }
+    });
+
     // === SUBMIT ANSWERS (atomic replace) ===
+    // - Saves this player's submission for the current round
+    // - If endMode = "ALL_SUBMIT" and everyone submitted -> end round early
     socket.on("submitAnswers", async ({ answers }) => {
       const { roomCode, userId } = socket.data || {};
       if (!roomCode || !userId) return;
 
+      const hasAny = Object.values(answers || {}).some((v) =>
+        String(v || "").trim()
+      );
+      if (!hasAny) return;
+
       const cur = await Room.findOne({ code: roomCode }).select(
-        "started currentRound roundEndTime players categories"
+        "started currentRound roundEndTime players categories endMode"
       );
       if (!cur || !cur.started || !cur.currentRound) return;
 
@@ -324,30 +516,33 @@ module.exports = (io) => {
         }
       );
 
-      // If everyone submitted -> end early
-      const fresh = await Room.findOne({ code: roomCode }).select(
-        "players roundsData currentRound"
-      );
-      const idx = fresh.roundsData.findIndex((r) => r.roundNumber === rn);
-      const submittedCount =
-        idx >= 0 ? (fresh.roundsData[idx].submissions || []).length : 0;
-      const playerCount = (fresh.players || []).length;
+      // Early end only for Mode A (ALL_SUBMIT)
+      if ((cur.endMode || "ALL_SUBMIT") === "ALL_SUBMIT") {
+        const fresh = await Room.findOne({ code: roomCode }).select(
+          "players roundsData currentRound"
+        );
+        const idx = fresh.roundsData.findIndex((r) => r.roundNumber === rn);
+        const submittedCount =
+          idx >= 0 ? (fresh.roundsData[idx].submissions || []).length : 0;
+        const playerCount = (fresh.players || []).length;
 
-      if (playerCount > 0 && submittedCount >= playerCount) {
-        const rt = getRT(roomCode);
-        if (!rt.ending) {
-          rt.ending = true;
-          clearAllTimers(rt);
-          try {
-            await endRound(roomCode);
-          } finally {
-            rt.ending = false;
+        if (playerCount > 0 && submittedCount >= playerCount) {
+          const rt = getRT(roomCode);
+          if (!rt.ending) {
+            rt.ending = true;
+            clearAllTimers(rt);
+            try {
+              await endRound(roomCode);
+            } finally {
+              rt.ending = false;
+            }
           }
         }
       }
     });
 
     // ================== helpers ==================
+    // Remove a user from the room; reassign or delete room if needed
     async function handleLeave(roomCode, userId) {
       const lean = await Room.findOne({ code: roomCode })
         .select("players host started")
@@ -382,11 +577,13 @@ module.exports = (io) => {
       io.to(roomCode).emit("roomUpdated", { room: updated });
     }
 
+    // Start a new round; schedules natural end-of-round timer
     async function startRound(roomDoc) {
       const roomCode = roomDoc.code;
       const rt = getRT(roomCode);
       clearAllTimers(rt);
       rt.ending = false;
+      rt.breakEndsAt = null;
 
       const secs = normalizeSeconds(roomDoc.timer);
       const letter = pickLetter(roomDoc.letter);
@@ -438,8 +635,11 @@ module.exports = (io) => {
         categoryMeta,
         roundEndTime: endAt.toISOString(),
         serverNow: Date.now(),
+        hasSubmitted: false,
+        endMode: updated.endMode || "ALL_SUBMIT",
       });
 
+      // natural round end
       rt.roundTO = setTimeout(async () => {
         if (!rt.ending) {
           rt.ending = true;
@@ -454,9 +654,11 @@ module.exports = (io) => {
       }, secs * 1000 + LATE_GRACE_MS);
     }
 
+    // End current round: score, announce results, schedule break or final
     async function endRound(roomCode) {
       const rt = getRT(roomCode);
       clearAllTimers(rt);
+      rt.breakEndsAt = null;
 
       const room = await Room.findOne({ code: roomCode });
       if (!room) return;
@@ -476,8 +678,8 @@ module.exports = (io) => {
       const catMap = new Map(cats.map((c) => [String(c._id), c]));
 
       // Build per-category arrays with flags (Latin input accepted)
-      const byCat = {};       // catId -> [{ player, raw, norm, starts, inDict }]
-      const countsByCat = {}; // catId -> { norm: count }
+      const byCat = {};        // catId -> [{ player, raw, norm, starts, inDict }]
+      const countsByCat = {};  // catId -> { norm: count }
 
       for (const cid of categories) {
         const doc = catMap.get(String(cid));
@@ -488,7 +690,7 @@ module.exports = (io) => {
         const allowAny = ACCEPT_ANY_IF_NO_DICT && dictSet.size === 0;
 
         const arr = (round.submissions || []).map((s) => {
-          const raw = (s.answers?.[cid] || "").trim();        // what player typed
+          const raw = (s.answers?.[cid] || "").trim(); // what player typed
           const rawCyr = toMkCyrillic(raw);
           const norm = normalizeWord(rawCyr);
           const starts = !!rawCyr && rawCyr[0]?.toUpperCase() === letter;
@@ -515,9 +717,9 @@ module.exports = (io) => {
         details[pid] = details[pid] || {};
 
         for (const cid of categories) {
-          const a =
-            (byCat[String(cid)] || []).find((x) => x.player === pid) ||
-            { raw: "", starts: false, inDict: false, norm: "" };
+          const a = (byCat[String(cid)] || []).find(
+            (x) => x.player === pid
+          ) || { raw: "", starts: false, inDict: false, norm: "" };
           const entry = {
             value: a.raw,
             valid: false,
@@ -565,13 +767,21 @@ module.exports = (io) => {
       });
 
       if (hasMore) {
+        const fresh = await Room.findOne({ code: roomCode });
+        if (!fresh) return;
+
+        // Track break end for getRoundState()
+        rt.breakEndsAt = breakEnd;
+
         rt.breakTO = setTimeout(async () => {
           try {
-            const fresh = await Room.findOne({ code: roomCode });
-            if (!fresh) return;
-            await startRound(fresh);
+            const again = await Room.findOne({ code: roomCode });
+            if (!again) return;
+            await startRound(again);
           } catch (e) {
             console.error(e);
+          } finally {
+            rt.breakEndsAt = null;
           }
         }, BREAK_MS);
       } else {
