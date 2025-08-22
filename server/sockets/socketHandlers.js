@@ -1,13 +1,13 @@
-// sockets/socketHandlers.js
 const mongoose = require("mongoose");
 const Room = require("../models/Room");
 const Category = require("../models/Category");
 
-const BREAK_MS = 10000;     // pause between rounds (ms)
-const LATE_GRACE_MS = 150;  // tiny buffer to account for client clock skew
+const BREAK_MS = 120000; // pause between rounds (ms)
+const LATE_GRACE_MS = 150; // tiny buffer to account for client clock skew
+// const MIN_EARLY_END_MS = 1200; // optional: prevents “instant skip” feel
 
 // ================== runtime helpers ==================
-// runtime: roomCode -> { roundTO, breakTO, ending, breakEndsAt }
+// runtime: roomCode -> { roundTO, breakTO, ending, breakEndsAt, gen }
 const runtime = new Map();
 function getRT(roomCode) {
   if (!runtime.has(roomCode)) {
@@ -16,6 +16,7 @@ function getRT(roomCode) {
       breakTO: null,
       ending: false,
       breakEndsAt: null,
+      gen: 0,
     });
   }
   return runtime.get(roomCode);
@@ -165,8 +166,6 @@ module.exports = (io) => {
     socket.data = {};
 
     // === JOIN ROOM ===
-    // - Adds player to room, broadcasts players/room,
-    // - If a round is active, syncs newcomer with 'roundStarted'
     socket.on("joinRoom", async ({ code, userId }) => {
       const roomCode = (code || "").toUpperCase();
       if (!roomCode || !userId) return;
@@ -231,13 +230,12 @@ module.exports = (io) => {
           roundEndTime: new Date(room.roundEndTime).toISOString(),
           serverNow: Date.now(),
           hasSubmitted,
-          endMode: room.endMode || "ALL_SUBMIT", // <-- mode propagated
+          endMode: room.endMode || "ALL_SUBMIT",
         });
       }
     });
 
     // === GET ROUND STATE ===
-    // - Snapshot for late joiners / refresh (phase, timers, category meta)
     socket.on("getRoundState", async ({ code }, ack) => {
       const roomCode = (code || socket.data.roomCode || "").toUpperCase();
       if (!roomCode) return ack?.(null);
@@ -273,16 +271,22 @@ module.exports = (io) => {
       let phase = null;
       let breakEndTime = null;
 
-      // Determine phase ("play" if roundEndTime in future, "review" if break running)
-      if (room.started && room.roundEndTime && new Date(room.roundEndTime).getTime() > now) {
+      // Accurate phase selection
+      if (
+        room.started &&
+        room.roundEndTime &&
+        new Date(room.roundEndTime).getTime() > now
+      ) {
         phase = "play";
       } else {
         const rt = getRT(roomCode);
         if (rt.breakEndsAt && rt.breakEndsAt.getTime() > now) {
           phase = "review";
           breakEndTime = rt.breakEndsAt.toISOString();
+        } else if (room.started && !room.roundEndTime) {
+          // game flipped to started, first round is being prepared
+          phase = "pending";
         } else if (room.started) {
-          // started but no active timers -> still consider "review" until next round starts
           phase = "review";
         }
       }
@@ -312,7 +316,6 @@ module.exports = (io) => {
     });
 
     // === LEAVE ROOM (button) ===
-    // - Removes player; if host leaves and room empty -> delete room
     socket.on("leaveRoom", async ({ code }) => {
       const roomCode = (code || socket.data.roomCode || "").toUpperCase();
       const userId = socket.data.userId;
@@ -323,7 +326,6 @@ module.exports = (io) => {
     });
 
     // === DISCONNECT ===
-    // - Treat like leave; do not delete if others remain
     socket.on("disconnect", async () => {
       const { roomCode, userId } = socket.data || {};
       if (!roomCode || !userId) return;
@@ -331,7 +333,6 @@ module.exports = (io) => {
     });
 
     // === START GAME (host only) ===
-    // - Resets room to round 0 and immediately starts round 1
     socket.on("startGame", async () => {
       const { roomCode, userId } = socket.data || {};
       if (!roomCode || !userId) return;
@@ -361,10 +362,12 @@ module.exports = (io) => {
       );
 
       if (!updated) {
-        // If it was already started, just notify
         io.to(roomCode).emit("gameStarted");
         return;
       }
+
+      // Start the first round BEFORE announcing gameStarted (removes race)
+      await startRound(updated);
 
       io.to(roomCode).emit("gameStarted", {
         totalRounds: updated.rounds,
@@ -372,12 +375,38 @@ module.exports = (io) => {
         categories: (updated.categories || []).map(String),
         endMode: updated.endMode || "ALL_SUBMIT",
       });
+    });
 
-      await startRound(updated);
+    // === UPDATE SETTINGS (host) ===
+    socket.on("updateSettings", async ({ timer, rounds, endMode }) => {
+      const { roomCode, userId } = socket.data || {};
+      if (!roomCode || !userId) return;
+
+      const room = await Room.findOne({ code: roomCode }).select("host started");
+      if (!room) return socket.emit("error", "Room not found");
+      if (String(room.host) !== String(userId))
+        return socket.emit("error", "Only host can update settings");
+      if (room.started)
+        return socket.emit("error", "Cannot change settings while game running");
+
+      const safeTimer = Math.max(3, Math.min(300, Number(timer || 60)));
+      const safeRounds = Math.max(1, Math.min(20, Number(rounds || 5)));
+      const safeMode = endMode === "PLAYER_STOP" ? "PLAYER_STOP" : "ALL_SUBMIT";
+
+      const updated = await Room.findOneAndUpdate(
+        { code: roomCode },
+        { $set: { timer: safeTimer, rounds: safeRounds, endMode: safeMode } },
+        { new: true }
+      ).lean();
+
+      io.to(roomCode).emit("settingsUpdated", {
+        timer: updated.timer,
+        rounds: updated.rounds,
+        endMode: updated.endMode,
+      });
     });
 
     // === HOST CAN SKIP BREAK ===
-    // - Skips break; goes to next round or ends game if last round done
     socket.on("nextRound", async () => {
       const { roomCode, userId } = socket.data || {};
       if (!roomCode || !userId) return;
@@ -415,7 +444,6 @@ module.exports = (io) => {
     });
 
     // === HOST FORCE-END ROUND ===
-    // - Ends the current round immediately (emergency override)
     socket.on("endRound", async () => {
       const { roomCode, userId } = socket.data || {};
       if (!roomCode || !userId) return;
@@ -435,8 +463,8 @@ module.exports = (io) => {
     });
 
     // === PLAYER STOP ROUND (Mode "PLAYER_STOP") ===
-    // - Any player who filled *all* inputs can end the round for everyone
-    socket.on("playerStopRound", async () => {
+    // Any player who filled *all* inputs can end the round for everyone
+    socket.on("playerStopRound", async ({ answers } = {}) => {
       const { roomCode, userId } = socket.data || {};
       if (!roomCode || !userId) return;
 
@@ -447,7 +475,31 @@ module.exports = (io) => {
       if ((room.endMode || "ALL_SUBMIT") !== "PLAYER_STOP") return;
 
       const rn = room.currentRound;
-      const round = (room.roundsData || []).find((r) => r.roundNumber === rn);
+
+      // If answers are provided with the stop call, upsert them first
+      if (answers && Object.values(answers).some((v) => String(v || "").trim())) {
+        await Room.updateOne(
+          { code: roomCode, "roundsData.roundNumber": rn },
+          { $pull: { "roundsData.$.submissions": { player: userId } } }
+        );
+        await Room.updateOne(
+          { code: roomCode, "roundsData.roundNumber": rn },
+          {
+            $push: {
+              "roundsData.$.submissions": {
+                player: userId,
+                answers: answers || {},
+                points: 0,
+              },
+            },
+          }
+        );
+      }
+
+      const fresh = await Room.findOne({ code: roomCode })
+        .select("categories roundsData currentRound")
+        .lean();
+      const round = (fresh.roundsData || []).find((r) => r.roundNumber === rn);
       if (!round) return;
 
       const sub = (round.submissions || []).find(
@@ -455,7 +507,7 @@ module.exports = (io) => {
       );
       if (!sub) return;
 
-      const catIds = (room.categories || []).map(String);
+      const catIds = (fresh.categories || []).map(String);
       const allFilled =
         catIds.length > 0 &&
         catIds.every((cid) => String(sub.answers?.[cid] || "").trim().length > 0);
@@ -474,8 +526,6 @@ module.exports = (io) => {
     });
 
     // === SUBMIT ANSWERS (atomic replace) ===
-    // - Saves this player's submission for the current round
-    // - If endMode = "ALL_SUBMIT" and everyone submitted -> end round early
     socket.on("submitAnswers", async ({ answers }) => {
       const { roomCode, userId } = socket.data || {};
       if (!roomCode || !userId) return;
@@ -518,6 +568,13 @@ module.exports = (io) => {
 
       // Early end only for Mode A (ALL_SUBMIT)
       if ((cur.endMode || "ALL_SUBMIT") === "ALL_SUBMIT") {
+        // OPTIONAL “visible time” guard:
+        // const rdoc = await Room.findOne({ code: roomCode }).select("roundsData currentRound").lean();
+        // const roundDoc = (rdoc.roundsData || []).find(r => r.roundNumber === rdoc.currentRound);
+        // const elapsedOk = roundDoc?.startedAt
+        //   ? (Date.now() - new Date(roundDoc.startedAt).getTime()) >= MIN_EARLY_END_MS
+        //   : true;
+
         const fresh = await Room.findOne({ code: roomCode }).select(
           "players roundsData currentRound"
         );
@@ -526,6 +583,7 @@ module.exports = (io) => {
           idx >= 0 ? (fresh.roundsData[idx].submissions || []).length : 0;
         const playerCount = (fresh.players || []).length;
 
+        // if (elapsedOk && playerCount > 0 && submittedCount >= playerCount) {
         if (playerCount > 0 && submittedCount >= playerCount) {
           const rt = getRT(roomCode);
           if (!rt.ending) {
@@ -542,7 +600,6 @@ module.exports = (io) => {
     });
 
     // ================== helpers ==================
-    // Remove a user from the room; reassign or delete room if needed
     async function handleLeave(roomCode, userId) {
       const lean = await Room.findOne({ code: roomCode })
         .select("players host started")
@@ -584,6 +641,11 @@ module.exports = (io) => {
       clearAllTimers(rt);
       rt.ending = false;
       rt.breakEndsAt = null;
+      rt.gen += 1;
+      const myGen = rt.gen;
+
+      // Don’t start past total rounds
+      if ((roomDoc.currentRound || 0) >= (roomDoc.rounds || 0)) return;
 
       const secs = normalizeSeconds(roomDoc.timer);
       const letter = pickLetter(roomDoc.letter);
@@ -641,7 +703,8 @@ module.exports = (io) => {
 
       // natural round end
       rt.roundTO = setTimeout(async () => {
-        if (!rt.ending) {
+        // Only the latest generation may end the round
+        if (!rt.ending && myGen === rt.gen) {
           rt.ending = true;
           try {
             await endRound(updated.code);
@@ -683,14 +746,14 @@ module.exports = (io) => {
 
       for (const cid of categories) {
         const doc = catMap.get(String(cid));
-        const dictList = extractLetterWords(doc, letter); // normalized (lowercase Cyr)
+        const dictList = extractLetterWords(doc, letter);
         const dictSet = new Set(dictList);
 
         const ACCEPT_ANY_IF_NO_DICT = true;
         const allowAny = ACCEPT_ANY_IF_NO_DICT && dictSet.size === 0;
 
         const arr = (round.submissions || []).map((s) => {
-          const raw = (s.answers?.[cid] || "").trim(); // what player typed
+          const raw = (s.answers?.[cid] || "").trim();
           const rawCyr = toMkCyrillic(raw);
           const norm = normalizeWord(rawCyr);
           const starts = !!rawCyr && rawCyr[0]?.toUpperCase() === letter;

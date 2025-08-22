@@ -12,19 +12,21 @@ export default function RoomSettingsForm({
 }) {
   const [rounds, setRounds] = useState(room.rounds);
   const [timer, setTimer] = useState(room.timer);
+  const [endMode, setEndMode] = useState(room.endMode || "ALL_SUBMIT");
   const [saving, setSaving] = useState(false);
   const [starting, setStarting] = useState(false);
 
   useEffect(() => {
     setRounds(room.rounds);
     setTimer(room.timer);
-  }, [room.rounds, room.timer]);
+    setEndMode(room.endMode || "ALL_SUBMIT");
+  }, [room.rounds, room.timer, room.endMode]);
 
   const handleSave = async () => {
     if (!onUpdate) return;
     setSaving(true);
     try {
-      await onUpdate({ rounds, timer });
+      await onUpdate({ rounds, timer, endMode });
     } finally {
       setSaving(false);
     }
@@ -35,9 +37,12 @@ export default function RoomSettingsForm({
     if (readOnly || !onStart) return;
     setStarting(true);
     try {
-      const changed = rounds !== room.rounds || timer !== room.timer;
+      const changed =
+        rounds !== room.rounds ||
+        +timer !== room.timer ||
+        +(endMode || "ALL_SUBMIT") !== (room.endMode || "ALL_SUBMIT");
       if (changed && onUpdate) {
-        await onUpdate({ rounds, timer });
+        await onUpdate({ rounds, timer, endMode });
       }
       await onStart();
     } finally {
@@ -75,6 +80,30 @@ export default function RoomSettingsForm({
           className="mb-2"
           disabled={readOnly}
         />
+
+        <div className="mb-2">
+          <label className="block mb-2 font-medium text-[var(--primary)] text-sm">
+            Начин на игра
+          </label>
+          <div className="gap-2 grid grid-cols-1 sm:grid-cols-2">
+            <Button
+              type="button"
+              variant={endMode === "ALL_SUBMIT" ? "default" : "outline"}
+              onClick={() => setEndMode("ALL_SUBMIT")}
+              disabled={readOnly}
+            >
+              Стандарден
+            </Button>
+            <Button
+              type="button"
+              variant={endMode === "PLAYER_STOP" ? "default" : "outline"}
+              onClick={() => setEndMode("PLAYER_STOP")}
+              disabled={readOnly}
+            >
+              „Стоп“
+            </Button>
+          </div>
+        </div>
 
         {!readOnly && (
           <div className="flex lg:flex-col gap-4">
