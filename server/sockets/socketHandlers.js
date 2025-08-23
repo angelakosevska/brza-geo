@@ -2,9 +2,9 @@ const mongoose = require("mongoose");
 const Room = require("../models/Room");
 const Category = require("../models/Category");
 
-const BREAK_MS = 120000; // pause between rounds (ms)
+const BREAK_MS = 120000; // pause between rounds (ms) 120s 3nuli
 const LATE_GRACE_MS = 150; // tiny buffer to account for client clock skew
-// const MIN_EARLY_END_MS = 1200; // optional: prevents “instant skip” feel
+
 
 // ================== runtime helpers ==================
 // runtime: roomCode -> { roundTO, breakTO, ending, breakEndsAt, gen }

@@ -54,12 +54,22 @@ app.get("/healthz", (_req, res) => res.send("ok"));
 app.get("/", (req, res) => {
   res.send("🚀 Backend is running!");
 });
-
 // MongoDB
 mongoose
-  .connect(process.env.MONGO_URI, { dbName: process.env.DB_NAME || "brza_geo" })
-  .then(() => console.log("✅ MongoDB е поврзана"))
-  .catch((err) => console.error("❌ MongoDB проблем со конекцијата:", err));
+  .connect(process.env.MONGO_URI)
+  .then(() => {
+    const usedDb =
+      mongoose.connection?.db?.databaseName ??
+      mongoose.connection?.client?.options?.dbName ??
+      "unknown";
+    console.log(`✅ MongoDB е поврзана на базата: ${usedDb}`);
+  })
+  .catch((err) => {
+    console.error("❌ MongoDB проблем со конекцијата:", err);
+  });
+/*
+  ("MONGO_URI=mongodb+srv://brzageografija17:brzageo17@brza-geo-cluster.aaut9vp.mongodb.net/test?retryWrites=true&w=majority&appName=brza-geo-cluster");
+*/
 
 module.exports.io = io;
 
