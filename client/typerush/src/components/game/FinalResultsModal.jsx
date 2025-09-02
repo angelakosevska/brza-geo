@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useCallback } from "react";
 import GlassCard from "@/components/GlassCard";
 import { Button } from "@/components/ui/button";
 
@@ -14,37 +15,120 @@ export default function FinalResultsModal({
   onLeaveToMain, // () => void  (leave room + go home)
   onStartNewGame, // () => void  (host only)
   onRequestClose, // () => void  (optional)
+
+  // Options
+  closeOnOverlay = true,
 }) {
   if (!show) return null;
 
-  const sorted = Object.entries(finalTotals).sort((a, b) => b[1] - a[1]);
+  // Deterministic sort: score desc, then displayName asc, then id asc
+  const sorted = useMemo(() => {
+    const entries = Object.entries(finalTotals); // [ [id, pts], ... ]
+    return entries.sort((a, b) => {
+      const [ida, pa] = a;
+      const [idb, pb] = b;
+      if (pb !== pa) return pb - pa;
+
+      const na = (playerNameById[ida] || String(ida).slice(-5)).toLowerCase();
+      const nb = (playerNameById[idb] || String(idb).slice(-5)).toLowerCase();
+      if (na !== nb) return na < nb ? -1 : 1;
+
+      return String(ida) < String(idb) ? -1 : 1;
+    });
+  }, [finalTotals, playerNameById]);
+
   const winnerNames =
     finalWinners.length > 0
-      ? finalWinners
-          .map((id) => playerNameById[id] || String(id).slice(-5))
-          .join(", ")
+      ? finalWinners.map((id) => playerNameById[id] || String(id).slice(-5)).join(", ")
       : null;
+
+  const handleOverlayClick = () => {
+    if (closeOnOverlay) onRequestClose?.();
+  };
+
+  // ESC to close
+  useEffect(() => {
+    if (!show) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") onRequestClose?.();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [show, onRequestClose]);
+
+  const copyCode = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(String(code));
+    } catch {
+      // ignore clipboard errors silently
+    }
+  }, [code]);
+
+  // Medal helper (ties share the same place, but we still decorate top 3 rows)
+  const medalForIndex = (idx) => {
+    if (idx === 0) return "🥇";
+    if (idx === 1) return "🥈";
+    if (idx === 2) return "🥉";
+    return null;
+  };
+
+  // Compute place numbers accounting for ties
+  const placeByRow = useMemo(() => {
+    const places = [];
+    let currentPlace = 1;
+    let prevPts = null;
+    for (let i = 0; i < sorted.length; i++) {
+      const pts = sorted[i][1];
+      if (prevPts === null) {
+        places.push(currentPlace);
+        prevPts = pts;
+      } else if (pts === prevPts) {
+        // same place for tie
+        places.push(currentPlace);
+      } else {
+        currentPlace = i + 1; // place jumps to current index + 1
+        places.push(currentPlace);
+        prevPts = pts;
+      }
+    }
+    return places;
+  }, [sorted]);
 
   return (
     <div
-      className="fixed inset-0 z-50"
+      className="z-50 fixed inset-0"
       role="dialog"
       aria-modal="true"
       aria-labelledby="final-results-title"
     >
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-        onClick={onRequestClose}
+        onClick={handleOverlayClick}
       />
-      <div className="absolute inset-0 flex items-center justify-center p-4">
-        <GlassCard className="relative w-full max-w-3xl p-6 text-[var(--text)]">
+      <div className="absolute inset-0 flex justify-center items-center p-4">
+        <GlassCard className="relative p-6 w-full max-w-3xl text-[var(--text)]">
+          {/* Close (accessible) */}
+          <button
+            onClick={onRequestClose}
+            aria-label="Затвори"
+            className="top-3 right-3 absolute opacity-70 hover:opacity-100 px-2 py-1 rounded-full focus:outline-none focus:ring-[var(--accent)] focus:ring-2 text-sm"
+          >
+            ✕
+          </button>
+
           {/* Header */}
-          <div className="mb-4 flex items-center justify-between">
-            <div id="final-results-title" className="text-xl font-bold">
+          <div className="flex flex-wrap justify-between items-center gap-3 mb-4 pr-8">
+            <div id="final-results-title" className="font-bold text-xl">
               Играта заврши
             </div>
+
             {code && (
-              <div className="text-sm opacity-70 uppercase">Соба {code}</div>
+              <div className="flex items-center gap-2 opacity-80 text-sm">
+                <span className="uppercase">Соба {code}</span>
+                <Button size="sm" variant="outline" onClick={copyCode} title="Копирај код">
+                  Копирај
+                </Button>
+              </div>
             )}
           </div>
 
@@ -62,18 +146,26 @@ export default function FinalResultsModal({
             )}
           </div>
 
-          {/* Final scores (vkupno bodovi) */}
-          <div className="mb-2 text-sm font-medium">Финални поени</div>
-          <div className="max-h-[55vh] space-y-2 overflow-auto pr-1">
-            {sorted.map(([pid, pts]) => {
+          {/* Final scores */}
+          <div className="mb-2 font-medium text-sm">Финални поени</div>
+          <div className="space-y-2 pr-1 max-h-[55vh] overflow-auto">
+            {sorted.map(([pid, pts], idx) => {
               const isWinner = finalWinners.includes(pid);
+              const name = playerNameById[pid] || String(pid).slice(-5);
+              const place = placeByRow[idx];
+              const medal = medalForIndex(idx);
+
               return (
                 <div
                   key={pid}
-                  className={`flex items-center justify-between rounded-2xl px-5 py-3 bg-[var(--primary)]/10`}
+                  className={`flex items-center justify-between rounded-2xl px-5 py-3 bg-[var(--primary)]/10
+                    ${isWinner ? "ring-2 ring-[var(--accent)]" : ""}
+                  `}
                 >
-                  <div className="font-medium">
-                    {playerNameById[pid] || String(pid).slice(-5)}
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="opacity-80 w-6 font-mono text-right">{place}.</span>
+                    <span className="w-6">{medal ?? ""}</span>
+                    <div className="font-medium truncate">{name}</div>
                   </div>
                   <div className="font-mono">#{pts}</div>
                 </div>
@@ -82,27 +174,27 @@ export default function FinalResultsModal({
           </div>
 
           {/* Actions */}
-          <div className="mt-6 flex flex-wrap items-center justify-end gap-2">
+          <div className="flex flex-wrap justify-end items-center gap-2 mt-6">
             <Button
               variant="ghost"
               onClick={onLeaveToMain}
-              title="Leave to main"
+              title="Излези во мени"
             >
-              Leave to Main
+              Излези
             </Button>
             <Button
               variant="outline"
               onClick={onBackToRoom}
-              title="Back to room"
+              title="Назад во собата, промена на опции"
             >
-              Back to Room
+              Назад
             </Button>
             {isHost && (
               <Button
                 onClick={onStartNewGame}
-                title="Start another game with the same settings"
+                title="Започни нова игра со истите опции"
               >
-                Start New Game
+                Започни нова игра
               </Button>
             )}
           </div>

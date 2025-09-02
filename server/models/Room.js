@@ -46,8 +46,11 @@ const roomSchema = new mongoose.Schema(
 
     // Full history of all rounds in this game
     roundsData: { type: [RoundSchema], default: [] },
+
+    lastActiveAt: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );
 
+roomSchema.index({ lastActiveAt: 1 }, { expireAfterSeconds: 60 * 60 * 12 });
 module.exports = mongoose.model("Room", roomSchema);

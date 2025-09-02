@@ -37,7 +37,7 @@ export default function RoundResultsModal({
 
   return (
     <div
-      className="fixed inset-0 z-50"
+      className="z-50 fixed inset-0"
       role="dialog"
       aria-modal="true"
       aria-labelledby="round-results-title"
@@ -46,37 +46,33 @@ export default function RoundResultsModal({
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onRequestClose}
       />
-      <div className="absolute inset-0 flex items-center justify-center p-4">
-        <GlassCard className="w-full max-w-3xl p-6 text-[var(--text)] relative">
+      <div className="absolute inset-0 flex justify-center items-center p-4">
+        <GlassCard className="relative p-6 w-full max-w-3xl text-[var(--text)]">
           {/* Header */}
-          <div className="mb-4 flex items-center justify-between">
+          <div className="flex justify-between items-center mb-4">
             <div id="round-results-title" className="font-bold text-lg">
-              Round {currentRound} Results
+              Резултати за {currentRound} рунда
             </div>
             <div className="flex items-center gap-3">
               {breakLeft != null && (
-                <div className="text-sm opacity-70">
-                  Next round in {breakLeft}s
+                <div className="opacity-70 text-sm">
+                  Следна рунда за {breakLeft}s
                 </div>
               )}
               {isHost && currentRound < totalRounds && (
-                <Button
-                  onClick={onNextRound}
-                  size="sm"
-                  title="Start next round now"
-                >
-                  Start next round
+                <Button onClick={onNextRound} size="sm" title="Следна рунда">
+                  Започни следна рунда
                 </Button>
               )}
             </div>
           </div>
 
           {/* Per-category answers */}
-          <div className="grid gap-4 max-h-[55vh] overflow-auto pr-1">
+          <div className="gap-4 grid pr-1 max-h-[55vh] overflow-auto">
             {categories.map((cid) => (
               <div
                 key={cid}
-                className="rounded-xl p-3 bg-white/5 dark:bg-white/5"
+                className="bg-white/5 dark:bg-white/5 p-3 rounded-2xl"
               >
                 <div className="mb-2 font-semibold text-sm">
                   {categoryLabels[cid] || cid}
@@ -97,9 +93,9 @@ export default function RoundResultsModal({
 
                     const badgeText = info.valid
                       ? info.unique
-                        ? "✔ unique"
-                        : "≡ duplicate"
-                      : "✖ invalid";
+                        ? "✔ уникатно"
+                        : "≡ дупликат"
+                      : "✖ невалидно";
 
                     const badgeClass = info.valid
                       ? info.unique
@@ -110,11 +106,11 @@ export default function RoundResultsModal({
                     return (
                       <div
                         key={pid}
-                        className="flex items-center justify-between px-3 py-2 rounded-lg"
+                        className="flex justify-between items-center px-3 py-2 rounded-lg"
                       >
-                        <div className="flex min-w-0 items-center gap-3">
-                          <div className="truncate font-medium">{name}</div>
-                          <div className="truncate text-sm opacity-80">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="font-medium truncate">{name}</div>
+                          <div className="opacity-80 text-sm truncate">
                             — {info.value || "—"}
                           </div>
                         </div>
@@ -136,12 +132,12 @@ export default function RoundResultsModal({
 
           {/* Round totals */}
           <div className="mt-4">
-            <div className="mb-2 text-sm font-medium">Round totals</div>
+            <div className="mb-2 font-medium text-sm">Вкупно резултати</div>
             <div className="space-y-2">
               {roundTotals.map((r) => (
                 <div
                   key={r.id}
-                  className="flex items-center justify-between rounded-lg px-3 py-2 bg-white/5 dark:bg-white/5"
+                  className="flex justify-between items-center bg-white/5 dark:bg-white/5 px-3 py-2 rounded-lg"
                 >
                   <div>{r.name}</div>
                   <div className="font-mono">+{r.pts}</div>

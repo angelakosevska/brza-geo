@@ -54,7 +54,7 @@ export default function RoomSettingsForm({
     !readOnly &&
     !room.started &&
     (room.categories?.length ?? 0) > 0 &&
-    (room.players?.length ?? 0) >= 2; // change to >=2 if you require 2 players
+    (room.players?.length ?? 0) >= 1; // change to >=2 if you require 2 players
 
   return (
     <GlassCard className={className}>

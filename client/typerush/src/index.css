@@ -32,9 +32,9 @@ body {
 
   --text: #051410;
   --background: #effbf7;
-  --primary: #37cda5;
-  --secondary: #e392c8;
-  --accent: #db8470;
+  --primary: #25b790;
+  --secondary: #d1a4ef;
+  --accent: #f88a79;
   --glass: #000000;
 }
 
@@ -44,9 +44,9 @@ body {
     --text: #ebfaf6;
     --background: #04100c;
     --primary: #37cda5;
-    --secondary: #6d1c52;
-    --accent: #8f3724;
-    --glass: #be9292;
+    --secondary: #C287E8;
+    --accent: #FF7E6B;
+    --glass: #5a5a5a;
   }
 }
 

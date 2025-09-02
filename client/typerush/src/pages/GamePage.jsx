@@ -39,16 +39,24 @@ export default function GamePage() {
     handleStopRound,
 
     // modals
-    showResults, roundScores, answerDetails, breakLeft,
+    showResults,
+    roundScores,
+    answerDetails,
+    breakLeft,
     handleNextRound,
-    showFinal, finalTotals, finalWinners,
+    showFinal,
+    finalTotals,
+    finalWinners,
     playerNameById,
-    handleBackToRoom, handleLeaveRoom, handlePlayAgain, handleStayHere,
+    handleBackToRoom,
+    handleLeaveRoom,
+    handlePlayAgain,
+    handleStayHere,
   } = useGameLogic({ code, currentUserId, navigate });
 
   return (
     <div className="py-6">
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
+      <div className="gap-4 grid grid-cols-1 lg:grid-cols-4">
         <div className="flex flex-col gap-4 lg:col-span-3">
           <RoundInfoCard
             className="order-1 lg:order-2"
@@ -58,13 +66,6 @@ export default function GamePage() {
             letter={letter}
             waiting={waitingForRound}
           />
-
-          {/* Tiny debug strip (remove once fixed) */}
-          <div className="order-2 rounded-xl bg-black/5 p-2 text-xs md:text-sm opacity-70">
-            mode: <b>{mode}</b> • waiting: <b>{String(waitingForRound)}</b> •
-            submitted: <b>{String(submitted)}</b> • timeLeft: <b>{timeLeft}</b> •
-            endAt: <b>{String(endAt)}</b>
-          </div>
 
           <CategoryAnswersCard
             className="order-3"
@@ -81,20 +82,25 @@ export default function GamePage() {
             mode={mode}
             waitingForRound={waitingForRound}
             showSubmit
-            showStop
+            showStop={endMode ==="PLAYER_STOP"}
             isHost={isHost}
             onSubmit={handleSubmit}
             onStop={handleStopRound}
+            code={code}
           />
 
           <div className="order-4 lg:order-1">
-            <PlayersList players={players} className="w-full" showLeave={false} />
+            <PlayersList
+              players={players}
+              className="w-full"
+              showLeave={false}
+            />
           </div>
         </div>
 
-        <GlassCard className="p-0 overflow-hidden lg:col-span-1">
-          <div className="flex min-h-[300px] h-full items-center justify-center p-6">
-            <div className="flex h-[340px] w-full items-center justify-center rounded-2xl">
+        <GlassCard className="lg:col-span-1 p-0 overflow-hidden">
+          <div className="flex justify-center items-center p-6 h-full min-h-[300px]">
+            <div className="flex justify-center items-center rounded-2xl w-full h-[340px]">
               <span className="opacity-80">Placeholder</span>
             </div>
           </div>

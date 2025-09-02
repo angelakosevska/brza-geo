@@ -1,4 +1,3 @@
-
 import GlassCard from "@/components/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,13 +15,14 @@ export default function CategoryAnswersCard({
   className = "",
 
   // NEW:
-  mode = "play",              // "play" | "review"
-  waitingForRound = false,    // true until roundStarted sets endAt/letter/categories
+  mode = "play", // "play" | "review"
+  waitingForRound = false, // true until roundStarted sets endAt/letter/categories
   showSubmit = false,
   showStop = false,
   isHost = false,
   onSubmit,
   onStop,
+  code,
 }) {
   const disabled =
     mode !== "play" || waitingForRound || submitted || (timeLeft ?? 0) <= 0;
@@ -37,23 +37,23 @@ export default function CategoryAnswersCard({
 
   return (
     <GlassCard className={`p-6 text-[var(--text)] ${className}`}>
-      <div className="mb-4 flex items-center justify-between">
+      <div className="flex justify-between items-center mb-4">
         <div className="font-semibold">{title}</div>
-        <div className="flex items-center gap-2 text-xs opacity-70">
-          <span>Почнува со</span>
-          <span className="font-mono">{letter ?? "—"}</span>
+        <div className="flex items-center gap-2 opacity-70 text-xs">
+          <span>Код на соба: </span>
+          <span className="text-[var(--secondary)]">{code}</span>
         </div>
       </div>
 
-      <div className="grid gap-4">
+      <div className="gap-4 grid">
         {categories.length === 0 ? (
-          <div className="py-10 text-center opacity-70">Чекам категории…</div>
+          <div className="opacity-70 py-10 text-center">Чекам категории…</div>
         ) : (
           categories.map((id) => (
-            <div key={id} className="grid grid-cols-12 items-center gap-3">
+            <div key={id} className="items-center gap-3 grid grid-cols-12">
               <label
                 htmlFor={`answer-${id}`}
-                className="col-span-12 lg:col-span-4 truncate text-sm font-medium"
+                className="col-span-12 lg:col-span-4 font-medium text-sm truncate"
                 title={categoryLabels[id] || id}
               >
                 {categoryLabels[id] || id}
@@ -74,7 +74,7 @@ export default function CategoryAnswersCard({
       </div>
 
       {/* helper + (optional) actions */}
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-3 text-xs opacity-70">
+      <div className="flex flex-wrap justify-between items-center gap-3 opacity-70 mt-6 text-xs">
         <div>
           {mode !== "play"
             ? "Резултати помеѓу рунди."
@@ -89,7 +89,7 @@ export default function CategoryAnswersCard({
 
         {mode === "play" && !waitingForRound && (
           <div className="flex items-center gap-2">
-            {showStop && isHost && (
+            {showStop && (
               <Button
                 variant="destructive"
                 onClick={onStop}
