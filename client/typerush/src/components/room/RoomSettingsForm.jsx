@@ -16,6 +16,7 @@ export default function RoomSettingsForm({
   const [saving, setSaving] = useState(false);
   const [starting, setStarting] = useState(false);
 
+  // keep local state in sync with latest room from server
   useEffect(() => {
     setRounds(room.rounds);
     setTimer(room.timer);
@@ -32,15 +33,14 @@ export default function RoomSettingsForm({
     }
   };
 
-  // Save (if needed) → then Start
   const handleSaveThenStart = async () => {
     if (readOnly || !onStart) return;
     setStarting(true);
     try {
       const changed =
         rounds !== room.rounds ||
-        +timer !== room.timer ||
-        +(endMode || "ALL_SUBMIT") !== (room.endMode || "ALL_SUBMIT");
+        timer !== room.timer ||
+        (endMode || "ALL_SUBMIT") !== (room.endMode || "ALL_SUBMIT");
       if (changed && onUpdate) {
         await onUpdate({ rounds, timer, endMode });
       }
@@ -54,7 +54,7 @@ export default function RoomSettingsForm({
     !readOnly &&
     !room.started &&
     (room.categories?.length ?? 0) > 0 &&
-    (room.players?.length ?? 0) >= 1; // change to >=2 if you require 2 players
+    (room.players?.length ?? 0) >= 1; // ако сакаш 2 играчи: >=2
 
   return (
     <GlassCard className={className}>
@@ -81,6 +81,7 @@ export default function RoomSettingsForm({
           disabled={readOnly}
         />
 
+        {/* Game Mode */}
         <div className="mb-2">
           <label className="block mb-2 font-medium text-[var(--primary)] text-sm">
             Начин на игра

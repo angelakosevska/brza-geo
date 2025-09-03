@@ -31,7 +31,7 @@ export default function GamePage() {
     categoryLabels,
     answers,
     submitted,
-    // NEW (ensure your hook returns these)
+    endMode,
     mode,
     isHost,
     handleChange,
@@ -78,11 +78,10 @@ export default function GamePage() {
             submitted={submitted}
             timeLeft={timeLeft}
             enforceStartsWith={false}
-            // IMPORTANT:
             mode={mode}
             waitingForRound={waitingForRound}
-            showSubmit
-            showStop={endMode ==="PLAYER_STOP"}
+            showSubmit={endMode==="ALL_SUBMIT"}
+            showStop={endMode === "PLAYER_STOP"}
             isHost={isHost}
             onSubmit={handleSubmit}
             onStop={handleStopRound}

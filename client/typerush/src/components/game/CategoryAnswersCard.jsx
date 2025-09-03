@@ -13,13 +13,10 @@ export default function CategoryAnswersCard({
   timeLeft = 0,
   enforceStartsWith = false,
   className = "",
-
-  // NEW:
   mode = "play", // "play" | "review"
   waitingForRound = false, // true until roundStarted sets endAt/letter/categories
-  showSubmit = false,
-  showStop = false,
-  isHost = false,
+  showSubmit,
+  showStop,
   onSubmit,
   onStop,
   code,

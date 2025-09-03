@@ -19,8 +19,8 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   const [totalRounds, setTotalRounds] = useState(0);
   const [letter, setLetter] = useState(null);
   const [categories, setCategories] = useState([]);
-  const [categoryLabels, setCategoryLabels] = useState({}); // id -> label
-  const [endAt, setEndAt] = useState(null); // epoch ms or ISO string
+  const [categoryLabels, setCategoryLabels] = useState({});
+  const [endAt, setEndAt] = useState(null);
 
   // -------- Answers / countdown --------
   const [answers, setAnswers] = useState({});
@@ -28,26 +28,23 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   const [timeLeft, setTimeLeft] = useState(0);
 
   // -------- Modes --------
-  // "play"  : during round (inputs are live)
-  // "review": between rounds (results modal) or after game (final modal)
-  const [mode, setMode] = useState("play");
-  const [endMode, setEndMode] = useState("ALL_SUBMIT");
+  const [mode, setMode] = useState("play"); // "play" | "review"
+  const [endMode, setEndMode] = useState("ALL_SUBMIT"); // "ALL_SUBMIT" | "PLAYER_STOP"
 
   // -------- Between-round (results) modal --------
   const [showResults, setShowResults] = useState(false);
-  const [roundScores, setRoundScores] = useState({}); // { [pid]: pts }
-  const [roundAnswers, setRoundAnswers] = useState({}); // optional snapshot
-  const [answerDetails, setAnswerDetails] = useState({}); // { [pid]: { [cid]: {value,valid,unique,points,reason} } }
-  const [breakEndAt, setBreakEndAt] = useState(null); // epoch/ISO
+  const [roundScores, setRoundScores] = useState({});
+  const [roundAnswers, setRoundAnswers] = useState({});
+  const [answerDetails, setAnswerDetails] = useState({});
+  const [breakEndAt, setBreakEndAt] = useState(null);
   const [breakLeft, setBreakLeft] = useState(0);
 
   // -------- Final modal --------
   const [showFinal, setShowFinal] = useState(false);
-  const [finalTotals, setFinalTotals] = useState({}); // { [pid]: pts }
-  const [finalWinners, setFinalWinners] = useState([]); // [pid]
+  const [finalTotals, setFinalTotals] = useState({});
+  const [finalWinners, setFinalWinners] = useState([]);
 
   // -------- Server time skew correction --------
-  // Store (serverNow - clientNow). Then use: endAt - (Date.now() + offset)
   const [serverOffsetMs, setServerOffsetMs] = useState(0);
 
   // -------- Refs --------
@@ -55,22 +52,15 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   const endAtRef = useRef(null);
   const joinedRef = useRef(false);
 
-  useEffect(() => {
-    answersRef.current = answers;
-  }, [answers]);
-  useEffect(() => {
-    endAtRef.current = endAt;
-  }, [endAt]);
+  useEffect(() => { answersRef.current = answers; }, [answers]);
+  useEffect(() => { endAtRef.current = endAt; }, [endAt]);
 
   // -------- Helpers --------
   const normalizeId = (v) =>
     typeof v === "string" ? v : v?._id ?? String(v ?? "");
 
   const isHost = useMemo(
-    () =>
-      Boolean(
-        hostId && currentUserId && String(hostId) === String(currentUserId)
-      ),
+    () => Boolean(hostId && currentUserId && String(hostId) === String(currentUserId)),
     [hostId, currentUserId]
   );
 
@@ -90,6 +80,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       setPlayers(room.players || []);
       setPlayerNameById(map);
       setHostId(normalizeId(room.host));
+      if (room.endMode) setEndMode(room.endMode);
     } catch {
       // ignore
     }
@@ -98,14 +89,12 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   // -------- Join room once socket+user ready --------
   useEffect(() => {
     if (!code || !currentUserId) return;
-
     const tryJoin = () => {
       if (socket.connected && !joinedRef.current) {
         socket.emit("joinRoom", { code, userId: currentUserId });
         joinedRef.current = true;
       }
     };
-
     fetchRoom().finally(tryJoin);
     socket.on("connect", tryJoin);
     return () => socket.off("connect", tryJoin);
@@ -121,7 +110,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     };
   }, [code]);
 
-  // -------- Round countdown (drift-free) --------
+  // -------- Round countdown --------
   useEffect(() => {
     const t = setInterval(() => {
       if (!endAt) return;
@@ -132,7 +121,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     return () => clearInterval(t);
   }, [endAt, serverOffsetMs]);
 
-  // -------- Break countdown (between rounds) --------
+  // -------- Break countdown --------
   useEffect(() => {
     const t = setInterval(() => {
       if (!breakEndAt) return;
@@ -143,7 +132,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     return () => clearInterval(t);
   }, [breakEndAt, serverOffsetMs]);
 
-  // -------- Auto-submit when timer hits 0 --------
+  // -------- Auto-submit --------
   useEffect(() => {
     if (timeLeft === 0 && endAt && !submitted && mode === "play") {
       socket.emit("submitAnswers", { code, answers: answersRef.current });
@@ -162,40 +151,24 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
   }, [submitted, mode, code]);
 
-  // -------- Rehydrate on mount (never miss first round / review) --------
+  // -------- Rehydrate --------
   useEffect(() => {
     socket.emit("getRoundState", { code }, (state) => {
       if (!state) return;
-
-      const onSettingsUpdated = ({ timer, rounds, endMode }) => {
-        // keep local UI in sync if host changes settings in lobby
-        if (typeof endMode === "string") setEndMode(endMode);
-        if (typeof timer === "number")
-          if (typeof rounds === "number") {
-            setTotalRounds((prev) => ((prev || 0) === rounds ? prev : rounds));
-          }
-      };
       const {
-        // round context
         round,
         currentRound: cr,
         totalRounds: tr,
         letter,
         categories,
         categoryMeta,
-
-        // timing
         endsAt,
         roundEndTime,
         breakEndTime,
         serverTime,
         serverNow,
-
-        // per-user submission (optional from server)
         hasSubmitted,
-
-        // phase
-        phase, // "play" | "review" | "final" (optional)
+        phase,
         endMode,
       } = state;
 
@@ -216,7 +189,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       setEndAt(end);
       setServerOffsetMs(typeof srv === "number" ? srv - Date.now() : 0);
 
-      // Phase handling
       if (breakEndTime) {
         setMode("review");
         setShowResults(true);
@@ -231,7 +203,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
         setShowFinal(false);
       }
 
-      // Submission state on rehydrate:
       if (phase === "play" || (!phase && end)) {
         if (typeof hasSubmitted === "boolean") {
           setSubmitted(hasSubmitted);
@@ -248,18 +219,11 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   useEffect(() => {
     const onRoundStarted = (payload) => {
       const {
-        currentRound,
-        round,
-        totalRounds,
-        letter,
-        categories,
-        categoryMeta,
-        endsAt,
-        roundEndTime,
-        serverTime,
-        serverNow,
-        hasSubmitted,
-        endMode,
+        currentRound, round, totalRounds, letter,
+        categories, categoryMeta,
+        endsAt, roundEndTime,
+        serverTime, serverNow,
+        hasSubmitted, endMode,
       } = payload;
 
       if (endMode) setEndMode(endMode);
@@ -279,13 +243,11 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       setEndAt(end);
       setServerOffsetMs(typeof srv === "number" ? srv - Date.now() : 0);
 
-      // Enter play
       setMode("play");
       setShowResults(false);
       setShowFinal(false);
       setBreakEndAt(null);
 
-      // Reset submission for fresh round (or respect server)
       if (typeof hasSubmitted === "boolean") {
         setSubmitted(hasSubmitted);
         if (!hasSubmitted) setAnswers({});
@@ -295,14 +257,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       }
     };
 
-    // { scores, answers, details, breakEndTime, serverNow }
-    const onRoundResults = ({
-      scores,
-      answers,
-      details,
-      breakEndTime,
-      serverNow,
-    }) => {
+    const onRoundResults = ({ scores, answers, details, breakEndTime, serverNow }) => {
       setRoundScores(scores || {});
       setRoundAnswers(answers || {});
       setAnswerDetails(details || {});
@@ -316,7 +271,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       }
     };
 
-    // { totals, winners }
     const onGameEnded = (payload) => {
       setShowResults(false);
       setBreakEndAt(null);
@@ -337,8 +291,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
 
     const onRoomUpdated = ({ room }) => {
       if (!room) return;
-      const normalize = (v) =>
-        typeof v === "string" ? v : v?._id ?? String(v ?? "");
+      const normalize = (v) => (typeof v === "string" ? v : v?._id ?? String(v ?? ""));
       setHostId(normalize(room.host));
       if (room.endMode) setEndMode(room.endMode);
       if (Array.isArray(room.players) && room.players.length) {
@@ -353,17 +306,22 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       }
     };
 
-    // reflect lobby resets
     const onRoomState = (state) => {
       if (!state) return;
       if (state.started === false) {
-        setMode("review"); // or "play" depending on how you present the lobby
+        setMode("review");
         setShowResults(false);
         setShowFinal(false);
         setEndAt(null);
         setBreakEndAt(null);
         setCurrentRound(0);
       }
+    };
+
+    const onSettingsUpdated = ({ timer, rounds, endMode }) => {
+      if (typeof endMode === "string") setEndMode(endMode);
+      if (typeof rounds === "number") setTotalRounds(rounds);
+      
     };
 
     socket.on("roundStarted", onRoundStarted);
@@ -373,6 +331,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     socket.on("roomUpdated", onRoomUpdated);
     socket.on("roomState", onRoomState);
     socket.on("settingsUpdated", onSettingsUpdated);
+
     return () => {
       socket.off("roundStarted", onRoundStarted);
       socket.off("roundResults", onRoundResults);
@@ -380,10 +339,11 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       socket.off("playersUpdated", onPlayersUpdated);
       socket.off("roomUpdated", onRoomUpdated);
       socket.off("roomState", onRoomState);
+      socket.off("settingsUpdated", onSettingsUpdated);
     };
   }, []);
 
-  // -------- Defensive unlock: never get stuck with submitted=true in play --------
+  // -------- Defensive unlock --------
   useEffect(() => {
     if (
       mode === "play" &&
@@ -396,9 +356,8 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     }
   }, [mode, endAt, timeLeft, currentRound, submitted]);
 
-  // -------- UI handlers returned to components --------
-  const handleChange = (key, val) =>
-    setAnswers((prev) => ({ ...prev, [key]: val }));
+  // -------- UI handlers --------
+  const handleChange = (key, val) => setAnswers((prev) => ({ ...prev, [key]: val }));
 
   const handleSubmit = () => {
     if (submitted || mode !== "play") return;
@@ -406,33 +365,27 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     setSubmitted(true);
   };
 
-  // Host: skip break / start next round
   const handleNextRound = () => {
     if (!isHost) return;
     socket.emit("nextRound", { code });
   };
 
-  // STOP mode: any player can stop once they're done (server validates)
   const handleStopRound = () => {
     if (mode !== "play") return;
-    if (endMode !== "PLAYER_STOP") return; // no-op in standard mode
+    if (endMode !== "PLAYER_STOP") return;
     socket.emit("playerStopRound", { code, answers: answersRef.current });
   };
 
-  // Final modal actions
-  // Play Again -> start immediately with same settings
   const handlePlayAgain = () => {
     if (!isHost) return;
     socket.emit("startGame", { code });
   };
 
-  // Back -> reset to lobby so host can change settings
   const handleBackToRoom = () => {
     socket.emit("backToLobby", { code });
     navigate(`/room/${code}`);
   };
 
-  // Exit -> leave room and go home
   const handleLeaveRoom = () => {
     socket.emit("leaveRoom", { code });
     navigate("/");
@@ -441,7 +394,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   const handleStayHere = () => setShowFinal(false);
 
   return {
-    // base UI state
     players,
     playerNameById,
     isHost,
@@ -458,7 +410,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     submitted,
     mode,
 
-    // between-round modal
     showResults,
     roundScores,
     roundAnswers,
@@ -466,12 +417,10 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     breakEndAt,
     breakLeft,
 
-    // final modal
     showFinal,
     finalTotals,
     finalWinners,
 
-    // actions
     handleChange,
     handleSubmit,
     handleStopRound,

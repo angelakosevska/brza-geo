@@ -39,31 +39,31 @@ export default function MainPage() {
         <GlassCard className="flex flex-1 lg:flex-[3] justify-center items-center">
           <div className="flex flex-col justify-center items-center gap-6 px-2 w-full">
             <Button className="w-full max-w-xs" onClick={handleCreateRoom}>
-              Create a room
+              Креирај соба
             </Button>
-            <span className="text-gray-500 text-sm">or</span>
+            <span className="text-gray-500 text-sm">или</span>
             <div className="flex flex-col gap-2 w-full max-w-xs">
               <Input
-                placeholder="Enter room code"
+                placeholder="Внеси код од соба"
                 value={joinCode}
                 onChange={(e) => setJoinCode(e.target.value)}
               />
-              <Button onClick={handleJoinRoom}>Join a room</Button>
+              <Button onClick={handleJoinRoom}>Влези во собата</Button>
             </div>
             <Button variant="outline" className="w-full max-w-xs">
-              Categories
+              Види ги категориите
             </Button>
           </div>
         </GlassCard>
 
-        {/* Image card: 1/4 width on desktop, full width on mobile */}
+        {/* Image card: 1/4 width on desktop, full width on mobile 
         <GlassCard className="flex flex-1 lg:flex-[1] justify-center items-center">
           <img
             src="/your-image.jpg"
             alt="Preview"
             className="rounded-xl max-w-full max-h-64 object-contain"
           />
-        </GlassCard>
+        </GlassCard>*/}
       </div>
     </>
   );

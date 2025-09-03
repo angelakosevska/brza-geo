@@ -19,6 +19,7 @@ exports.createRoom = async (req, res) => {
       players: [hostId],
       rounds: 5,
       timer: 60,
+      endMode,
       categories: [],
     });
 
@@ -97,14 +98,15 @@ exports.getRoom = async (req, res) => {
   }
 };
 
-// UPDATE room settings (host only: rounds, timer)
+// UPDATE room settings (host only: rounds, timer, ednMode)
 exports.updateSettings = async (req, res) => {
-  const { code, rounds, timer } = req.body;
+  console.log("updateSettings body:", req.body); // 👈 log request
+  const { code, rounds, timer, endMode } = req.body;
   try {
     const roomCode = code.toUpperCase();
     let room = await Room.findOneAndUpdate(
       { code: roomCode },
-      { rounds, timer },
+      { rounds, timer, endMode: safeMode },
       { new: true }
     )
       .populate("players")

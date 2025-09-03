@@ -37,7 +37,11 @@ const roomSchema = new mongoose.Schema(
     rounds: { type: Number },
     timer: { type: Number }, // seconds per round
     categories: { type: [String], default: [] },
-
+    endMode: {
+      type: String,
+      enum: ["ALL_SUBMIT", "PLAYER_STOP"],
+      default: "ALL_SUBMIT",
+    },
     // Live state
     currentRound: { type: Number, default: 0 },
     started: { type: Boolean, default: false },
