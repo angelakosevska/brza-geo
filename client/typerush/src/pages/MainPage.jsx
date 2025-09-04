@@ -56,14 +56,14 @@ export default function MainPage() {
           </div>
         </GlassCard>
 
-        {/* Image card: 1/4 width on desktop, full width on mobile 
+         {/*//Image card: 1/4 width on desktop, full width on mobile */}
         <GlassCard className="flex flex-1 lg:flex-[1] justify-center items-center">
           <img
             src="/your-image.jpg"
             alt="Preview"
             className="rounded-xl max-w-full max-h-64 object-contain"
           />
-        </GlassCard>*/}
+        </GlassCard>
       </div>
     </>
   );

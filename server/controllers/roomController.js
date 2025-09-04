@@ -19,7 +19,7 @@ exports.createRoom = async (req, res) => {
       players: [hostId],
       rounds: 5,
       timer: 60,
-      endMode,
+      endMode: "ALL_SUBMIT",
       categories: [],
     });
 
@@ -100,17 +100,26 @@ exports.getRoom = async (req, res) => {
 
 // UPDATE room settings (host only: rounds, timer, ednMode)
 exports.updateSettings = async (req, res) => {
-  console.log("updateSettings body:", req.body); // 👈 log request
+  console.log("updateSettings body:", req.body);
   const { code, rounds, timer, endMode } = req.body;
+
   try {
     const roomCode = code.toUpperCase();
+
+    // sanitize inputs
+    const safeRounds = Math.max(1, Number(rounds || 5));
+    const safeTimer = Math.max(3, Number(timer || 60));
+    const safeMode = endMode === "PLAYER_STOP" ? "PLAYER_STOP" : "ALL_SUBMIT";
+
     let room = await Room.findOneAndUpdate(
       { code: roomCode },
-      { rounds, timer, endMode: safeMode },
+      { rounds: safeRounds, timer: safeTimer, endMode: safeMode },
       { new: true }
     )
       .populate("players")
       .populate("host");
+
+    if (!room) return res.status(404).json({ message: "Room not found" });
 
     const io = getIO();
     console.log("Emitting roomUpdated to:", roomCode);
@@ -118,7 +127,10 @@ exports.updateSettings = async (req, res) => {
 
     res.json({ room });
   } catch (err) {
-    res.status(500).json({ message: "Error updating settings" });
+    console.error("Error updating settings:", err);
+    res
+      .status(500)
+      .json({ message: "Error updating settings", error: err.message });
   }
 };
 
@@ -144,5 +156,3 @@ exports.updateCategories = async (req, res) => {
     res.status(500).json({ message: "Error updating categories" });
   }
 };
-
-// You may want more controllers for game start, scoring, etc.
