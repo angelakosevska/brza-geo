@@ -7,20 +7,17 @@ export default function RoundResultsModal({
   currentRound = 1,
   totalRounds = 1,
 
-  // Data
-  categories = [], // ["animals", "cities", ...]
-  categoryLabels = {}, // { animals: "Animals", ... }
-  players = [], // array of player ids or objects
-  playerNameById = {}, // { playerId: "Alice", ... }
-  answerDetails = {}, // { [playerId]: { [categoryId]: { value, valid, unique, points } } }
-  roundScores = {}, // { [playerId]: number }
+  categories = [],
+  categoryLabels = {},
+  players = [],
+  playerNameById = {},
+  answerDetails = {},
+  roundScores = {},
 
-  // Optional break countdown
-  breakLeft = null, // seconds (null to hide)
+  breakLeft = null,
 
-  // Actions
-  onNextRound, // () => void (host only)
-  onRequestClose, // () => void (optional)
+  onNextRound,
+  onRequestClose,
 }) {
   if (!show) return null;
 
@@ -51,7 +48,7 @@ export default function RoundResultsModal({
           {/* Header */}
           <div className="flex justify-between items-center mb-4">
             <div id="round-results-title" className="font-bold text-lg">
-              Резултати за {currentRound} рунда
+              <span className="text-[var(--secondary)] text-3xl">{currentRound} </span>рунда
             </div>
             <div className="flex items-center gap-3">
               {breakLeft != null && (
@@ -72,7 +69,7 @@ export default function RoundResultsModal({
             {categories.map((cid) => (
               <div
                 key={cid}
-                className="bg-white/5 dark:bg-white/5 p-3 rounded-2xl"
+                className="bg-[var(--primary)]/5 p-3 border border-[var(--text)]/5 rounded-2xl"
               >
                 <div className="mb-2 font-semibold text-sm">
                   {categoryLabels[cid] || cid}
@@ -82,14 +79,14 @@ export default function RoundResultsModal({
                   {(players || []).map((p) => {
                     const pid = normalizeId(p);
                     const name = playerNameById[pid] || String(pid).slice(-5);
-                    const info = (answerDetails[pid] &&
-                      answerDetails[pid][cid]) || {
-                      value: "",
-                      valid: false,
-                      unique: false,
-                      points: 0,
-                      reason: "empty",
-                    };
+                    const info =
+                      (answerDetails[pid] && answerDetails[pid][cid]) || {
+                        value: "",
+                        valid: false,
+                        unique: false,
+                        points: 0,
+                        reason: "empty",
+                      };
 
                     const badgeText = info.valid
                       ? info.unique
@@ -137,7 +134,7 @@ export default function RoundResultsModal({
               {roundTotals.map((r) => (
                 <div
                   key={r.id}
-                  className="flex justify-between items-center bg-white/5 dark:bg-white/5 px-3 py-2 rounded-lg"
+                  className="flex justify-between items-center bg-[var(--primary)]/5 px-3 py-2 border border-[var(--text)]/5 rounded-lg"
                 >
                   <div>{r.name}</div>
                   <div className="font-mono">+{r.pts}</div>

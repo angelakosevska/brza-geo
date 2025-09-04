@@ -44,12 +44,19 @@ body {
     --text: #ebfaf6;
     --background: #04100c;
     --primary: #37cda5;
-    --secondary: #C287E8;
-    --accent: #FF7E6B;
+    --secondary: #c287e8;
+    --accent: #ff7e6b;
     --glass: #5a5a5a;
   }
 }
-
+.dark {
+  --text: #ebfaf6;
+  --background: #04100c;
+  --primary: #37cda5;
+  --secondary: #c287e8;
+  --accent: #ff7e6b;
+  --glass: #5a5a5a;
+}
 .blink-cursor {
   animation: blink-fade-subtle 2s ease-in-out infinite;
 }

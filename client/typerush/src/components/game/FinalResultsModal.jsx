@@ -4,26 +4,23 @@ import { Button } from "@/components/ui/button";
 
 export default function FinalResultsModal({
   show = false,
-  code, // room code (optional display)
-  playerNameById = {}, // { [id]: "Alice" }
-  finalTotals = {}, // { [id]: number }
-  finalWinners = [], // [id, id, ...] handle ties
+  code,
+  playerNameById = {},
+  finalTotals = {},
+  finalWinners = [],
   isHost = false,
 
-  // Actions
-  onBackToRoom, // () => void  (go to RoomPage)
-  onLeaveToMain, // () => void  (leave room + go home)
-  onStartNewGame, // () => void  (host only)
-  onRequestClose, // () => void  (optional)
+  onBackToRoom,
+  onLeaveToMain,
+  onStartNewGame,
+  onRequestClose,
 
-  // Options
   closeOnOverlay = true,
 }) {
   if (!show) return null;
 
-  // Deterministic sort: score desc, then displayName asc, then id asc
   const sorted = useMemo(() => {
-    const entries = Object.entries(finalTotals); // [ [id, pts], ... ]
+    const entries = Object.entries(finalTotals);
     return entries.sort((a, b) => {
       const [ida, pa] = a;
       const [idb, pb] = b;
@@ -39,14 +36,15 @@ export default function FinalResultsModal({
 
   const winnerNames =
     finalWinners.length > 0
-      ? finalWinners.map((id) => playerNameById[id] || String(id).slice(-5)).join(", ")
+      ? finalWinners
+          .map((id) => playerNameById[id] || String(id).slice(-5))
+          .join(", ")
       : null;
 
   const handleOverlayClick = () => {
     if (closeOnOverlay) onRequestClose?.();
   };
 
-  // ESC to close
   useEffect(() => {
     if (!show) return;
     const onKey = (e) => {
@@ -56,15 +54,6 @@ export default function FinalResultsModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [show, onRequestClose]);
 
-  const copyCode = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(String(code));
-    } catch {
-      // ignore clipboard errors silently
-    }
-  }, [code]);
-
-  // Medal helper (ties share the same place, but we still decorate top 3 rows)
   const medalForIndex = (idx) => {
     if (idx === 0) return "🥇";
     if (idx === 1) return "🥈";
@@ -72,7 +61,6 @@ export default function FinalResultsModal({
     return null;
   };
 
-  // Compute place numbers accounting for ties
   const placeByRow = useMemo(() => {
     const places = [];
     let currentPlace = 1;
@@ -83,10 +71,9 @@ export default function FinalResultsModal({
         places.push(currentPlace);
         prevPts = pts;
       } else if (pts === prevPts) {
-        // same place for tie
         places.push(currentPlace);
       } else {
-        currentPlace = i + 1; // place jumps to current index + 1
+        currentPlace = i + 1;
         places.push(currentPlace);
         prevPts = pts;
       }
@@ -107,7 +94,6 @@ export default function FinalResultsModal({
       />
       <div className="absolute inset-0 flex justify-center items-center p-4">
         <GlassCard className="relative p-6 w-full max-w-3xl text-[var(--text)]">
-          {/* Close (accessible) */}
           <button
             onClick={onRequestClose}
             aria-label="Затвори"
@@ -121,13 +107,10 @@ export default function FinalResultsModal({
             <div id="final-results-title" className="font-bold text-xl">
               Играта заврши
             </div>
-
             {code && (
-              <div className="flex items-center gap-2 opacity-80 text-sm">
-                <span className="uppercase">Соба {code}</span>
-                <Button size="sm" variant="outline" onClick={copyCode} title="Копирај код">
-                  Копирај
-                </Button>
+              <div className="flex items-center gap-2 opacity-70 text-xs">
+                <span>Код на соба: </span>
+                <span className="text-[var(--secondary)]">{code}</span>
               </div>
             )}
           </div>
@@ -147,7 +130,7 @@ export default function FinalResultsModal({
           </div>
 
           {/* Final scores */}
-          <div className="mb-2 font-medium text-sm">Финални поени</div>
+
           <div className="space-y-2 pr-1 max-h-[55vh] overflow-auto">
             {sorted.map(([pid, pts], idx) => {
               const isWinner = finalWinners.includes(pid);
@@ -158,12 +141,15 @@ export default function FinalResultsModal({
               return (
                 <div
                   key={pid}
-                  className={`flex items-center justify-between rounded-2xl px-5 py-3 bg-[var(--primary)]/10
-                    ${isWinner ? "ring-2 ring-[var(--accent)]" : ""}
-                  `}
+                  className={`flex items-center justify-between rounded-2xl px-5 py-3
+    bg-[var(--primary)]/5 border 
+    ${isWinner ? "border-[var(--accent)]" : "border-[var(--text)]/5"}
+  `}
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className="opacity-80 w-6 font-mono text-right">{place}.</span>
+                    <span className="opacity-80 w-6 font-mono text-right">
+                      {place}.
+                    </span>
                     <span className="w-6">{medal ?? ""}</span>
                     <div className="font-medium truncate">{name}</div>
                   </div>
