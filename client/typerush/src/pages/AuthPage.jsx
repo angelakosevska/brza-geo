@@ -39,7 +39,7 @@ export default function AuthPage() {
         password: loginData.password,
       });
 
-      const { token, user } = res.data;
+      const { token } = res.data;
       login(token);
 
       navigate("/main");
@@ -55,10 +55,10 @@ export default function AuthPage() {
 
   return (
     <>
-      <div className="relative w-full max-w-xs sm:max-w-sm md:max-w-md h-[400px] sm:h-[440px] md:h-[480px] flex items-center justify-center">
+      <div className="relative flex justify-center items-center w-full max-w-xs sm:max-w-sm md:max-w-md h-[400px] sm:h-[440px] md:h-[480px]">
         <div
           className={clsx(
-            "relative w-full h-full rounded-4xl transition-transform duration-800 shadow-xl border border-[var(--background)] bg-[var(--background)]/20"
+            "relative bg-[var(--background)]/20 shadow-xl border border-[var(--background)] rounded-4xl w-full h-full transition-transform duration-800"
           )}
           style={{
             transformStyle: "preserve-3d",
@@ -66,11 +66,7 @@ export default function AuthPage() {
           }}
         >
           <div
-            className="absolute inset-0 flex justify-center items-center backface-hidden bg-[var(--background)]/30
-          backdrop-blur-sm
-          border border-[var(--background)] 
-          rounded-3xl
-          shadow-xl shadow-gray-500/20"
+            className="absolute inset-0 flex justify-center items-center bg-[var(--background)]/30 shadow-gray-500/20 shadow-xl backdrop-blur-sm border border-[var(--background)] rounded-3xl backface-hidden"
             style={{ backfaceVisibility: "hidden" }}
           >
             <LoginForm
@@ -82,11 +78,7 @@ export default function AuthPage() {
             />
           </div>
           <div
-            className="absolute p-4 inset-0 flex justify-center items-center bg-[var(--background)]/30
-          backdrop-blur-sm
-          border border-[var(--background)] 
-          rounded-3xl
-          shadow-xl shadow-gray-500/20 backface-hidden"
+            className="absolute inset-0 flex justify-center items-center bg-[var(--background)]/30 shadow-gray-500/20 shadow-xl backdrop-blur-sm p-4 border border-[var(--background)] rounded-3xl backface-hidden"
             style={{
               transform: "rotateY(180deg)",
               backfaceVisibility: "hidden",

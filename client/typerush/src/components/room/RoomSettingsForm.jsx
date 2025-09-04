@@ -118,12 +118,13 @@ export default function RoomSettingsForm({
             </Button>
 
             <Button
+              variant="attention"
               onClick={handleSaveThenStart}
               disabled={!canStart || starting || saving}
               title={
                 canStart
-                  ? "Start the game"
-                  : "Add categories and players, or game already started"
+                  ? "Започни ја играта"
+                  : "Избери категории и додај играчи или играта веќе започнала"
               }
             >
               {starting

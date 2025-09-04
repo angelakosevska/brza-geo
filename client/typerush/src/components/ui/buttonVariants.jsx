@@ -14,6 +14,8 @@ export const buttonVariants = cva(
           "bg-[var(--secondary)] text-[var(--background)] hover:bg-[var(--secondary)]/80",
         ghost: "hover:bg-[var(--primary)]/10 text-[var(--text)]",
         link: "text-[var(--primary)] underline-offset-4 hover:underline active:shadow-inner-0",
+        attention:
+          "bg-[var(--accent)] text-[var(--background)] hover:bg-[var(--accent)]/70 rounded-full",
       },
       size: {
         default: "h-9 px-4 rounded-full py-2 has-[>svg]:px-3",
