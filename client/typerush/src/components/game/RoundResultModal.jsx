@@ -40,7 +40,7 @@ export default function RoundResultsModal({
       aria-labelledby="round-results-title"
     >
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className="absolute inset-0 backdrop-blur-lg"
         onClick={onRequestClose}
       />
       <div className="absolute inset-0 flex justify-center items-center p-4">

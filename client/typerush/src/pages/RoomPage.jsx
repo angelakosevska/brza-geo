@@ -93,7 +93,7 @@ export default function RoomPage() {
       code: room.code,
       rounds: room.rounds,
       timer: room.timer,
-      endMode: room.endMode || "ALL_SUBMIT", 
+      endMode: room.endMode || "ALL_SUBMIT",
     });
     socket.emit("startGame");
   };
@@ -103,12 +103,12 @@ export default function RoomPage() {
       code: room.code.toUpperCase(),
       rounds,
       timer,
-      endMode, 
+      endMode,
     });
   };
 
   const handleUpdateCategories = async (categories) => {
-    await api.post("/room/set-categories", {
+    await api.patch("/room/update-categories", {
       code: room.code.toUpperCase(),
       categories,
     });
@@ -116,9 +116,9 @@ export default function RoomPage() {
 
   // ---- UI ----
   return (
-    <div className="flex flex-col gap-4 mx-auto py-8 w-full max-w-[90vw] min-h-[80vh]">
+    <div className="flex flex-col gap-1 mx-auto w-full max-w-[90vw] min-h-[80vh]">
       {/* Row 1: Players + Room Code */}
-      <div className="flex lg:flex-row flex-col gap-2 w-full">
+      <div className="flex lg:flex-row flex-col gap-1 w-full">
         <PlayersList
           players={room.players}
           onLeave={handleLeave}
@@ -132,7 +132,7 @@ export default function RoomPage() {
       </div>
 
       {/* Row 2: Settings + Categories + Placeholder */}
-      <div className="flex lg:flex-row flex-col gap-4 w-full">
+      <div className="flex lg:flex-row flex-col gap-1 w-full">
         <RoomSettingsForm
           room={room}
           onUpdate={handleUpdateSettings}

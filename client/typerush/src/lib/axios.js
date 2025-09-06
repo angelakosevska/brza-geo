@@ -11,7 +11,7 @@ const api = axios.create({
     "Content-Type": "application/json",
     "Accept-Language": "mk",
   },
-  // withCredentials: false, // keep false if you use JWT in Authorization header
+
 });
 
 api.interceptors.request.use((config) => {

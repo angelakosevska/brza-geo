@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import {jwtDecode} from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 
 const AuthContext = createContext();
 
@@ -9,33 +9,45 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");
-    if (storedToken) {
+    const storedUser = localStorage.getItem("user");
+
+    if (storedToken && storedUser) {
       try {
-        const decoded = jwtDecode(storedToken);
-        setUser({ username: decoded.username, id: decoded.userId });
         setToken(storedToken);
+        setUser(JSON.parse(storedUser)); // 🚀 користи user од localStorage
       } catch (err) {
-        console.error("Invalid token");
+        console.error("Invalid stored user");
         logout();
       }
     }
   }, []);
 
-  const login = (jwtToken) => { 
+  const login = (jwtToken, userData) => {
+    // jwtToken + userData доаѓаат од backend
     localStorage.setItem("token", jwtToken);
-    const decoded = jwtDecode(jwtToken);
-    setUser({ username: decoded.username, id: decoded.userId });
+    localStorage.setItem("user", JSON.stringify(userData));
+
     setToken(jwtToken);
+    setUser(userData);
   };
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setUser(null);
     setToken(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        login,
+        logout,
+        isAuthenticated: !!user,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

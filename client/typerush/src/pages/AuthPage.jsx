@@ -30,11 +30,11 @@ export default function AuthPage() {
   const handleLogin = async (_e, data) => {
     try {
       const res = await api.post("/auth/login", {
-        login: data.login, // 👈 ова е поле од LoginForm
+        login: data.login, 
         password: data.password,
       });
-      const { token } = res.data;
-      login(token);
+      const { token, user } = res.data;
+      login(token, user);
       showSuccess("Добредојде назад!");
       navigate("/main");
     } catch (err) {

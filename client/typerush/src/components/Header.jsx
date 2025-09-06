@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { UserRound, LogOut, Sun, Moon, Monitor } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -9,16 +8,15 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import GlassCard from "./GlassCard";
+import { useAuth } from "@/context/AuthContext"; // 👈 директно од context
+import { useState, useEffect } from "react";
 
 export default function Header() {
-  const [username, setUsername] = useState("User");
-  const [theme, setTheme] = useState("system"); // "light" | "dark" | "system"
+  const { user, logout } = useAuth(); // 👈 земаме user од context
+  const [theme, setTheme] = useState("system");
   const navigate = useNavigate();
 
   useEffect(() => {
-    const stored = localStorage.getItem("username");
-    if (stored) setUsername(stored);
-
     const savedTheme = localStorage.getItem("theme") || "system";
     applyTheme(savedTheme);
   }, []);
@@ -30,7 +28,6 @@ export default function Header() {
     } else if (mode === "light") {
       root.classList.remove("dark");
     } else {
-      // "system" → чисти и препушти на @media
       root.classList.remove("dark");
     }
     localStorage.setItem("theme", mode);
@@ -38,7 +35,7 @@ export default function Header() {
   };
 
   return (
-    <GlassCard className="p-4 w-[90vw] max-h-25 align-middle">
+    <GlassCard className="top-0 z-50 sticky p-4 w-[90vw] max-h-25 align-middle">
       <div className="flex justify-between items-center w-full">
         {/* Logo + Title */}
         <div className="flex items-center gap-2">
@@ -62,12 +59,12 @@ export default function Header() {
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            className="justify-end bg-[var(--background)]/30 shadow-gray-500/20 shadow-xl backdrop-blur-sm mt-2 border border-[var(--background)] rounded-3xl w-auto min-w-[20vw]"
+            className="justify-end bg-[var(--background)]/30 shadow-gray-500/20 shadow-xl backdrop-blur-sm mt-2 p-4 border border-[var(--background)] rounded-3xl w-auto min-w-[20vw]"
           >
             <div className="flex items-center gap-2 px-2 py-2">
               <UserRound className="w-7 h-7 text-[var(--primary)]" />
               <span className="font-semibold text-[var(--text)] text-md lg:text-lg">
-                {username}
+                {user?.username || "Корисник"}
               </span>
             </div>
             <DropdownMenuSeparator />
@@ -75,33 +72,48 @@ export default function Header() {
             {/* Theme switcher */}
             <DropdownMenuItem
               onClick={() => applyTheme("light")}
-              className="flex items-center gap-2 text-[var(--text)] text-md lg:text-lg cursor-pointer"
+              className={`flex items-center gap-2 text-md lg:text-lg cursor-pointer 
+    ${
+      theme === "light"
+        ? "text-[var(--primary)] font-semibold"
+        : "text-[var(--text)] hover:text-[var(--accent)]"
+    }`}
             >
-              <Sun className="w-5 h-5 text-[var(--primary)]" />
-              Светла тема {theme === "light" && "✓"}
+              <Sun className="w-5 h-5" />
+              Светла тема
             </DropdownMenuItem>
 
             <DropdownMenuItem
               onClick={() => applyTheme("dark")}
-              className="flex items-center gap-2 text-[var(--text)] text-md lg:text-lg cursor-pointer"
+              className={`flex items-center gap-2 text-md lg:text-lg cursor-pointer 
+    ${
+      theme === "dark"
+        ? "text-[var(--primary)] font-semibold"
+        : "text-[var(--text)] hover:text-[var(--accent)]"
+    }`}
             >
-              <Moon className="w-5 h-5 text-[var(--primary)]" />
-              Темна тема {theme === "dark" && "✓"}
+              <Moon className="w-5 h-5" />
+              Темна тема
             </DropdownMenuItem>
 
             <DropdownMenuItem
               onClick={() => applyTheme("system")}
-              className="flex items-center gap-2 text-[var(--text)] text-md lg:text-lg cursor-pointer"
+              className={`flex items-center gap-2 text-md lg:text-lg cursor-pointer 
+    ${
+      theme === "system"
+        ? "text-[var(--primary)] font-semibold"
+        : "text-[var(--text)] hover:text-[var(--accent)]"
+    }`}
             >
-              <Monitor className="w-5 h-5 text-[var(--primary)]" />
-              Автоматска {theme === "system" && "✓"}
+              <Monitor className="w-5 h-5" />
+              Автоматска
             </DropdownMenuItem>
 
-            <DropdownMenuSeparator className="bg-white/40 mx-auto border-0 w-[95%] h-px" />
+            <DropdownMenuSeparator className="bg-[var(--glass)]/5 mx-auto border-0 w-[95%] h-px" />
 
             <DropdownMenuItem
               onClick={() => {
-                localStorage.clear();
+                logout(); // 👈 директно од context
                 navigate("/auth");
               }}
               className="flex items-center gap-2 font-bold text-md lg:text-lg cursor-pointer"

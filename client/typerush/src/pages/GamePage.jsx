@@ -55,11 +55,11 @@ export default function GamePage() {
   } = useGameLogic({ code, currentUserId, navigate });
 
   return (
-    <div className="py-6">
-      <div className="gap-4 grid grid-cols-1 lg:grid-cols-4">
-        <div className="flex flex-col gap-4 lg:col-span-3">
+    <div>
+      <div className="gap-1 grid grid-cols-1 lg:grid-cols-4 max-h-[60vh]">
+        {/* Left side: info + answers + placeholder */}
+        <div className="flex flex-col gap-1 lg:col-span-3">
           <RoundInfoCard
-            className="order-1 lg:order-2"
             currentRound={currentRound}
             totalRounds={totalRounds}
             timeLeft={endAt ? timeLeft : null}
@@ -68,7 +68,6 @@ export default function GamePage() {
           />
 
           <CategoryAnswersCard
-            className="order-3"
             title="Внеси ги твоите одговори"
             categories={categories}
             categoryLabels={categoryLabels}
@@ -80,7 +79,7 @@ export default function GamePage() {
             enforceStartsWith={false}
             mode={mode}
             waitingForRound={waitingForRound}
-            showSubmit={endMode==="ALL_SUBMIT"}
+            showSubmit={endMode === "ALL_SUBMIT"}
             showStop={endMode === "PLAYER_STOP"}
             isHost={isHost}
             onSubmit={handleSubmit}
@@ -88,22 +87,23 @@ export default function GamePage() {
             code={code}
           />
 
-          <div className="order-4 lg:order-1">
-            <PlayersList
-              players={players}
-              className="w-full"
-              showLeave={false}
-            />
-          </div>
+          <GlassCard className="overflow-hidden">
+            <div className="flex justify-center items-center p-6 max-h-25">
+              <div className="flex justify-center items-center rounded-2xl w-full h-[240px]">
+                <span className="opacity-80">📸 Placeholder</span>
+              </div>
+            </div>
+          </GlassCard>
         </div>
 
-        <GlassCard className="lg:col-span-1 p-0 overflow-hidden">
-          <div className="flex justify-center items-center p-6 h-full min-h-[300px]">
-            <div className="flex justify-center items-center rounded-2xl w-full h-[340px]">
-              <span className="opacity-80">Placeholder</span>
-            </div>
-          </div>
-        </GlassCard>
+        {/* Right side: players */}
+        <div className="lg:col-span-1">
+          <PlayersList
+            players={players}
+            className="w-full h-full"
+            showLeave={false}
+          />
+        </div>
       </div>
 
       {/* Modals */}

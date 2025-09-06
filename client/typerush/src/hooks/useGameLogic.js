@@ -52,15 +52,22 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   const endAtRef = useRef(null);
   const joinedRef = useRef(false);
 
-  useEffect(() => { answersRef.current = answers; }, [answers]);
-  useEffect(() => { endAtRef.current = endAt; }, [endAt]);
+  useEffect(() => {
+    answersRef.current = answers;
+  }, [answers]);
+  useEffect(() => {
+    endAtRef.current = endAt;
+  }, [endAt]);
 
   // -------- Helpers --------
   const normalizeId = (v) =>
     typeof v === "string" ? v : v?._id ?? String(v ?? "");
 
   const isHost = useMemo(
-    () => Boolean(hostId && currentUserId && String(hostId) === String(currentUserId)),
+    () =>
+      Boolean(
+        hostId && currentUserId && String(hostId) === String(currentUserId)
+      ),
     [hostId, currentUserId]
   );
 
@@ -219,11 +226,18 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   useEffect(() => {
     const onRoundStarted = (payload) => {
       const {
-        currentRound, round, totalRounds, letter,
-        categories, categoryMeta,
-        endsAt, roundEndTime,
-        serverTime, serverNow,
-        hasSubmitted, endMode,
+        currentRound,
+        round,
+        totalRounds,
+        letter,
+        categories,
+        categoryMeta,
+        endsAt,
+        roundEndTime,
+        serverTime,
+        serverNow,
+        hasSubmitted,
+        endMode,
       } = payload;
 
       if (endMode) setEndMode(endMode);
@@ -257,7 +271,13 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       }
     };
 
-    const onRoundResults = ({ scores, answers, details, breakEndTime, serverNow }) => {
+    const onRoundResults = ({
+      scores,
+      answers,
+      details,
+      breakEndTime,
+      serverNow,
+    }) => {
       setRoundScores(scores || {});
       setRoundAnswers(answers || {});
       setAnswerDetails(details || {});
@@ -291,7 +311,8 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
 
     const onRoomUpdated = ({ room }) => {
       if (!room) return;
-      const normalize = (v) => (typeof v === "string" ? v : v?._id ?? String(v ?? ""));
+      const normalize = (v) =>
+        typeof v === "string" ? v : v?._id ?? String(v ?? "");
       setHostId(normalize(room.host));
       if (room.endMode) setEndMode(room.endMode);
       if (Array.isArray(room.players) && room.players.length) {
@@ -321,7 +342,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     const onSettingsUpdated = ({ timer, rounds, endMode }) => {
       if (typeof endMode === "string") setEndMode(endMode);
       if (typeof rounds === "number") setTotalRounds(rounds);
-      
     };
 
     socket.on("roundStarted", onRoundStarted);
@@ -357,7 +377,8 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   }, [mode, endAt, timeLeft, currentRound, submitted]);
 
   // -------- UI handlers --------
-  const handleChange = (key, val) => setAnswers((prev) => ({ ...prev, [key]: val }));
+  const handleChange = (key, val) =>
+    setAnswers((prev) => ({ ...prev, [key]: val }));
 
   const handleSubmit = () => {
     if (submitted || mode !== "play") return;
@@ -388,7 +409,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
 
   const handleLeaveRoom = () => {
     socket.emit("leaveRoom", { code });
-    navigate("/");
+    navigate("/main");
   };
 
   const handleStayHere = () => setShowFinal(false);

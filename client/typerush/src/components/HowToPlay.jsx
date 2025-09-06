@@ -56,7 +56,7 @@ export default function HowToPlay({ columns = 1 }) {
         {steps.map((step, idx) => (
           <div
             key={idx}
-            className="flex flex-col items-center gap-3 bg-[var(--primary)]/10 shadow-sm backdrop-blur-2xl p-4 border border-[var(--text)]/5 rounded-3xl text-center"
+            className="flex flex-col items-center gap-3 bg-[var(--primary)]/10 shadow-sm backdrop-blur-2xl p-4 border border-[var(--background)]/5 rounded-3xl text-center"
           >
             <div>{step.icon}</div>
             <h3 className="font-semibold text-[var(--primary)] text-lg">
