@@ -29,7 +29,7 @@ module.exports = {
         credentials: true,
         methods: ["GET", "POST"],
       },
-      path: "/socket.io", // be explicit; match this on the client
+      path: "/socket.io", 
     });
 
     return io;

@@ -33,6 +33,7 @@ export default function GamePage() {
     submitted,
     endMode,
     mode,
+    hostId,
     isHost,
     handleChange,
     handleSubmit,
@@ -102,6 +103,7 @@ export default function GamePage() {
             players={players}
             className="w-full h-full"
             showLeave={false}
+            hostId={hostId}
           />
         </div>
       </div>

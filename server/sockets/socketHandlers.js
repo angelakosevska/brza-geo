@@ -13,17 +13,23 @@ function getRT(roomCode) {
     runtime.set(roomCode, {
       roundTO: null,
       breakTO: null,
-      ending: false,     // protects endRound from re-entry
+      ending: false, // protects endRound from re-entry
       breakEndsAt: null, // used for clients rehydrating during break
-      gen: 0,            // generation counter (invalidates old timers)
+      gen: 0, // generation counter (invalidates old timers)
     });
   }
   return runtime.get(roomCode);
 }
 function clearAllTimers(rt) {
   if (!rt) return;
-  if (rt.roundTO) { clearTimeout(rt.roundTO); rt.roundTO = null; }
-  if (rt.breakTO) { clearTimeout(rt.breakTO); rt.breakTO = null; }
+  if (rt.roundTO) {
+    clearTimeout(rt.roundTO);
+    rt.roundTO = null;
+  }
+  if (rt.breakTO) {
+    clearTimeout(rt.breakTO);
+    rt.breakTO = null;
+  }
 }
 
 // ================== helpers ==================
@@ -54,7 +60,8 @@ function computeFinalScores(room) {
   const winners = sorted.filter(([, pts]) => pts === top).map(([pid]) => pid);
   return { totals, winners, rounds: room.rounds || 0 };
 }
-const sId = (v) => (typeof v === "string" ? v : v?._id ? String(v._id) : String(v ?? ""));
+const sId = (v) =>
+  typeof v === "string" ? v : v?._id ? String(v._id) : String(v ?? "");
 const normalizeWord = (s) => (s || "").trim().toLowerCase();
 
 // Dictionary shapes supported:
@@ -72,7 +79,8 @@ function extractLetterWords(doc, letter) {
   else if (Array.isArray(w?.mk)) raw = w.mk;
   else {
     const all = [];
-    for (const val of Object.values(w)) if (Array.isArray(val)) all.push(...val);
+    for (const val of Object.values(w))
+      if (Array.isArray(val)) all.push(...val);
     raw = all;
   }
   // No transliteration; dictionary must be Cyrillic.
@@ -84,8 +92,12 @@ function extractLetterWords(doc, letter) {
 
 // TTL heartbeat — update lastActiveAt on meaningful activity
 async function bumpActivity(roomCode) {
-  try { await Room.updateOne({ code: roomCode }, { $set: { lastActiveAt: new Date() } }); }
-  catch {}
+  try {
+    await Room.updateOne(
+      { code: roomCode },
+      { $set: { lastActiveAt: new Date() } }
+    );
+  } catch {}
 }
 
 // ================== socket namespace ==================
@@ -111,11 +123,18 @@ module.exports = (io) => {
 
       await bumpActivity(roomCode);
 
-      io.to(roomCode).emit("playersUpdated", { players: (room.players || []).map(sId) });
+      io.to(roomCode).emit("playersUpdated", {
+        players: (room.players || []).map(sId),
+      });
       io.to(roomCode).emit("roomUpdated", { room });
 
       // Sync late-joiner if a round is active
-      if (room.started && room.currentRound && room.roundEndTime && room.letter) {
+      if (
+        room.started &&
+        room.currentRound &&
+        room.roundEndTime &&
+        room.letter
+      ) {
         const ids = (room.categories || []).map(String);
 
         let categoryMeta = [];
@@ -125,7 +144,10 @@ module.exports = (io) => {
               .select("displayName name")
               .lean();
             const nameById = Object.fromEntries(
-              cats.map((c) => [String(c._id), c.displayName?.mk || c.name || String(c._id)])
+              cats.map((c) => [
+                String(c._id),
+                c.displayName?.mk || c.name || String(c._id),
+              ])
             );
             categoryMeta = ids.map((id) => ({ id, name: nameById[id] || id }));
           }
@@ -160,7 +182,9 @@ module.exports = (io) => {
       if (!roomCode) return ack?.(null);
 
       const room = await Room.findOne({ code: roomCode })
-        .select("started currentRound rounds timer categories letter roundEndTime roundsData endMode")
+        .select(
+          "started currentRound rounds timer categories letter roundEndTime roundsData endMode"
+        )
         .lean();
       if (!room) return ack?.(null);
 
@@ -169,9 +193,14 @@ module.exports = (io) => {
       let categoryMeta = [];
       try {
         if (ids.length) {
-          const cats = await Category.find({ _id: { $in: ids } }).select("displayName name").lean();
+          const cats = await Category.find({ _id: { $in: ids } })
+            .select("displayName name")
+            .lean();
           const nameById = Object.fromEntries(
-            cats.map((c) => [String(c._id), c.displayName?.mk || c.name || String(c._id)])
+            cats.map((c) => [
+              String(c._id),
+              c.displayName?.mk || c.name || String(c._id),
+            ])
           );
           categoryMeta = ids.map((id) => ({ id, name: nameById[id] || id }));
         }
@@ -184,7 +213,11 @@ module.exports = (io) => {
       let phase = null;
       let breakEndTime = null;
 
-      if (room.started && room.roundEndTime && new Date(room.roundEndTime).getTime() > now) {
+      if (
+        room.started &&
+        room.roundEndTime &&
+        new Date(room.roundEndTime).getTime() > now
+      ) {
         phase = "play";
       } else {
         const rt = getRT(roomCode);
@@ -211,7 +244,9 @@ module.exports = (io) => {
         letter: room.letter,
         categories: ids,
         categoryMeta,
-        roundEndTime: room.roundEndTime ? new Date(room.roundEndTime).toISOString() : null,
+        roundEndTime: room.roundEndTime
+          ? new Date(room.roundEndTime).toISOString()
+          : null,
         breakEndTime,
         serverNow: Date.now(),
         phase,
@@ -231,12 +266,21 @@ module.exports = (io) => {
       socket.leave(roomCode);
     });
 
-    // === DISCONNECT (cleanup) ===
+    // === DISCONNECT (delayed cleanup, to allow refresh reconnect)
     socket.on("disconnect", async () => {
       const { roomCode, userId } = socket.data || {};
       if (!roomCode || !userId) return;
-      await handleLeave(roomCode, userId);
-      await bumpActivity(roomCode);
+
+      // Држи timeout 5 секунди да му дадеш шанса на клиентот да се врати
+      setTimeout(async () => {
+        const stillConnected = Array.from(io.sockets.sockets.values()).some(
+          (s) => s.data?.roomCode === roomCode && s.data?.userId === userId
+        );
+        if (!stillConnected) {
+          await handleLeave(roomCode, userId);
+          await bumpActivity(roomCode);
+        }
+      }, 60000); // 60 секунди grace period
     });
 
     // === BACK TO LOBBY (host only) ===
@@ -245,9 +289,12 @@ module.exports = (io) => {
       const { userId } = socket.data || {};
       if (!roomCode || !userId) return;
 
-      const room = await Room.findOne({ code: roomCode }).select("host started currentRound letter roundEndTime");
+      const room = await Room.findOne({ code: roomCode }).select(
+        "host started currentRound letter roundEndTime"
+      );
       if (!room) return socket.emit("error", "Room not found");
-      if (String(room.host) !== String(userId)) return socket.emit("error", "Only the host can do this");
+      if (String(room.host) !== String(userId))
+        return socket.emit("error", "Only the host can do this");
 
       const rt = getRT(roomCode);
       clearAllTimers(rt);
@@ -256,26 +303,46 @@ module.exports = (io) => {
 
       await Room.updateOne(
         { code: roomCode },
-        { $set: { started: false, currentRound: 0, letter: null, roundEndTime: null } }
+        {
+          $set: {
+            started: false,
+            currentRound: 0,
+            letter: null,
+            roundEndTime: null,
+          },
+        }
       );
 
       await bumpActivity(roomCode);
 
-      io.to(roomCode).emit("roomState", { started: false, currentRound: 0, serverNow: Date.now() });
+      io.to(roomCode).emit("roomState", {
+        started: false,
+        currentRound: 0,
+        serverNow: Date.now(),
+      });
 
-      const fresh = await Room.findOne({ code: roomCode }).populate("players host");
+      const fresh = await Room.findOne({ code: roomCode }).populate(
+        "players host"
+      );
       io.to(roomCode).emit("roomUpdated", { room: fresh });
     });
 
     // === START GAME (host only) — supports overrides in payload ===
     socket.on("startGame", async (payload = {}) => {
-      const roomCode = (payload.code || socket.data.roomCode || "").toUpperCase();
+      const roomCode = (
+        payload.code ||
+        socket.data.roomCode ||
+        ""
+      ).toUpperCase();
       const { userId } = socket.data || {};
       if (!roomCode || !userId) return;
 
-      const room = await Room.findOne({ code: roomCode }).select("host rounds timer categories started currentRound endMode");
+      const room = await Room.findOne({ code: roomCode }).select(
+        "host rounds timer categories started currentRound endMode"
+      );
       if (!room) return socket.emit("error", "Room not found");
-      if (String(room.host) !== String(userId)) return socket.emit("error", "Only the host can start");
+      if (String(room.host) !== String(userId))
+        return socket.emit("error", "Only the host can start");
       if (!room.categories?.length && !Array.isArray(payload.categories))
         return socket.emit("error", "Select at least one category");
 
@@ -285,10 +352,14 @@ module.exports = (io) => {
         categories: room.categories,
         endMode: room.endMode || "ALL_SUBMIT",
       };
-      if (payload.rounds != null) next.rounds = Math.max(1, Math.min(20, Number(payload.rounds) || 5));
-      if (payload.timer != null) next.timer = Math.max(3, Math.min(300, Number(payload.timer) || 60));
-      if (Array.isArray(payload.categories) && payload.categories.length) next.categories = payload.categories;
-      if (payload.endMode === "PLAYER_STOP" || payload.endMode === "ALL_SUBMIT") next.endMode = payload.endMode;
+      if (payload.rounds != null)
+        next.rounds = Math.max(1, Math.min(20, Number(payload.rounds) || 5));
+      if (payload.timer != null)
+        next.timer = Math.max(3, Math.min(300, Number(payload.timer) || 60));
+      if (Array.isArray(payload.categories) && payload.categories.length)
+        next.categories = payload.categories;
+      if (payload.endMode === "PLAYER_STOP" || payload.endMode === "ALL_SUBMIT")
+        next.endMode = payload.endMode;
 
       const updated = await Room.findOneAndUpdate(
         { code: roomCode },
@@ -324,10 +395,17 @@ module.exports = (io) => {
       const { roomCode, userId } = socket.data || {};
       if (!roomCode || !userId) return;
 
-      const room = await Room.findOne({ code: roomCode }).select("host started");
+      const room = await Room.findOne({ code: roomCode }).select(
+        "host started"
+      );
       if (!room) return socket.emit("error", "Room not found");
-      if (String(room.host) !== String(userId)) return socket.emit("error", "Only host can update settings");
-      if (room.started) return socket.emit("error", "Cannot change settings while game running");
+      if (String(room.host) !== String(userId))
+        return socket.emit("error", "Only host can update settings");
+      if (room.started)
+        return socket.emit(
+          "error",
+          "Cannot change settings while game running"
+        );
 
       const safeTimer = Math.max(3, Math.min(300, Number(timer || 60)));
       const safeRounds = Math.max(1, Math.min(20, Number(rounds || 5)));
@@ -353,7 +431,9 @@ module.exports = (io) => {
       const { roomCode, userId } = socket.data || {};
       if (!roomCode || !userId) return;
 
-      const room = await Room.findOne({ code: roomCode }).select("host started currentRound rounds");
+      const room = await Room.findOne({ code: roomCode }).select(
+        "host started currentRound rounds"
+      );
       if (!room || !room.started) return;
       if (String(room.host) !== String(userId)) return;
 
@@ -377,7 +457,11 @@ module.exports = (io) => {
           const final = computeFinalScores(finalRoom);
           io.to(roomCode).emit("gameEnded", final);
         } else {
-          io.to(roomCode).emit("gameEnded", { totals: {}, winners: [], rounds: 0 });
+          io.to(roomCode).emit("gameEnded", {
+            totals: {},
+            winners: [],
+            rounds: 0,
+          });
         }
       }
     });
@@ -387,7 +471,9 @@ module.exports = (io) => {
       const { roomCode, userId } = socket.data || {};
       if (!roomCode || !userId) return;
 
-      const room = await Room.findOne({ code: roomCode }).select("host started");
+      const room = await Room.findOne({ code: roomCode }).select(
+        "host started"
+      );
       if (!room || !room.started) return;
       if (String(room.host) !== String(userId)) return;
 
@@ -398,8 +484,11 @@ module.exports = (io) => {
 
       await bumpActivity(roomCode);
 
-      try { await endRound(roomCode); }
-      finally { rt.ending = false; }
+      try {
+        await endRound(roomCode);
+      } finally {
+        rt.ending = false;
+      }
     });
 
     // === PLAYER STOP ROUND (Mode: PLAYER_STOP; any player who filled all) ===
@@ -408,7 +497,9 @@ module.exports = (io) => {
       if (!roomCode || !userId) return;
 
       const room = await Room.findOne({ code: roomCode })
-        .select("started currentRound roundEndTime categories roundsData endMode")
+        .select(
+          "started currentRound roundEndTime categories roundsData endMode"
+        )
         .lean();
       if (!room || !room.started || !room.currentRound) return;
       if ((room.endMode || "ALL_SUBMIT") !== "PLAYER_STOP") return;
@@ -416,26 +507,45 @@ module.exports = (io) => {
       const rn = room.currentRound;
 
       // Optional upsert included answers prior to stopping
-      if (answers && Object.values(answers).some((v) => String(v || "").trim())) {
+      if (
+        answers &&
+        Object.values(answers).some((v) => String(v || "").trim())
+      ) {
         await Room.updateOne(
           { code: roomCode, "roundsData.roundNumber": rn },
           { $pull: { "roundsData.$.submissions": { player: userId } } }
         );
         await Room.updateOne(
           { code: roomCode, "roundsData.roundNumber": rn },
-          { $push: { "roundsData.$.submissions": { player: userId, answers: answers || {}, points: 0 } } }
+          {
+            $push: {
+              "roundsData.$.submissions": {
+                player: userId,
+                answers: answers || {},
+                points: 0,
+              },
+            },
+          }
         );
       }
 
-      const fresh = await Room.findOne({ code: roomCode }).select("categories roundsData currentRound").lean();
+      const fresh = await Room.findOne({ code: roomCode })
+        .select("categories roundsData currentRound")
+        .lean();
       const round = (fresh.roundsData || []).find((r) => r.roundNumber === rn);
       if (!round) return;
 
-      const sub = (round.submissions || []).find((s) => String(s.player) === String(userId));
+      const sub = (round.submissions || []).find(
+        (s) => String(s.player) === String(userId)
+      );
       if (!sub) return;
 
       const catIds = (fresh.categories || []).map(String);
-      const allFilled = catIds.length > 0 && catIds.every((cid) => String(sub.answers?.[cid] || "").trim().length > 0);
+      const allFilled =
+        catIds.length > 0 &&
+        catIds.every(
+          (cid) => String(sub.answers?.[cid] || "").trim().length > 0
+        );
       if (!allFilled) return;
 
       const rt = getRT(roomCode);
@@ -445,8 +555,11 @@ module.exports = (io) => {
 
       await bumpActivity(roomCode);
 
-      try { await endRound(roomCode); }
-      finally { rt.ending = false; }
+      try {
+        await endRound(roomCode);
+      } finally {
+        rt.ending = false;
+      }
     });
 
     // === SUBMIT ANSWERS (atomic replace) ===
@@ -454,13 +567,19 @@ module.exports = (io) => {
       const { roomCode, userId } = socket.data || {};
       if (!roomCode || !userId) return;
 
-      const hasAny = Object.values(answers || {}).some((v) => String(v || "").trim());
+      const hasAny = Object.values(answers || {}).some((v) =>
+        String(v || "").trim()
+      );
       if (!hasAny) return;
 
-      const cur = await Room.findOne({ code: roomCode }).select("started currentRound roundEndTime players categories endMode");
+      const cur = await Room.findOne({ code: roomCode }).select(
+        "started currentRound roundEndTime players categories endMode"
+      );
       if (!cur || !cur.started || !cur.currentRound) return;
 
-      const cutoff = cur.roundEndTime ? new Date(cur.roundEndTime).getTime() + LATE_GRACE_MS : 0;
+      const cutoff = cur.roundEndTime
+        ? new Date(cur.roundEndTime).getTime() + LATE_GRACE_MS
+        : 0;
       if (cutoff && Date.now() > cutoff) return;
 
       const rn = cur.currentRound;
@@ -472,16 +591,27 @@ module.exports = (io) => {
       );
       await Room.updateOne(
         { code: roomCode, "roundsData.roundNumber": rn },
-        { $push: { "roundsData.$.submissions": { player: userId, answers: answers || {}, points: 0 } } }
+        {
+          $push: {
+            "roundsData.$.submissions": {
+              player: userId,
+              answers: answers || {},
+              points: 0,
+            },
+          },
+        }
       );
 
       await bumpActivity(roomCode);
 
       // Mode: ALL_SUBMIT — end early once everyone has submitted
       if ((cur.endMode || "ALL_SUBMIT") === "ALL_SUBMIT") {
-        const fresh = await Room.findOne({ code: roomCode }).select("players roundsData currentRound");
+        const fresh = await Room.findOne({ code: roomCode }).select(
+          "players roundsData currentRound"
+        );
         const idx = fresh.roundsData.findIndex((r) => r.roundNumber === rn);
-        const submittedCount = idx >= 0 ? (fresh.roundsData[idx].submissions || []).length : 0;
+        const submittedCount =
+          idx >= 0 ? (fresh.roundsData[idx].submissions || []).length : 0;
         const playerCount = (fresh.players || []).length;
 
         if (playerCount > 0 && submittedCount >= playerCount) {
@@ -489,8 +619,11 @@ module.exports = (io) => {
           if (!rt.ending) {
             rt.ending = true;
             clearAllTimers(rt);
-            try { await endRound(roomCode); }
-            finally { rt.ending = false; }
+            try {
+              await endRound(roomCode);
+            } finally {
+              rt.ending = false;
+            }
           }
         }
       }
@@ -498,11 +631,15 @@ module.exports = (io) => {
 
     // ================== internals ==================
     async function handleLeave(roomCode, userId) {
-      const lean = await Room.findOne({ code: roomCode }).select("players host started").lean();
+      const lean = await Room.findOne({ code: roomCode })
+        .select("players host started")
+        .lean();
       if (!lean) return;
 
       const isHost = String(lean.host) === String(userId);
-      const newPlayers = (lean.players || []).filter((p) => String(p) !== String(userId));
+      const newPlayers = (lean.players || []).filter(
+        (p) => String(p) !== String(userId)
+      );
 
       // If host leaves and no one remains → delete room + clear timers
       if (isHost && newPlayers.length === 0) {
@@ -517,9 +654,13 @@ module.exports = (io) => {
       const update = { players: newPlayers };
       if (isHost && newPlayers.length > 0) update.host = newPlayers[0];
 
-      const updated = await Room.findOneAndUpdate({ code: roomCode }, update, { new: true }).populate("players host");
+      const updated = await Room.findOneAndUpdate({ code: roomCode }, update, {
+        new: true,
+      }).populate("players host");
 
-      io.to(roomCode).emit("playersUpdated", { players: (updated.players || []).map(sId) });
+      io.to(roomCode).emit("playersUpdated", {
+        players: (updated.players || []).map(sId),
+      });
       io.to(roomCode).emit("roomUpdated", { room: updated });
     }
 
@@ -563,9 +704,14 @@ module.exports = (io) => {
       const ids = (updated.categories || []).map(String);
       let categoryMeta = [];
       if (ids.length) {
-        const cats = await Category.find({ _id: { $in: ids } }).select("displayName name").lean();
+        const cats = await Category.find({ _id: { $in: ids } })
+          .select("displayName name")
+          .lean();
         const nameById = Object.fromEntries(
-          cats.map((c) => [String(c._id), c.displayName?.mk || c.name || String(c._id)])
+          cats.map((c) => [
+            String(c._id),
+            c.displayName?.mk || c.name || String(c._id),
+          ])
         );
         categoryMeta = ids.map((id) => ({ id, name: nameById[id] || id }));
       }
@@ -586,9 +732,13 @@ module.exports = (io) => {
       rt.roundTO = setTimeout(async () => {
         if (!rt.ending && myGen === rt.gen) {
           rt.ending = true;
-          try { await endRound(updated.code); }
-          catch (e) { console.error(e); }
-          finally { rt.ending = false; }
+          try {
+            await endRound(updated.code);
+          } catch (e) {
+            console.error(e);
+          } finally {
+            rt.ending = false;
+          }
         }
       }, secs * 1000 + LATE_GRACE_MS);
     }
@@ -610,10 +760,12 @@ module.exports = (io) => {
       const categories = (room.categories || []).map(String);
       const letter = (room.letter || "").toUpperCase();
 
-      const cats = await Category.find({ _id: { $in: categories } }).select("words").lean();
+      const cats = await Category.find({ _id: { $in: categories } })
+        .select("words")
+        .lean();
       const catMap = new Map(cats.map((c) => [String(c._id), c]));
 
-      const byCat = {};       // catId -> [{ player, raw, norm, starts, inDict }]
+      const byCat = {}; // catId -> [{ player, raw, norm, starts, inDict }]
       const countsByCat = {}; // catId -> { norm: count }
 
       for (const cid of categories) {
@@ -625,8 +777,8 @@ module.exports = (io) => {
         const allowAny = ACCEPT_ANY_IF_NO_DICT && dictSet.size === 0;
 
         const arr = (round.submissions || []).map((s) => {
-          const raw = (s.answers?.[cid] || "").trim();      // typed value (Cyrillic)
-          const norm = normalizeWord(raw);                  // normalized
+          const raw = (s.answers?.[cid] || "").trim(); // typed value (Cyrillic)
+          const norm = normalizeWord(raw); // normalized
           const starts = !!raw && raw[0]?.toUpperCase() === letter;
           const inDict = starts && (allowAny || dictSet.has(norm));
           return { player: String(s.player), raw, norm, starts, inDict };
@@ -635,7 +787,8 @@ module.exports = (io) => {
         byCat[String(cid)] = arr;
 
         const counts = {};
-        for (const a of arr) if (a.inDict) counts[a.norm] = (counts[a.norm] || 0) + 1;
+        for (const a of arr)
+          if (a.inDict) counts[a.norm] = (counts[a.norm] || 0) + 1;
         countsByCat[String(cid)] = counts;
       }
 
@@ -648,11 +801,17 @@ module.exports = (io) => {
         details[pid] = details[pid] || {};
 
         for (const cid of categories) {
-          const a =
-            (byCat[String(cid)] || []).find((x) => x.player === pid) ||
-            { raw: "", starts: false, inDict: false, norm: "" };
+          const a = (byCat[String(cid)] || []).find(
+            (x) => x.player === pid
+          ) || { raw: "", starts: false, inDict: false, norm: "" };
 
-          const entry = { value: a.raw, valid: false, unique: false, points: 0, reason: "" };
+          const entry = {
+            value: a.raw,
+            valid: false,
+            unique: false,
+            points: 0,
+            reason: "",
+          };
 
           if (!a.raw) entry.reason = "empty";
           else if (!a.starts) entry.reason = "wrong-letter";

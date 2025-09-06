@@ -1,13 +1,17 @@
 const generateUniqueRoomCode = require("../utils/generateUniqueRoomCode");
 const Room = require("../models/Room");
-const User = require("../models/User");
 const { getIO } = require("../sockets/ioInstance");
+
+// Utility: извлечи hostId без разлика дали е ObjectId или популиран објект
+const getHostId = (host) => (host?._id ? host._id.toString() : host.toString());
+
+// Креирање нова соба
 exports.createRoom = async (req, res) => {
   try {
     const hostId = req.user.userId;
     let code;
     let exists = true;
-    // Keep generating until you get a unique code
+
     while (exists) {
       code = generateUniqueRoomCode().toUpperCase();
       exists = await Room.exists({ code });
@@ -25,51 +29,61 @@ exports.createRoom = async (req, res) => {
 
     res.json({ room });
   } catch (err) {
-    console.error("Error creating room:", err);
-    res.status(500).json({ message: "Error creating room" });
+    console.error("❌ Грешка при креирање соба:", err);
+    res.status(500).json({ message: "Грешка при креирање на собата." });
   }
 };
 
-// JOIN a room (player or host)
+// Приклучување во соба
 exports.joinRoom = async (req, res) => {
   const { code } = req.body;
   try {
     const userId = req.user.userId;
-    console.log("JOIN attempt:", { code, userId });
-    let room = await Room.findOne({ code: code.toUpperCase() }); // force uppercase here
+    let room = await Room.findOne({ code: code.toUpperCase() });
     if (!room) {
-      console.log("Room not found:", code);
-      return res.status(404).json({ message: "Room not found" });
+      return res.status(404).json({ message: "Собата не е пронајдена." });
     }
+
     if (!room.players.some((id) => id.toString() === userId)) {
       room.players.push(userId);
       await room.save();
-      console.log("User added to room:", userId);
-    } else {
-      console.log("User already in room:", userId);
     }
+
     room = await Room.findOne({ code: code.toUpperCase() })
       .populate("players")
       .populate("host");
+
     const io = getIO();
     io.to(code.toUpperCase()).emit("roomUpdated", { room });
     res.json({ room });
   } catch (err) {
-    console.error("Error joining room:", err);
-    res.status(500).json({ message: "Error joining room" });
+    console.error("❌ Грешка при приклучување:", err);
+    res.status(500).json({ message: "Грешка при приклучување во собата." });
   }
 };
 
-// LEAVE a room (player)
+// Напуштање на соба
 exports.leaveRoom = async (req, res) => {
   const { code } = req.body;
   try {
     const userId = req.user.userId;
 
     let room = await Room.findOne({ code });
-    if (!room) return res.status(404).json({ message: "Room not found" });
+    if (!room)
+      return res.status(404).json({ message: "Собата не е пронајдена." });
 
+    // Избриши го играчот од листата
     room.players = room.players.filter((id) => id.toString() !== userId);
+
+    // Ако хостот ја напушта собата → префрли на следниот играч
+    if (room.host.toString() === userId) {
+      if (room.players.length > 0) {
+        room.host = room.players[0]; // првиот играч станува нов хост
+      } else {
+        room.host = null; // нема играчи → нема хост
+      }
+    }
+
     await room.save();
 
     room = await Room.findOne({ code }).populate("players").populate("host");
@@ -77,82 +91,92 @@ exports.leaveRoom = async (req, res) => {
     const io = getIO();
     io.to(code).emit("roomUpdated", { room });
 
-    res.json({ message: "Left room", room });
-    console.log("Left room:", { code, userId });
+    res.json({ message: "Успешно ја напуштивте собата.", room });
+    console.log("👋 Играч излезе од соба:", { code, userId });
   } catch (err) {
-    res.status(500).json({ message: "Error leaving room" });
+    console.error("❌ Грешка при напуштање соба:", err);
+    res.status(500).json({ message: "Грешка при напуштање на собата." });
   }
 };
 
-// GET current room info (for reconnect, page reload, etc)
+// Земaње информации за собата
 exports.getRoom = async (req, res) => {
   const { code } = req.params;
   try {
     const room = await Room.findOne({ code })
       .populate("players")
       .populate("host");
-    if (!room) return res.status(404).json({ message: "Room not found" });
+    if (!room)
+      return res.status(404).json({ message: "Собата не е пронајдена." });
     res.json({ room });
   } catch (err) {
-    res.status(500).json({ message: "Error fetching room" });
+    console.error("❌ Грешка при земање соба:", err);
+    res.status(500).json({ message: "Грешка при вчитување на собата." });
   }
 };
 
-// UPDATE room settings (host only: rounds, timer, ednMode)
+// Ажурирање на подесувања (само хост)
 exports.updateSettings = async (req, res) => {
-  console.log("updateSettings body:", req.body);
   const { code, rounds, timer, endMode } = req.body;
-
   try {
     const roomCode = code.toUpperCase();
-
-    // sanitize inputs
-    const safeRounds = Math.max(1, Number(rounds || 5));
-    const safeTimer = Math.max(3, Number(timer || 60));
-    const safeMode = endMode === "PLAYER_STOP" ? "PLAYER_STOP" : "ALL_SUBMIT";
-
-    let room = await Room.findOneAndUpdate(
-      { code: roomCode },
-      { rounds: safeRounds, timer: safeTimer, endMode: safeMode },
-      { new: true }
-    )
+    let room = await Room.findOne({ code: roomCode })
       .populate("players")
       .populate("host");
 
-    if (!room) return res.status(404).json({ message: "Room not found" });
+    if (!room)
+      return res.status(404).json({ message: "Собата не е пронајдена." });
+
+    const hostId = getHostId(room.host);
+    if (hostId !== req.user.userId) {
+      return res
+        .status(403)
+        .json({ message: "Само хостот може да ги ажурира подесувањата." });
+    }
+
+    room.rounds = Math.max(1, Number(rounds || 5));
+    room.timer = Math.max(3, Number(timer || 60));
+    room.endMode = endMode === "PLAYER_STOP" ? "PLAYER_STOP" : "ALL_SUBMIT";
+    await room.save();
 
     const io = getIO();
-    console.log("Emitting roomUpdated to:", roomCode);
     io.to(roomCode).emit("roomUpdated", { room });
 
     res.json({ room });
   } catch (err) {
-    console.error("Error updating settings:", err);
-    res
-      .status(500)
-      .json({ message: "Error updating settings", error: err.message });
+    console.error("❌ Грешка при ажурирање подесувања:", err);
+    res.status(500).json({ message: "Грешка при ажурирање на подесувањата." });
   }
 };
 
-// UPDATE categories (host only)
+// Ажурирање на категории (само хост)
 exports.updateCategories = async (req, res) => {
   const { code, categories } = req.body;
   try {
     const roomCode = code.toUpperCase();
-    let room = await Room.findOneAndUpdate(
-      { code: roomCode },
-      { categories },
-      { new: true }
-    )
+    let room = await Room.findOne({ code: roomCode })
       .populate("players")
       .populate("host");
 
+    if (!room)
+      return res.status(404).json({ message: "Собата не е пронајдена." });
+
+    const hostId = getHostId(room.host);
+    if (hostId !== req.user.userId) {
+      return res
+        .status(403)
+        .json({ message: "Само хостот може да ги ажурира категориите." });
+    }
+
+    room.categories = categories;
+    await room.save();
+
     const io = getIO();
-    console.log("Emitting roomUpdated to:", roomCode);
     io.to(roomCode).emit("roomUpdated", { room });
 
     res.json({ room });
   } catch (err) {
-    res.status(500).json({ message: "Error updating categories" });
+    console.error("❌ Грешка при ажурирање категории:", err);
+    res.status(500).json({ message: "Грешка при ажурирање на категориите." });
   }
 };

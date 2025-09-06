@@ -417,6 +417,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   return {
     players,
     playerNameById,
+    hostId,
     isHost,
     endMode,
     currentRound,

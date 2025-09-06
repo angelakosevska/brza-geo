@@ -7,6 +7,7 @@ export default function PlayersList({
   onLeave,
   className,
   showLeave = true,
+  hostId, 
 }) {
   return (
     <GlassCard className={`p-4 ${className ?? ""}`}>
@@ -30,14 +31,23 @@ export default function PlayersList({
       </div>
 
       <ul className="flex flex-wrap gap-2 text-[var(--text)] text-sm">
-        {players.map((player, idx) => (
-          <li
-            key={player._id ?? idx}
-            className="bg-[var(--background)]/60 px-3 py-1 border-2 border-[var(--primary)] rounded-full"
-          >
-            {player.username || "Unknown"}
-          </li>
-        ))}
+        {players.map((player, idx) => {
+          const isHost = hostId && player._id?.toString() === hostId.toString();
+
+          return (
+            <li
+              key={player._id ?? idx}
+              className={`px-3 py-1 rounded-full border-2 ${
+                isHost
+                  ? "border-[var(--accent)] bg-[var(--accent)]/20 font-semibold"
+                  : "border-[var(--primary)] bg-[var(--background)]/60"
+              }`}
+            >
+              {player.username || "Unknown"}
+              {isHost}
+            </li>
+          );
+        })}
       </ul>
     </GlassCard>
   );

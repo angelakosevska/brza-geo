@@ -122,6 +122,7 @@ export default function RoomPage() {
         <PlayersList
           players={room.players}
           onLeave={handleLeave}
+          hostId={room.host?._id}
           className="w-full lg:w-3/4"
         />
         <RoomCodeCard
