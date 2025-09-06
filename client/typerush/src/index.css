@@ -36,6 +36,7 @@ body {
   --secondary: #d1a4ef;
   --accent: #f88a79;
   --glass: #000000;
+  --destructive: #ff0000;
 }
 
 /* Dark theme */
@@ -47,6 +48,7 @@ body {
     --secondary: #c287e8;
     --accent: #ff7e6b;
     --glass: #5a5a5a;
+    --destructive: rgb(239, 39, 39);
   }
 }
 .dark {
@@ -56,6 +58,7 @@ body {
   --secondary: #c287e8;
   --accent: #ff7e6b;
   --glass: #5a5a5a;
+  --destructive: #ff6b6b;
 }
 .blink-cursor {
   animation: blink-fade-subtle 2s ease-in-out infinite;

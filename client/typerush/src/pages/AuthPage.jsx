@@ -1,51 +1,45 @@
 import React, { useState } from "react";
-import clsx from "clsx";
 import { LoginForm } from "@/components/LoginForm";
 import { RegisterForm } from "@/components/RegisterForm";
 import { useNavigate } from "react-router-dom";
 import api from "@/lib/axios";
 import { useAuth } from "@/context/AuthContext";
+import { useError } from "@/hooks/useError";
+import GlassCard from "@/components/GlassCard";
+import { AnimatePresence, motion } from "framer-motion";
 
 export default function AuthPage() {
-  const [flipped, setFlipped] = useState(false);
-  const [loginData, setLoginData] = useState({ email: "", password: "" });
-  const [registerData, setRegisterData] = useState({
-    username: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  });
+  const [showRegister, setShowRegister] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showError, showSuccess } = useError();
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    const res = await api.post("/auth/register", {
-      username: registerData.username,
-      email: registerData.email,
-      password: registerData.password,
-      confirmPassword: registerData.confirmPassword,
-    });
-    const { token } = res.data;
-    login(token);
-    navigate("/main");
-  };
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  const handleRegister = async (_e, data) => {
     try {
-      const res = await api.post("/auth/login", {
-        login: loginData.email,
-        password: loginData.password,
-      });
-
+      const res = await api.post("/auth/register", data);
       const { token } = res.data;
       login(token);
-
+      showSuccess("Регистрацијата беше успешна!");
       navigate("/main");
     } catch (err) {
-      const message = err.response?.data?.message || "Login failed";
-      alert(message);
+      const message = err.response?.data?.message || "Регистрацијата не успеа";
+      showError(message);
+    }
+  };
+
+  const handleLogin = async (_e, data) => {
+    try {
+      const res = await api.post("/auth/login", {
+        login: data.login, // 👈 ова е поле од LoginForm
+        password: data.password,
+      });
+      const { token } = res.data;
+      login(token);
+      showSuccess("Добредојде назад!");
+      navigate("/main");
+    } catch (err) {
+      const message = err.response?.data?.message || "Најавата не успеа";
+      showError(message);
     }
   };
 
@@ -54,46 +48,39 @@ export default function AuthPage() {
   };
 
   return (
-    <>
-      <div className="relative flex justify-center items-center w-full max-w-xs sm:max-w-sm md:max-w-md h-[400px] sm:h-[440px] md:h-[480px]">
-        <div
-          className={clsx(
-            "relative bg-[var(--background)]/20 shadow-xl border border-[var(--background)] rounded-4xl w-full h-full transition-transform duration-800"
+    <div className="relative flex justify-center items-center w-full min-h-screen">
+      <GlassCard className="p-6 w-full max-w-xs sm:max-w-sm md:max-w-md">
+        <AnimatePresence mode="wait">
+          {!showRegister ? (
+            <motion.div
+              key="login"
+              initial={{ x: -50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: 50, opacity: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <LoginForm
+                handleLogin={handleLogin}
+                onFlip={() => setShowRegister(true)}
+                onForgotPassword={handleForgotPassword}
+              />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="register"
+              initial={{ x: 50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -50, opacity: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <RegisterForm
+                handleRegister={handleRegister}
+                onFlip={() => setShowRegister(false)}
+              />
+            </motion.div>
           )}
-          style={{
-            transformStyle: "preserve-3d",
-            transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
-          }}
-        >
-          <div
-            className="absolute inset-0 flex justify-center items-center bg-[var(--background)]/30 shadow-gray-500/20 shadow-xl backdrop-blur-sm border border-[var(--background)] rounded-3xl backface-hidden"
-            style={{ backfaceVisibility: "hidden" }}
-          >
-            <LoginForm
-              loginData={loginData}
-              setLoginData={setLoginData}
-              handleLogin={handleLogin}
-              onFlip={() => setFlipped(true)}
-              onForgotPassword={handleForgotPassword}
-            />
-          </div>
-          <div
-            className="absolute inset-0 flex justify-center items-center bg-[var(--background)]/30 shadow-gray-500/20 shadow-xl backdrop-blur-sm p-4 border border-[var(--background)] rounded-3xl backface-hidden"
-            style={{
-              transform: "rotateY(180deg)",
-              backfaceVisibility: "hidden",
-            }}
-          >
-            <RegisterForm
-              registerData={registerData}
-              setRegisterData={setRegisterData}
-              handleRegister={handleRegister}
-              onFlip={() => setFlipped(false)}
-            />
-          </div>
-        </div>
-      </div>
-      <style>{`.backface-hidden { backface-visibility: hidden; }`}</style>
-    </>
+        </AnimatePresence>
+      </GlassCard>
+    </div>
   );
 }

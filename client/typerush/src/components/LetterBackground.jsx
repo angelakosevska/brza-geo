@@ -45,6 +45,10 @@ export default function LetterBackground({ children }) {
 
       {/* Page content */}
       <div className="z-10 relative">{children}</div>
+      {/* 
+      <footer className="z-10 relative py-3 text-[var(--primary)]/70 text-xs sm:text-sm text-center">
+        © {new Date().getFullYear()} TypeRush. All rights reserved.
+      </footer> */}
     </div>
   );
 }

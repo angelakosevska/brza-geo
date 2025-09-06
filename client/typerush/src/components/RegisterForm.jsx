@@ -1,71 +1,154 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import GlassCard from "./GlassCard";
 
-export function RegisterForm({ registerData, setRegisterData, handleRegister, onFlip }) {
+// Zod schema за валидација на регистрација
+const registerSchema = z
+  .object({
+    username: z
+      .string()
+      .min(3, "Корисничкото име мора да има барем 3 карактери"),
+    email: z.string().email("Внесете валиден email"),
+    password: z.string().min(6, "Лозинката мора да има најмалку 6 карактери"),
+    confirmPassword: z.string().min(6, "Потврдата на лозинка е задолжителна"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "Лозинките мора да се совпаѓаат",
+  });
+
+export function RegisterForm({ handleRegister, onFlip }) {
+  const form = useForm({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
+
+  const onSubmit = (data) => {
+    // ќе му пуштиме на handleRegister готов објект
+    handleRegister({ preventDefault: () => {} }, data);
+  };
+
   return (
-    <form
-      onSubmit={handleRegister}
-      className="flex flex-col gap-4 p-4 sm:p-8 w-full max-w-xs mx-auto"
-    >
-      <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold mb-2 text-[var(--primary)] text-center">
-        Register 🎉
-      </h2>
-
-      <Input
-        type="text"
-        placeholder="Username"
-        autoComplete="username"
-        value={registerData.username}
-        onChange={(e) =>
-          setRegisterData({ ...registerData, username: e.target.value })
-        }
-      />
-
-      <Input
-        type="email"
-        placeholder="Email"
-        autoComplete="email"
-        value={registerData.email}
-        onChange={(e) =>
-          setRegisterData({ ...registerData, email: e.target.value })
-        }
-      />
-
-      <Input
-        type="password"
-        placeholder="Password"
-        autoComplete="new-password"
-        value={registerData.password}
-        onChange={(e) =>
-          setRegisterData({ ...registerData, password: e.target.value })
-        }
-      />
-
-      <Input
-        type="password"
-        placeholder="Repeat Password"
-        autoComplete="new-password"
-        value={registerData.confirmPassword}
-        onChange={(e) =>
-          setRegisterData({
-            ...registerData,
-            confirmPassword: e.target.value,
-          })
-        }
-      />
-
-      <Button className="mt-2 w-full" type="submit">
-        Register
-      </Button>
-
-      <Button
-        variant="link"
-        className="text-xs sm:text-sm mt-4"
-        onClick={onFlip}
-        type="button"
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col gap-4 p-4 sm:p-8 w-full h-full"
       >
-        👈 Have an account? <span className="font-semibold">Login</span>
-      </Button>
-    </form>
+        <h2 className="mb-2 font-extrabold text-[var(--primary)] text-xl sm:text-2xl md:text-3xl text-center">
+          Регистрирај се!
+        </h2>
+
+        {/* Username */}
+        <FormField
+          control={form.control}
+          name="username"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Корисничко име</FormLabel>
+              <FormControl>
+                <Input
+                  type="text"
+                  placeholder="Корисничко име"
+                  autoComplete="username"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Email */}
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Е-пошта</FormLabel>
+              <FormControl>
+                <Input
+                  type="email"
+                  placeholder="Е-пошта"
+                  autoComplete="email"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Password */}
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Лозинка</FormLabel>
+              <FormControl>
+                <Input
+                  type="password"
+                  placeholder="Лозинка"
+                  autoComplete="new-password"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Confirm Password */}
+        <FormField
+          control={form.control}
+          name="confirmPassword"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Повтори лозинка</FormLabel>
+              <FormControl>
+                <Input
+                  type="password"
+                  placeholder="Повтори лозинка"
+                  autoComplete="new-password"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Submit */}
+        <Button className="mt-2 w-full" type="submit">
+          Регистрирај се
+        </Button>
+
+        {/* Flip to login */}
+        <Button
+          variant="link"
+          className="mt-4 text-xs sm:text-sm"
+          onClick={onFlip}
+          type="button"
+        >
+          Имаш профил? <span className="font-semibold">Најави се!</span>
+        </Button>
+      </form>
+    </Form>
   );
 }
