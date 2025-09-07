@@ -7,7 +7,7 @@ export default function LetterBackground({ children }) {
       {/* Floating letters background */}
       <div className="z-0 absolute inset-0 pointer-events-none">
         {Array.from({ length: 80 }).map((_, i) => {
-          const letter = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[
+          const letter = "АБВГДЃЕЖЗЅИЈКЛЉМНЊОПРСТЌУФХЦЧЏШ"[
             Math.floor(Math.random() * 26)
           ];
 

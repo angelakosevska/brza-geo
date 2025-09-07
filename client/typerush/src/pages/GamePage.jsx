@@ -33,6 +33,7 @@ export default function GamePage() {
     submitted,
     endMode,
     mode,
+    hasMoreRounds,
     hostId,
     isHost,
     handleChange,
@@ -121,6 +122,7 @@ export default function GamePage() {
         answerDetails={answerDetails}
         roundScores={roundScores}
         breakLeft={breakLeft}
+        hasMoreRounds={hasMoreRounds}
         onNextRound={handleNextRound}
       />
       <FinalResultsModal

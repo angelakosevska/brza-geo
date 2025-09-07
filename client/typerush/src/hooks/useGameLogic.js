@@ -3,35 +3,33 @@ import { socket } from "@/lib/socket";
 import api from "@/lib/axios";
 
 /**
- * Game logic hook:
- * - Round play mode: inputs, countdown, submit (auto/manual)
- * - Review mode: between-round modal with scores + break countdown; host can skip break
- * - Final modal: totals/winners, actions to go back to room / leave / start new game
+ * Game logic hook for real-time multiplayer game
+ * Handles round play, reviews, submissions, and final results
  */
 export default function useGameLogic({ code, currentUserId, navigate }) {
-  // -------- Players / host --------
+  // ========== STATE ==========
+  // Players & Room
   const [players, setPlayers] = useState([]);
   const [playerNameById, setPlayerNameById] = useState({});
   const [hostId, setHostId] = useState(null);
 
-  // -------- Round state --------
+  // Game State
   const [currentRound, setCurrentRound] = useState(0);
   const [totalRounds, setTotalRounds] = useState(0);
   const [letter, setLetter] = useState(null);
   const [categories, setCategories] = useState([]);
   const [categoryLabels, setCategoryLabels] = useState({});
-  const [endAt, setEndAt] = useState(null);
+  const [endMode, setEndMode] = useState("ALL_SUBMIT");
+  const [mode, setMode] = useState("play"); // "play" | "review"
+  const [hasMoreRounds, setHasMoreRounds] = useState(true);
 
-  // -------- Answers / countdown --------
+  // Round Play
   const [answers, setAnswers] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [endAt, setEndAt] = useState(null);
   const [timeLeft, setTimeLeft] = useState(0);
 
-  // -------- Modes --------
-  const [mode, setMode] = useState("play"); // "play" | "review"
-  const [endMode, setEndMode] = useState("ALL_SUBMIT"); // "ALL_SUBMIT" | "PLAYER_STOP"
-
-  // -------- Between-round (results) modal --------
+  // Results & Break
   const [showResults, setShowResults] = useState(false);
   const [roundScores, setRoundScores] = useState({});
   const [roundAnswers, setRoundAnswers] = useState({});
@@ -39,19 +37,20 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   const [breakEndAt, setBreakEndAt] = useState(null);
   const [breakLeft, setBreakLeft] = useState(0);
 
-  // -------- Final modal --------
+  // Final Results
   const [showFinal, setShowFinal] = useState(false);
   const [finalTotals, setFinalTotals] = useState({});
   const [finalWinners, setFinalWinners] = useState([]);
 
-  // -------- Server time skew correction --------
+  // Time sync
   const [serverOffsetMs, setServerOffsetMs] = useState(0);
 
-  // -------- Refs --------
+  // ========== REFS ==========
   const answersRef = useRef({});
   const endAtRef = useRef(null);
   const joinedRef = useRef(false);
 
+  // Keep refs in sync
   useEffect(() => {
     answersRef.current = answers;
   }, [answers]);
@@ -59,9 +58,11 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     endAtRef.current = endAt;
   }, [endAt]);
 
-  // -------- Helpers --------
-  const normalizeId = (v) =>
-    typeof v === "string" ? v : v?._id ?? String(v ?? "");
+  // ========== COMPUTED ==========
+  const normalizeId = useCallback(
+    (v) => (typeof v === "string" ? v : v?._id ?? String(v ?? "")),
+    []
+  );
 
   const isHost = useMemo(
     () =>
@@ -73,41 +74,44 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
 
   const waitingForRound = !letter || !categories?.length || !endAt;
 
-  // -------- REST: fetch room (names/host) --------
+  // ========== API ==========
   const fetchRoom = useCallback(async () => {
     try {
       const res = await api.get(`/room/${code}`);
       const room = res.data.room || {};
-      const map = {};
+
+      const nameMap = {};
       (room.players || []).forEach((p) => {
         const id = normalizeId(p);
-        const name = p.username || String(id).slice(-5);
-        map[id] = name;
+        nameMap[id] = p.username || String(id).slice(-5);
       });
+
       setPlayers(room.players || []);
-      setPlayerNameById(map);
+      setPlayerNameById(nameMap);
       setHostId(normalizeId(room.host));
       if (room.endMode) setEndMode(room.endMode);
-    } catch {
-      // ignore
+    } catch (err) {
+      console.warn("Failed to fetch room:", err);
     }
-  }, [code]);
+  }, [code, normalizeId]);
 
-  // -------- Join room once socket+user ready --------
+  // ========== SOCKET CONNECTION ==========
   useEffect(() => {
     if (!code || !currentUserId) return;
+
     const tryJoin = () => {
       if (socket.connected && !joinedRef.current) {
         socket.emit("joinRoom", { code, userId: currentUserId });
         joinedRef.current = true;
       }
     };
+
     fetchRoom().finally(tryJoin);
     socket.on("connect", tryJoin);
     return () => socket.off("connect", tryJoin);
   }, [code, currentUserId, fetchRoom]);
 
-  // -------- Leave on unmount --------
+  // Leave room on unmount
   useEffect(() => {
     return () => {
       if (joinedRef.current) {
@@ -117,29 +121,31 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     };
   }, [code]);
 
-  // -------- Round countdown --------
+  // ========== TIMERS ==========
+  // Round countdown
   useEffect(() => {
-    const t = setInterval(() => {
+    const interval = setInterval(() => {
       if (!endAt) return;
       const end = new Date(endAt).getTime();
-      const ms = end - (Date.now() + serverOffsetMs);
-      setTimeLeft(ms > 0 ? Math.ceil(ms / 1000) : 0);
+      const remaining = end - (Date.now() + serverOffsetMs);
+      setTimeLeft(remaining > 0 ? Math.ceil(remaining / 1000) : 0);
     }, 250);
-    return () => clearInterval(t);
+    return () => clearInterval(interval);
   }, [endAt, serverOffsetMs]);
 
-  // -------- Break countdown --------
+  // Break countdown
   useEffect(() => {
-    const t = setInterval(() => {
+    const interval = setInterval(() => {
       if (!breakEndAt) return;
       const end = new Date(breakEndAt).getTime();
-      const ms = end - (Date.now() + serverOffsetMs);
-      setBreakLeft(ms > 0 ? Math.ceil(ms / 1000) : 0);
+      const remaining = end - (Date.now() + serverOffsetMs);
+      setBreakLeft(remaining > 0 ? Math.ceil(remaining / 1000) : 0);
     }, 250);
-    return () => clearInterval(t);
+    return () => clearInterval(interval);
   }, [breakEndAt, serverOffsetMs]);
 
-  // -------- Auto-submit --------
+  // ========== AUTO SUBMIT ==========
+  // Auto-submit when time runs out
   useEffect(() => {
     if (timeLeft === 0 && endAt && !submitted && mode === "play") {
       socket.emit("submitAnswers", { code, answers: answersRef.current });
@@ -147,7 +153,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     }
   }, [timeLeft, endAt, submitted, mode, code]);
 
-  // -------- Best-effort submit on tab close --------
+  // Submit on page unload
   useEffect(() => {
     const onBeforeUnload = () => {
       if (!submitted && endAtRef.current && mode === "play") {
@@ -158,178 +164,174 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
   }, [submitted, mode, code]);
 
-  // -------- Rehydrate --------
+  // ========== STATE REHYDRATION ==========
   useEffect(() => {
     socket.emit("getRoundState", { code }, (state) => {
       if (!state) return;
+
       const {
-        round,
         currentRound: cr,
         totalRounds: tr,
         letter,
         categories,
         categoryMeta,
-        endsAt,
         roundEndTime,
         breakEndTime,
-        serverTime,
         serverNow,
         hasSubmitted,
         phase,
         endMode,
       } = state;
 
+      // Update basic state
       if (endMode) setEndMode(endMode);
-      const end = roundEndTime ?? endsAt ?? null;
-      const srv = serverNow ?? serverTime;
-
-      setCurrentRound(cr ?? round ?? 1);
+      if (cr != null) setCurrentRound(cr);
       if (tr != null) setTotalRounds(tr);
-      setLetter(letter ?? null);
+      setLetter(letter || null);
       setCategories((categories || []).map(String));
-      setCategoryLabels(
-        (categoryMeta || []).reduce((acc, { id, name }) => {
-          acc[String(id)] = name;
-          return acc;
-        }, {})
-      );
-      setEndAt(end);
-      setServerOffsetMs(typeof srv === "number" ? srv - Date.now() : 0);
 
+      // Category labels
+      const labelMap = (categoryMeta || []).reduce((acc, { id, name }) => {
+        acc[String(id)] = name;
+        return acc;
+      }, {});
+      setCategoryLabels(labelMap);
+
+      // Time sync
+      setEndAt(roundEndTime || null);
+      if (typeof serverNow === "number") {
+        setServerOffsetMs(serverNow - Date.now());
+      }
+
+      // Phase-specific setup
       if (breakEndTime) {
         setMode("review");
         setShowResults(true);
         setBreakEndAt(breakEndTime);
-      } else if (phase === "review" || phase === "final") {
+      } else if (phase === "review") {
         setMode("review");
-        setShowResults(phase === "review");
-        setShowFinal(phase === "final");
+        setShowResults(true);
+        setShowFinal(false);
+      } else if (phase === "final") {
+        setMode("review");
+        setShowResults(false);
+        setShowFinal(true);
       } else {
         setMode("play");
         setShowResults(false);
         setShowFinal(false);
       }
 
-      if (phase === "play" || (!phase && end)) {
-        if (typeof hasSubmitted === "boolean") {
-          setSubmitted(hasSubmitted);
-          if (!hasSubmitted) setAnswers({});
-        } else {
-          setSubmitted(false);
-          setAnswers({});
-        }
+      // Submission state
+      if (phase === "play" || (!phase && roundEndTime)) {
+        setSubmitted(Boolean(hasSubmitted));
+        if (!hasSubmitted) setAnswers({});
       }
     });
   }, [code]);
 
-  // -------- Socket listeners --------
+  // ========== SOCKET EVENTS ==========
   useEffect(() => {
-    const onRoundStarted = (payload) => {
+    const handleRoundStarted = (payload) => {
       const {
         currentRound,
-        round,
         totalRounds,
         letter,
         categories,
         categoryMeta,
-        endsAt,
         roundEndTime,
-        serverTime,
         serverNow,
         hasSubmitted,
         endMode,
       } = payload;
 
       if (endMode) setEndMode(endMode);
-      const end = roundEndTime ?? endsAt ?? null;
-      const srv = serverNow ?? serverTime;
-
-      setCurrentRound(currentRound ?? round ?? 1);
+      if (currentRound != null) setCurrentRound(currentRound);
       if (totalRounds != null) setTotalRounds(totalRounds);
-      setLetter(letter ?? null);
+      setLetter(letter || null);
       setCategories((categories || []).map(String));
-      setCategoryLabels(
-        (categoryMeta || []).reduce((acc, { id, name }) => {
-          acc[String(id)] = name;
-          return acc;
-        }, {})
-      );
-      setEndAt(end);
-      setServerOffsetMs(typeof srv === "number" ? srv - Date.now() : 0);
 
+      const labelMap = (categoryMeta || []).reduce((acc, { id, name }) => {
+        acc[String(id)] = name;
+        return acc;
+      }, {});
+      setCategoryLabels(labelMap);
+
+      setEndAt(roundEndTime || null);
+      if (typeof serverNow === "number") {
+        setServerOffsetMs(serverNow - Date.now());
+      }
+
+      // Reset to play mode
       setMode("play");
       setShowResults(false);
       setShowFinal(false);
       setBreakEndAt(null);
-
-      if (typeof hasSubmitted === "boolean") {
-        setSubmitted(hasSubmitted);
-        if (!hasSubmitted) setAnswers({});
-      } else {
-        setSubmitted(false);
-        setAnswers({});
-      }
+      setSubmitted(Boolean(hasSubmitted));
+      if (!hasSubmitted) setAnswers({});
     };
 
-    const onRoundResults = ({
+    const handleRoundResults = ({
       scores,
       answers,
       details,
       breakEndTime,
       serverNow,
+      hasMore,
     }) => {
       setRoundScores(scores || {});
       setRoundAnswers(answers || {});
       setAnswerDetails(details || {});
       setBreakEndAt(breakEndTime || null);
-
       setMode("review");
       setShowResults(true);
+
+      
+      setHasMoreRounds(hasMore !== false);
 
       if (typeof serverNow === "number") {
         setServerOffsetMs(serverNow - Date.now());
       }
     };
 
-    const onGameEnded = (payload) => {
+    const handleGameEnded = (payload) => {
       setShowResults(false);
       setBreakEndAt(null);
+      setMode("review");
+      setShowFinal(true);
 
-      if (payload && payload.totals) {
-        setFinalTotals(payload.totals || {});
+      if (payload?.totals) {
+        setFinalTotals(payload.totals);
         setFinalWinners(payload.winners || []);
       } else {
         setFinalTotals({});
         setFinalWinners([]);
       }
-
-      setMode("review");
-      setShowFinal(true);
     };
 
-    const onPlayersUpdated = ({ players: list }) => setPlayers(list || []);
+    const handlePlayersUpdated = ({ players: list }) => {
+      setPlayers(list || []);
+    };
 
-    const onRoomUpdated = ({ room }) => {
+    const handleRoomUpdated = ({ room }) => {
       if (!room) return;
-      const normalize = (v) =>
-        typeof v === "string" ? v : v?._id ?? String(v ?? "");
-      setHostId(normalize(room.host));
+
+      setHostId(normalizeId(room.host));
       if (room.endMode) setEndMode(room.endMode);
+
       if (Array.isArray(room.players) && room.players.length) {
-        const map = {};
+        const nameMap = {};
         room.players.forEach((p) => {
-          const id = normalize(p);
-          const name = p.username || String(id).slice(-5);
-          map[id] = name;
+          const id = normalizeId(p);
+          nameMap[id] = p.username || String(id).slice(-5);
         });
         setPlayers(room.players);
-        setPlayerNameById((prev) => ({ ...prev, ...map }));
+        setPlayerNameById((prev) => ({ ...prev, ...nameMap }));
       }
     };
 
-    const onRoomState = (state) => {
-      if (!state) return;
-      if (state.started === false) {
+    const handleRoomState = (state) => {
+      if (state?.started === false) {
         setMode("review");
         setShowResults(false);
         setShowFinal(false);
@@ -339,87 +341,102 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       }
     };
 
-    const onSettingsUpdated = ({ timer, rounds, endMode }) => {
+    const handleSettingsUpdated = ({ endMode, rounds }) => {
       if (typeof endMode === "string") setEndMode(endMode);
       if (typeof rounds === "number") setTotalRounds(rounds);
     };
 
-    socket.on("roundStarted", onRoundStarted);
-    socket.on("roundResults", onRoundResults);
-    socket.on("gameEnded", onGameEnded);
-    socket.on("playersUpdated", onPlayersUpdated);
-    socket.on("roomUpdated", onRoomUpdated);
-    socket.on("roomState", onRoomState);
-    socket.on("settingsUpdated", onSettingsUpdated);
+    const handleForceSubmit = () => {
+      socket.emit("submitAnswers", { code, answers: answersRef.current });
+      setSubmitted(true);
+    };
+
+    // Register events
+    socket.on("roundStarted", handleRoundStarted);
+    socket.on("roundResults", handleRoundResults);
+    socket.on("gameEnded", handleGameEnded);
+    socket.on("playersUpdated", handlePlayersUpdated);
+    socket.on("roomUpdated", handleRoomUpdated);
+    socket.on("roomState", handleRoomState);
+    socket.on("settingsUpdated", handleSettingsUpdated);
+    socket.on("forceSubmit", handleForceSubmit);
 
     return () => {
-      socket.off("roundStarted", onRoundStarted);
-      socket.off("roundResults", onRoundResults);
-      socket.off("gameEnded", onGameEnded);
-      socket.off("playersUpdated", onPlayersUpdated);
-      socket.off("roomUpdated", onRoomUpdated);
-      socket.off("roomState", onRoomState);
-      socket.off("settingsUpdated", onSettingsUpdated);
+      socket.off("roundStarted", handleRoundStarted);
+      socket.off("roundResults", handleRoundResults);
+      socket.off("gameEnded", handleGameEnded);
+      socket.off("playersUpdated", handlePlayersUpdated);
+      socket.off("roomUpdated", handleRoomUpdated);
+      socket.off("roomState", handleRoomState);
+      socket.off("settingsUpdated", handleSettingsUpdated);
+      socket.off("forceSubmit", handleForceSubmit);
     };
-  }, []);
+  }, [code, normalizeId]);
 
-  // -------- Defensive unlock --------
+  // Defensive: unlock submission if user has no answers but is marked as submitted
   useEffect(() => {
     if (
       mode === "play" &&
       endAt &&
       timeLeft > 0 &&
-      submitted === true &&
+      submitted &&
       Object.keys(answersRef.current || {}).length === 0
     ) {
       setSubmitted(false);
     }
-  }, [mode, endAt, timeLeft, currentRound, submitted]);
+  }, [mode, endAt, timeLeft, submitted]);
 
-  // -------- UI handlers --------
-  const handleChange = (key, val) =>
+  // ========== HANDLERS ==========
+  const handleChange = useCallback((key, val) => {
     setAnswers((prev) => ({ ...prev, [key]: val }));
+  }, []);
 
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
     if (submitted || mode !== "play") return;
     socket.emit("submitAnswers", { code, answers: answersRef.current });
     setSubmitted(true);
-  };
+  }, [submitted, mode, code]);
 
-  const handleNextRound = () => {
+  const handleStopRound = useCallback(() => {
+    if (mode !== "play" || endMode !== "PLAYER_STOP") return;
+    socket.emit("playerStopRound", { code, answers: answersRef.current });
+    setSubmitted(true);
+  }, [mode, endMode, code]);
+
+  const handleNextRound = useCallback(() => {
     if (!isHost) return;
     socket.emit("nextRound", { code });
-  };
+  }, [isHost, code]);
 
-  const handleStopRound = () => {
-    if (mode !== "play") return;
-    if (endMode !== "PLAYER_STOP") return;
-    socket.emit("playerStopRound", { code, answers: answersRef.current });
-  };
-
-  const handlePlayAgain = () => {
+  const handlePlayAgain = useCallback(() => {
     if (!isHost) return;
     socket.emit("startGame", { code });
-  };
+  }, [isHost, code]);
 
-  const handleBackToRoom = () => {
+  const handleBackToRoom = useCallback(() => {
     socket.emit("backToLobby", { code });
     navigate(`/room/${code}`);
-  };
+  }, [code, navigate]);
 
-  const handleLeaveRoom = () => {
+  const handleLeaveRoom = useCallback(() => {
     socket.emit("leaveRoom", { code });
     navigate("/main");
-  };
+  }, [code, navigate]);
 
-  const handleStayHere = () => setShowFinal(false);
+  const handleStayHere = useCallback(() => {
+    setShowFinal(false);
+  }, []);
 
+  // ========== RETURN ==========
   return {
+    // Player & Room Info
     players,
     playerNameById,
     hostId,
     isHost,
     endMode,
+
+    // Round State
     currentRound,
     totalRounds,
     letter,
@@ -428,10 +445,14 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     waitingForRound,
     categories,
     categoryLabels,
+
+    // Play State
     answers,
     submitted,
     mode,
+    hasMoreRounds,
 
+    // Results State
     showResults,
     roundScores,
     roundAnswers,
@@ -439,10 +460,12 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     breakEndAt,
     breakLeft,
 
+    // Final State
     showFinal,
     finalTotals,
     finalWinners,
 
+    // Handlers
     handleChange,
     handleSubmit,
     handleStopRound,

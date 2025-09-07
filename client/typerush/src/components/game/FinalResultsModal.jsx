@@ -89,7 +89,7 @@ export default function FinalResultsModal({
       aria-labelledby="final-results-title"
     >
       <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        className="absolute inset-0 backdrop-blur-lg"
         onClick={handleOverlayClick}
       />
       <div className="absolute inset-0 flex justify-center items-center p-4">

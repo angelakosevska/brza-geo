@@ -15,7 +15,7 @@ export default function RoundResultsModal({
   roundScores = {},
 
   breakLeft = null,
-
+  hasMoreRounds,
   onNextRound,
   onRequestClose,
 }) {
@@ -48,18 +48,42 @@ export default function RoundResultsModal({
           {/* Header */}
           <div className="flex justify-between items-center mb-4">
             <div id="round-results-title" className="font-bold text-lg">
-              <span className="text-[var(--secondary)] text-3xl">{currentRound} </span>рунда
+              <span className="text-[var(--secondary)] text-3xl">
+                {currentRound}{" "}
+              </span>
+              рунда
             </div>
             <div className="flex items-center gap-3">
               {breakLeft != null && (
                 <div className="opacity-70 text-sm">
-                  Следна рунда за {breakLeft}s
+                  {hasMoreRounds
+                    ? `Следна рунда за ${breakLeft}s`
+                    : `Финални резултати за ${breakLeft}s`}
                 </div>
               )}
-              {isHost && currentRound < totalRounds && (
-                <Button onClick={onNextRound} size="sm" title="Следна рунда">
-                  Започни следна рунда
-                </Button>
+              {isHost && (
+                <>
+                  {hasMoreRounds && (
+                    <Button
+                      onClick={onNextRound}
+                      size="sm"
+                      variant="outline"
+                      title="Следна рунда"
+                    >
+                      Започни следна рунда
+                    </Button>
+                  )}
+                  {!hasMoreRounds && (
+                    <Button
+                      onClick={onNextRound}
+                      size="sm"
+                      variant="outline"
+                      title="Скипни чекање"
+                    >
+                      Скипни чекање
+                    </Button>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -79,14 +103,14 @@ export default function RoundResultsModal({
                   {(players || []).map((p) => {
                     const pid = normalizeId(p);
                     const name = playerNameById[pid] || String(pid).slice(-5);
-                    const info =
-                      (answerDetails[pid] && answerDetails[pid][cid]) || {
-                        value: "",
-                        valid: false,
-                        unique: false,
-                        points: 0,
-                        reason: "empty",
-                      };
+                    const info = (answerDetails[pid] &&
+                      answerDetails[pid][cid]) || {
+                      value: "",
+                      valid: false,
+                      unique: false,
+                      points: 0,
+                      reason: "empty",
+                    };
 
                     const badgeText = info.valid
                       ? info.unique
@@ -125,22 +149,6 @@ export default function RoundResultsModal({
                 </div>
               </div>
             ))}
-          </div>
-
-          {/* Round totals */}
-          <div className="mt-4">
-            <div className="mb-2 font-medium text-sm">Вкупно резултати</div>
-            <div className="space-y-2">
-              {roundTotals.map((r) => (
-                <div
-                  key={r.id}
-                  className="flex justify-between items-center bg-[var(--primary)]/5 px-3 py-2 border border-[var(--text)]/5 rounded-lg"
-                >
-                  <div>{r.name}</div>
-                  <div className="font-mono">+{r.pts}</div>
-                </div>
-              ))}
-            </div>
           </div>
         </GlassCard>
       </div>
