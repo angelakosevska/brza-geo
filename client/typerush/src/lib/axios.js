@@ -6,7 +6,7 @@ export const API_BASE = DEV
   : import.meta.env.VITE_API_URL; // e.g. https://your-backend.render.app
 
 const api = axios.create({
-  baseURL: `${API_BASE}/api`, 
+  baseURL: API_BASE, 
   headers: {
     "Content-Type": "application/json",
     "Accept-Language": "mk",
