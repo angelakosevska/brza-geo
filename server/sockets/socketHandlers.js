@@ -756,6 +756,16 @@ module.exports = (io) => {
         }, BREAK_MS);
       }
     }
+    const { distance } = require("fastest-levenshtein");
+
+    function isCloseMatch(word, dictSet) {
+      for (const dictWord of dictSet) {
+        if (distance(word, dictWord) === 1) {
+          return true; // дозволуваме само една грешка
+        }
+      }
+      return false;
+    }
 
     async function scoreRound(round, categories, letter) {
       const categoryDocs = await Category.find({ _id: { $in: categories } })
@@ -763,22 +773,26 @@ module.exports = (io) => {
         .lean();
       const catMap = new Map(categoryDocs.map((c) => [String(c._id), c]));
 
-      const answersByCategory = {}; // categoryId -> [{ player, raw, normalized, startsCorrect, inDict }]
-      const countsByCategory = {}; // categoryId -> { normalizedWord: count }
+      const answersByCategory = {};
+      const countsByCategory = {};
 
-      // Process answers for each category
+      // обработка на сите одговори по категории
       for (const categoryId of categories) {
         const doc = catMap.get(String(categoryId));
         const dictWords = extractLetterWords(doc, letter);
         const dictSet = new Set(dictWords);
-        const allowAnyWord = dictSet.size === 0; // If no dictionary, accept any word
+        const allowAnyWord = dictSet.size === 0;
 
         const answers = (round.submissions || []).map((submission) => {
           const raw = (submission.answers?.[categoryId] || "").trim();
           const normalized = normalizeWord(raw);
           const startsCorrect = !!raw && raw[0]?.toUpperCase() === letter;
-          const inDict =
-            startsCorrect && (allowAnyWord || dictSet.has(normalized));
+
+          const isExact = startsCorrect && dictSet.has(normalized);
+          const isTypo =
+            startsCorrect && !isExact && isCloseMatch(normalized, dictSet);
+
+          const inDict = startsCorrect && (allowAnyWord || isExact || isTypo);
 
           return {
             player: String(submission.player),
@@ -786,12 +800,14 @@ module.exports = (io) => {
             normalized,
             startsCorrect,
             inDict,
+            isExact,
+            isTypo,
           };
         });
 
         answersByCategory[String(categoryId)] = answers;
 
-        // Count occurrences of each valid answer
+        // броење на зборови
         const counts = {};
         for (const answer of answers) {
           if (answer.inDict) {
@@ -802,10 +818,10 @@ module.exports = (io) => {
       }
 
       const scores = {};
-      const details = {}; // playerId -> categoryId -> { value, valid, unique, points, reason }
+      const details = {};
       const answersByPlayer = {};
 
-      // Calculate scores for each player
+      // доделување поени по играч
       for (const submission of round.submissions || []) {
         const playerId = String(submission.player);
         let totalPoints = 0;
@@ -815,7 +831,14 @@ module.exports = (io) => {
         for (const categoryId of categories) {
           const answer = (answersByCategory[String(categoryId)] || []).find(
             (a) => a.player === playerId
-          ) || { raw: "", startsCorrect: false, inDict: false, normalized: "" };
+          ) || {
+            raw: "",
+            startsCorrect: false,
+            inDict: false,
+            normalized: "",
+            isExact: false,
+            isTypo: false,
+          };
 
           const result = {
             value: answer.raw,
@@ -834,9 +857,21 @@ module.exports = (io) => {
           } else {
             const count =
               countsByCategory[String(categoryId)][answer.normalized] || 0;
+
             result.valid = true;
             result.unique = count === 1;
-            result.points = result.unique ? 10 : 5;
+
+            // ново бодирање
+            if (answer.isExact) {
+              if (count === 1) result.points = 10;
+              else if (count === 2) result.points = 4;
+              else result.points = 2;
+            } else if (answer.isTypo) {
+              if (count === 1) result.points = 8;
+              else if (count === 2) result.points = 3;
+              else result.points = 1;
+            }
+
             totalPoints += result.points;
           }
 
