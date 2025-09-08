@@ -775,13 +775,23 @@ module.exports = (io) => {
 
       const answersByCategory = {};
       const countsByCategory = {};
+      const noWordsByCategory = {}; // <---- ново: бележи категории без зборови
 
       // обработка на сите одговори по категории
       for (const categoryId of categories) {
         const doc = catMap.get(String(categoryId));
         const dictWords = extractLetterWords(doc, letter);
         const dictSet = new Set(dictWords);
-        const allowAnyWord = dictSet.size === 0;
+
+        // ако нема зборови за оваа буква во оваа категорија
+        if (dictSet.size === 0) {
+          noWordsByCategory[String(categoryId)] = true;
+          answersByCategory[String(categoryId)] = [];
+          countsByCategory[String(categoryId)] = {};
+          continue; // скокни на следна категорија
+        } else {
+          noWordsByCategory[String(categoryId)] = false;
+        }
 
         const answers = (round.submissions || []).map((submission) => {
           const raw = (submission.answers?.[categoryId] || "").trim();
@@ -792,7 +802,7 @@ module.exports = (io) => {
           const isTypo =
             startsCorrect && !isExact && isCloseMatch(normalized, dictSet);
 
-          const inDict = startsCorrect && (allowAnyWord || isExact || isTypo);
+          const inDict = startsCorrect && (isExact || isTypo);
 
           return {
             player: String(submission.player),
@@ -829,6 +839,18 @@ module.exports = (io) => {
         answersByPlayer[playerId] = submission.answers || {};
 
         for (const categoryId of categories) {
+          // ако оваа категорија нема зборови на таа буква
+          if (noWordsByCategory[String(categoryId)]) {
+            details[playerId][String(categoryId)] = {
+              value: "",
+              valid: true,
+              unique: false,
+              points: 0,
+              reason: "no-words-for-letter",
+            };
+            continue;
+          }
+
           const answer = (answersByCategory[String(categoryId)] || []).find(
             (a) => a.player === playerId
           ) || {
@@ -861,7 +883,7 @@ module.exports = (io) => {
             result.valid = true;
             result.unique = count === 1;
 
-            // ново бодирање
+            // бодирање
             if (answer.isExact) {
               if (count === 1) result.points = 10;
               else if (count === 2) result.points = 4;
@@ -881,7 +903,7 @@ module.exports = (io) => {
         scores[playerId] = totalPoints;
       }
 
-      return { scores, details, answersByPlayer };
+      return { scores, details, answersByPlayer, noWordsByCategory };
     }
 
     async function endGame(roomCode) {
