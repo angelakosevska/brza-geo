@@ -1,4 +1,4 @@
-import ForgotPasswordForm from "@/components/ForgotPasswordForm";
+import ForgotPasswordForm from "@/components/auth/ForgotPasswordForm";
 import api from "@/lib/axios";
 import { useNavigate } from "react-router-dom";
 
@@ -17,7 +17,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-center">
+    <div className="flex justify-center items-center min-h-screen">
       <ForgotPasswordForm onSubmit={handleResetRequest} />
     </div>
   );

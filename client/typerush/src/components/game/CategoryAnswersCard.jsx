@@ -1,4 +1,4 @@
-import GlassCard from "@/components/GlassCard";
+import GlassCard from "@/components/global/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 

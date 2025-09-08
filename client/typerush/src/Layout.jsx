@@ -1,11 +1,11 @@
 import { Outlet } from "react-router-dom";
-import LetterBackground from "../src/components/LetterBackground";
-import GlassCard from "./components/GlassCard";
+import LetterBackground from "./components/global/LetterBackground";
+import GlassCard from "./components/global/GlassCard";
 
 export default function Layout() {
   return (
     <LetterBackground>
-      <div className="w-full min-h-screen flex items-center justify-center">
+      <div className="flex justify-center items-center w-full min-h-screen">
         <GlassCard className="w-[90vw]">
           <Outlet />
         </GlassCard>

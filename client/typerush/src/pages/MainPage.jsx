@@ -1,11 +1,12 @@
-import GlassCard from "@/components/GlassCard";
+import GlassCard from "@/components/global/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import api from "@/lib/axios";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useError } from "@/hooks/useError";
-import HowToPlay from "@/components/HowToPlay";
+import InfoAccordion from "@/components/InfoAccordion";
+import LevelCard from "@/components/level/LevelCard";
 
 export default function MainPage() {
   const navigate = useNavigate();
@@ -19,7 +20,6 @@ export default function MainPage() {
       setLoadingCreate(true);
       const res = await api.post("/room/create", {});
       const { room } = res.data;
-
       showSuccess(`Собата е креирана! Код: ${room.code}`);
       navigate(`/room/${room.code}`);
     } catch (err) {
@@ -39,7 +39,6 @@ export default function MainPage() {
     try {
       setLoadingJoin(true);
       await api.post("/room/join", { code: joinCode.toUpperCase() });
-
       showSuccess(`Успешно се приклучивте во собата ${joinCode.toUpperCase()}`);
       navigate(`/room/${joinCode.toUpperCase()}`);
     } catch (err) {
@@ -52,22 +51,52 @@ export default function MainPage() {
   };
 
   return (
-    <>
-      <div className="flex lg:flex-row flex-col gap-1 mx-auto max-w-[90vw] h-[100%]">
-        {/* Main card */}
-        <GlassCard className="flex lg:flex-[2] justify-center items-center fle">
-          <div className="flex flex-col justify-center items-center gap-6 px-2 w-full">
+    <div className="gap-2 grid grid-cols-1 lg:grid-cols-4 mx-auto max-w-[95vw] h-full">
+      {/* Left: Level + Quick Links (25%) */}
+      <div className="flex flex-col gap-4 col-span-1">
+        <LevelCard currentWP={22} level={3} />
+        <GlassCard className="flex flex-col gap-3 p-6 h-full">
+          <h3 className="font-bold text-[var(--primary)] text-lg">Секции</h3>
+          <ul className="space-y-2 text-[var(--text)] text-sm">
+            <li>
+              <a href="#categories" className="hover:text-[var(--primary)]">
+                📂 Категории
+              </a>
+            </li>
+            <li>
+              <a href="#rules" className="hover:text-[var(--primary)]">
+                📜 Правила
+              </a>
+            </li>
+            <li>
+              <a href="#faq" className="hover:text-[var(--primary)]">
+                ❓ ЧПП
+              </a>
+            </li>
+            <li>
+              <a href="#leaderboard" className="hover:text-[var(--primary)]">
+                🏆 Лидерборд
+              </a>
+            </li>
+          </ul>
+        </GlassCard>
+      </div>
+
+      {/* Middle: Create/Join (50%) */}
+      <div className="col-span-2">
+        <GlassCard className="flex flex-col justify-center items-center p-6 h-full">
+          <div className="flex flex-col justify-center items-center gap-4 w-full max-w-sm">
             <Button
-              className="w-full max-w-xs"
+              className="w-full"
               onClick={handleCreateRoom}
               disabled={loadingCreate || loadingJoin}
             >
               {loadingCreate ? "Се креира..." : "Креирај соба"}
             </Button>
 
-            <span className="text-gray-500 text-sm">или</span>
+            <span className="text-[var(--glass)] text-sm">или</span>
 
-            <div className="flex flex-col gap-2 w-full max-w-xs">
+            <div className="flex flex-col gap-2 w-full">
               <Input
                 placeholder="Внеси код од соба"
                 value={joinCode}
@@ -82,18 +111,14 @@ export default function MainPage() {
                 {loadingJoin ? "Се приклучува..." : "Влези во собата"}
               </Button>
             </div>
-
-            <Button variant="outline" className="w-full max-w-xs">
-              Види ги категориите
-            </Button>
           </div>
         </GlassCard>
-        {/* Image card */}
-        <GlassCard className="flex flex-1 lg:flex-[2] justify-center items-center">
-          <plaintext></plaintext>
-        </GlassCard>
-        <GlassCard className="flex flex-4 justify-center items-center mt-1"></GlassCard>
       </div>
-    </>
+
+      {/* Right: How to Play (25%) */}
+      <div className="col-span-1 h-full">
+        <InfoAccordion />
+      </div>
+    </div>
   );
 }

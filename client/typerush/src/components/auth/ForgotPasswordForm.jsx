@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import GlassCard from "./GlassCard";
+import GlassCard from "../global/GlassCard";
 
 export default function ForgotPasswordForm({ onSubmit }) {
   const [email, setEmail] = useState("");
@@ -15,10 +15,10 @@ export default function ForgotPasswordForm({ onSubmit }) {
     <GlassCard>
       <form
         onSubmit={handleSubmit}
-        className="flex flex-col gap-4 p-4 w-full max-w-xs mx-auto"
+        className="flex flex-col gap-4 mx-auto p-4 w-full max-w-xs"
       >
-        <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold mb-2 text-[var(--primary)] text-center">
-         Заборавена лозинка
+        <h2 className="mb-2 font-extrabold text-[var(--primary)] text-xl sm:text-2xl md:text-3xl text-center">
+          Заборавена лозинка
         </h2>
 
         <Input

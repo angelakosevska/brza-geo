@@ -3,7 +3,7 @@ let io = null;
 
 function getAllowedOrigins() {
   const list = [
-    // "http://localhost:5173",
+    "http://localhost:5173",
     //process.env.CLIENT_URL,
     "https://brza-geo.vercel.app",
   ].filter(Boolean);

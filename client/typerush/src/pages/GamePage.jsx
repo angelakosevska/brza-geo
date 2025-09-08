@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
 // UI
-import GlassCard from "@/components/GlassCard";
+import GlassCard from "@/components/global/GlassCard";
 import PlayersList from "@/components/PlayersList";
 import RoundInfoCard from "@/components/game/RoundInfoCard";
 import CategoryAnswersCard from "@/components/game/CategoryAnswersCard";

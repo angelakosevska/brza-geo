@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { socket } from "@/lib/socket";
-import GlassCard from "@/components/GlassCard";
+import GlassCard from "@/components/global/GlassCard";
 import { useAuth } from "@/context/AuthContext";
 import PlayersList from "@/components/PlayersList";
 import RoomCodeCard from "@/components/room/RoomCodeCard";

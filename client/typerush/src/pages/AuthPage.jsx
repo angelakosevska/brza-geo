@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { LoginForm } from "@/components/LoginForm";
-import { RegisterForm } from "@/components/RegisterForm";
+import { LoginForm } from "@/components/auth/LoginForm";
+import { RegisterForm } from "@/components/auth/RegisterForm";
 import { useNavigate } from "react-router-dom";
 import api from "@/lib/axios";
 import { useAuth } from "@/context/AuthContext";
 import { useError } from "@/hooks/useError";
-import GlassCard from "@/components/GlassCard";
+import GlassCard from "@/components/global/GlassCard";
 import { AnimatePresence, motion } from "framer-motion";
 
 export default function AuthPage() {
@@ -30,7 +30,7 @@ export default function AuthPage() {
   const handleLogin = async (_e, data) => {
     try {
       const res = await api.post("/auth/login", {
-        login: data.login, 
+        login: data.login,
         password: data.password,
       });
       const { token, user } = res.data;

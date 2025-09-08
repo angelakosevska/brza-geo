@@ -1,4 +1,4 @@
-import GlassCard from "@/components/GlassCard";
+import GlassCard from "@/components/global/GlassCard";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -36,12 +36,12 @@ export default function MainPage() {
       <Header />
 
       <GlassCard className="w-[90vw]">
-        <div className="flex w-full max-w-4xl mx-auto mt-8 gap-8 px-2">
-          <div className="flex-1 flex flex-col items-center justify-center gap-3">
+        <div className="flex gap-8 mx-auto mt-8 px-2 w-full max-w-4xl">
+          <div className="flex flex-col flex-1 justify-center items-center gap-3">
             <Button className="w-full max-w-xs" onClick={handleCreateRoom}>
               Create a room
             </Button>
-            <span className="text-sm text-gray-500">or</span>
+            <span className="text-gray-500 text-sm">or</span>
             <Button className="w-full max-w-xs">Join a room</Button>
             <Button variant="outline" className="w-full max-w-xs">
               Categories

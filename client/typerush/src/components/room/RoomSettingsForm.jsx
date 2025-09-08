@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { InputCat } from "@/components/ui/inputCat";
-import GlassCard from "../GlassCard";
+import GlassCard from "../global/GlassCard";
 
 export default function RoomSettingsForm({
   room,

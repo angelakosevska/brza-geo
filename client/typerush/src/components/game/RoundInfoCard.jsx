@@ -1,4 +1,4 @@
-import GlassCard from "@/components/GlassCard";
+import GlassCard from "@/components/global/GlassCard";
 
 export default function RoundInfoCard({
   currentRound,
@@ -10,10 +10,10 @@ export default function RoundInfoCard({
 }) {
   return (
     <GlassCard className={`p-4 lg:p-6 ${className}`}>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex sm:flex-row flex-col sm:justify-between sm:items-center gap-4">
         {/* Left: Round X / Y */}
         <div className="flex items-center gap-2">
-          <span className="text-xs text-[var(--text)] uppercase tracking-wide opacity-70">
+          <span className="opacity-70 text-[var(--text)] text-xs uppercase tracking-wide">
             Round
           </span>
           <span className="font-medium text-[var(--text)]">
@@ -23,18 +23,18 @@ export default function RoundInfoCard({
 
         {/* Center: Letter */}
         <div className="flex justify-center">
-          <div className="flex items-center justify-center">
-            <span className="opacity-70 text-[var(--text)] uppercase text-xs mr-3 hidden sm:inline">
+          <div className="flex justify-center items-center">
+            <span className="hidden sm:inline opacity-70 mr-3 text-[var(--text)] text-xs uppercase">
               Letter
             </span>
-            <span className="font-extrabold text-4xl text-[var(--secondary)] sm:text-5xl tracking-widest">
+            <span className="font-extrabold text-[var(--secondary)] text-4xl sm:text-5xl tracking-widest">
               {waiting ? "—" : letter ?? "—"}
             </span>
           </div>
         </div>
 
         {/* Right: Timer */}
-        <div className="flex items-center justify-end">
+        <div className="flex justify-end items-center">
           <div className="text-[var(--accent)]">
             {timeLeft != null ? `${timeLeft}s` : "--"}
           </div>
@@ -43,7 +43,7 @@ export default function RoundInfoCard({
 
       {/* Helper line for pre-round state */}
       {waiting && (
-        <div className="mt-3 text-center text-sm  text-[var(--text)] opacity-70">
+        <div className="opacity-70 mt-3 text-[var(--text)] text-sm text-center">
           Waiting for the round to start…
         </div>
       )}

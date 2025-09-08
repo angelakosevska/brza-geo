@@ -1,7 +1,7 @@
 // src/pages/ResetPasswordPage.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ResetPasswordForm from "@/components/ResetPasswordForm";
+import ResetPasswordForm from "@/components/auth/ResetPasswordForm";
 import api from "@/lib/axios";
 
 export default function ResetPasswordPage() {
@@ -27,7 +27,7 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="flex justify-center items-center min-h-screen">
       <div className="w-full max-w-md">
         <ResetPasswordForm handleReset={handleReset} />
       </div>

@@ -11,7 +11,6 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import GlassCard from "./GlassCard";
 
 // Zod schema за валидација на регистрација
 const registerSchema = z

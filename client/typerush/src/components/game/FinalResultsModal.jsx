@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useCallback } from "react";
-import GlassCard from "@/components/GlassCard";
+import GlassCard from "@/components/global/GlassCard";
 import { Button } from "@/components/ui/button";
 
 export default function FinalResultsModal({

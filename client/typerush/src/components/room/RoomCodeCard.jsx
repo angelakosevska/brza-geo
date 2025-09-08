@@ -1,5 +1,5 @@
 import { useState } from "react";
-import GlassCard from "@/components/GlassCard";
+import GlassCard from "@/components/global/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Copy, Check, LogOut } from "lucide-react";
 

@@ -2,7 +2,7 @@ import axios from "axios";
 
 const DEV = import.meta.env.DEV;
 export const API_BASE = DEV
-  ? "http://localhost:5000"
+  ? "http://localhost:5000/api"
   : import.meta.env.VITE_API_URL; // e.g. https://your-backend.render.app
 
 const api = axios.create({

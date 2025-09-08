@@ -1,4 +1,4 @@
-import GlassCard from "@/components/GlassCard";
+import GlassCard from "@/components/global/GlassCard";
 import { Users, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -7,7 +7,7 @@ export default function PlayersList({
   onLeave,
   className,
   showLeave = true,
-  hostId, 
+  hostId,
 }) {
   return (
     <GlassCard className={`p-4 ${className ?? ""}`}>
