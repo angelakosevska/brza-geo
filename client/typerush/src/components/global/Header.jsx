@@ -33,7 +33,7 @@ export default function Header() {
   };
 
   return (
-    <GlassCardHeader className="top-0 z-50 sticky w-[90vw] max-h-25 align-middle">
+    <GlassCardHeader className="z-50 max-h-25 align-middle">
       <div className="flex justify-between items-center w-full">
         {/* Logo + Title */}
         <div className="flex items-center gap-2">

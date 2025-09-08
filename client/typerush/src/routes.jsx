@@ -14,7 +14,7 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route element={<Layout />}>
-        //one glass card main
+        //one glass card main 
         <Route path="/" element={<Welcome />} />
       </Route>
       <Route element={<Layout1 />}>
