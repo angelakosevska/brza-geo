@@ -25,7 +25,7 @@ export default function RoundInfoCard({
         <div className="flex justify-center">
           <div className="flex justify-center items-center">
             <span className="hidden sm:inline opacity-70 mr-3 text-[var(--text)] text-xs uppercase">
-              Letter
+             Буква
             </span>
             <span className="font-extrabold text-[var(--secondary)] text-4xl sm:text-5xl tracking-widest">
               {waiting ? "—" : letter ?? "—"}

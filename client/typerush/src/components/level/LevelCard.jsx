@@ -2,7 +2,7 @@ import { Progress } from "@/components/ui/progress";
 import GlassCard from "@/components/global/GlassCard";
 import { useAuth } from "@/context/AuthContext";
 
-export default function LevelCard({ username, level, currentWP }) {
+export default function LevelCard({ level, currentWP }) {
   // секој левел бара 100 WP
   const wpForNextLevel = 100;
   const currentLevelWP = currentWP % wpForNextLevel;

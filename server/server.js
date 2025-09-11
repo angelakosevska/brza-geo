@@ -12,8 +12,8 @@ const server = http.createServer(app);
 
 const { initSocket } = require("./sockets/ioInstance");
 const io = initSocket(server);
-const socketHandlers = require("./sockets/socketHandlers");
-socketHandlers(io);
+
+require("./sockets/index")(io);
 
 const allowedOrigins = [
   "http://localhost:5173",
@@ -49,6 +49,7 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/game", require("./routes/game"));
 app.use("/api/room", require("./routes/room"));
 app.use("/api/categories", require("./routes/category"));
+app.use("/api/user", require("./routes/user"));
 
 app.get("/healthz", (_req, res) => res.send("ok"));
 app.get("/", (req, res) => {

@@ -286,7 +286,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       setMode("review");
       setShowResults(true);
 
-      
       setHasMoreRounds(hasMore !== false);
 
       if (typeof serverNow === "number") {
@@ -405,6 +404,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
 
   const handleNextRound = useCallback(() => {
     if (!isHost) return;
+    console.log("➡️ Emitting nextRound for code:", code);
     socket.emit("nextRound", { code });
   }, [isHost, code]);
 

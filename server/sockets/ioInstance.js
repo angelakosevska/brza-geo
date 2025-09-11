@@ -18,10 +18,8 @@ module.exports = {
     const allowed = getAllowedOrigins();
 
     io = new Server(server, {
-      // IMPORTANT: no "*" in prod — allow only your real frontends
       cors: {
         origin: (origin, cb) => {
-          // allow server-to-server, health checks, curl (no Origin header)
           if (!origin) return cb(null, true);
           if (allowed.includes(origin)) return cb(null, true);
           return cb(new Error("CORS: origin not allowed"));

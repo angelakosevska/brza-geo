@@ -1,6 +1,9 @@
 const mongoose = require("mongoose");
 const Room = require("../models/Room");
 const Category = require("../models/Category");
+const Game = require("../models/Game");
+const User = require("../models/User");
+const { addWordPower } = require("../utils/levelSystem");
 
 // ========== CONSTANTS ==========
 const BREAK_MS = 120000; // 2 minutes between rounds
@@ -910,16 +913,51 @@ module.exports = (io) => {
       const room = await Room.findOne({ code: roomCode });
       if (!room) return;
 
+      // Reset room state (but don't delete)
       room.started = false;
       room.letter = null;
       room.roundEndTime = null;
       await room.save();
       await bumpActivity(roomCode);
 
+      // 1. Compute scores
       const finalScores = computeFinalScores(room);
 
-      io.to(roomCode).emit("gameEnded", finalScores);
+      // 2. Save finished game into Game collection
+      await Game.create({
+        roomCode,
+        players: room.players,
+        rounds: room.rounds,
+        categories: room.categories,
+        roundsData: room.roundsData,
+        winners: finalScores.winners,
+      });
 
+      // 3. Assign WP to each player
+      for (const [playerId, totalPoints] of Object.entries(
+        finalScores.totals
+      )) {
+        const user = await User.findById(playerId);
+        if (!user) continue;
+
+        addWordPower(user, totalPoints); // scale rule: 1 point = 1 WP
+        await user.save();
+
+        // Broadcast new WP to everyone in the room
+        io.to(roomCode).emit("playerWPUpdated", {
+          userId: playerId,
+          wordPower: user.wordPower,
+          level: user.level,
+        });
+      }
+
+      // 4. Emit final results (with totals + winners)
+      io.to(roomCode).emit("gameEnded", {
+        ...finalScores,
+        serverNow: Date.now(),
+      });
+
+      // 5. Update room in client lobby
       const freshRoom = await Room.findOne({ code: roomCode }).populate(
         "players host"
       );
