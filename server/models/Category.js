@@ -7,7 +7,10 @@ const CategorySchema = new mongoose.Schema(
       mk: String,
       en: String,
     },
-    words: Object,
+    words: {
+      type: [String],
+      default: [],
+    },
   },
   { collection: "categories" }
 );

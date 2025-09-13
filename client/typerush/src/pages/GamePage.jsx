@@ -39,6 +39,7 @@ export default function GamePage() {
     handleChange,
     handleSubmit,
     handleStopRound,
+    dictByCategory,
 
     // modals
     showResults,
@@ -87,6 +88,7 @@ export default function GamePage() {
             onSubmit={handleSubmit}
             onStop={handleStopRound}
             code={code}
+            dictByCategory={dictByCategory}
           />
 
           <GlassCard className="overflow-hidden">

@@ -2,34 +2,27 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { socket } from "@/lib/socket";
 import api from "@/lib/axios";
 
-/**
- * Game logic hook for real-time multiplayer game
- * Handles round play, reviews, submissions, and final results
- */
 export default function useGameLogic({ code, currentUserId, navigate }) {
   // ========== STATE ==========
-  // Players & Room
   const [players, setPlayers] = useState([]);
   const [playerNameById, setPlayerNameById] = useState({});
   const [hostId, setHostId] = useState(null);
 
-  // Game State
   const [currentRound, setCurrentRound] = useState(0);
   const [totalRounds, setTotalRounds] = useState(0);
   const [letter, setLetter] = useState(null);
   const [categories, setCategories] = useState([]);
   const [categoryLabels, setCategoryLabels] = useState({});
+  const [dictByCategory, setDictByCategory] = useState({});
   const [endMode, setEndMode] = useState("ALL_SUBMIT");
-  const [mode, setMode] = useState("play"); // "play" | "review"
+  const [mode, setMode] = useState("play");
   const [hasMoreRounds, setHasMoreRounds] = useState(true);
 
-  // Round Play
   const [answers, setAnswers] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [endAt, setEndAt] = useState(null);
   const [timeLeft, setTimeLeft] = useState(0);
 
-  // Results & Break
   const [showResults, setShowResults] = useState(false);
   const [roundScores, setRoundScores] = useState({});
   const [roundAnswers, setRoundAnswers] = useState({});
@@ -37,12 +30,10 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   const [breakEndAt, setBreakEndAt] = useState(null);
   const [breakLeft, setBreakLeft] = useState(0);
 
-  // Final Results
   const [showFinal, setShowFinal] = useState(false);
   const [finalTotals, setFinalTotals] = useState({});
   const [finalWinners, setFinalWinners] = useState([]);
 
-  // Time sync
   const [serverOffsetMs, setServerOffsetMs] = useState(0);
 
   // ========== REFS ==========
@@ -50,7 +41,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   const endAtRef = useRef(null);
   const joinedRef = useRef(false);
 
-  // Keep refs in sync
   useEffect(() => {
     answersRef.current = answers;
   }, [answers]);
@@ -65,10 +55,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   );
 
   const isHost = useMemo(
-    () =>
-      Boolean(
-        hostId && currentUserId && String(hostId) === String(currentUserId)
-      ),
+    () => Boolean(hostId && currentUserId && String(hostId) === String(currentUserId)),
     [hostId, currentUserId]
   );
 
@@ -111,7 +98,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     return () => socket.off("connect", tryJoin);
   }, [code, currentUserId, fetchRoom]);
 
-  // Leave room on unmount
   useEffect(() => {
     return () => {
       if (joinedRef.current) {
@@ -122,7 +108,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   }, [code]);
 
   // ========== TIMERS ==========
-  // Round countdown
   useEffect(() => {
     const interval = setInterval(() => {
       if (!endAt) return;
@@ -133,7 +118,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     return () => clearInterval(interval);
   }, [endAt, serverOffsetMs]);
 
-  // Break countdown
   useEffect(() => {
     const interval = setInterval(() => {
       if (!breakEndAt) return;
@@ -145,7 +129,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   }, [breakEndAt, serverOffsetMs]);
 
   // ========== AUTO SUBMIT ==========
-  // Auto-submit when time runs out
   useEffect(() => {
     if (timeLeft === 0 && endAt && !submitted && mode === "play") {
       socket.emit("submitAnswers", { code, answers: answersRef.current });
@@ -153,7 +136,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     }
   }, [timeLeft, endAt, submitted, mode, code]);
 
-  // Submit on page unload
   useEffect(() => {
     const onBeforeUnload = () => {
       if (!submitted && endAtRef.current && mode === "play") {
@@ -183,27 +165,23 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
         endMode,
       } = state;
 
-      // Update basic state
       if (endMode) setEndMode(endMode);
       if (cr != null) setCurrentRound(cr);
       if (tr != null) setTotalRounds(tr);
       setLetter(letter || null);
       setCategories((categories || []).map(String));
 
-      // Category labels
       const labelMap = (categoryMeta || []).reduce((acc, { id, name }) => {
         acc[String(id)] = name;
         return acc;
       }, {});
       setCategoryLabels(labelMap);
 
-      // Time sync
       setEndAt(roundEndTime || null);
       if (typeof serverNow === "number") {
         setServerOffsetMs(serverNow - Date.now());
       }
 
-      // Phase-specific setup
       if (breakEndTime) {
         setMode("review");
         setShowResults(true);
@@ -222,13 +200,46 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
         setShowFinal(false);
       }
 
-      // Submission state
       if (phase === "play" || (!phase && roundEndTime)) {
         setSubmitted(Boolean(hasSubmitted));
         if (!hasSubmitted) setAnswers({});
       }
     });
   }, [code]);
+
+  // ✅ Fetch dicts секогаш кога ќе се сетираат categories
+  useEffect(() => {
+    if (!categories || categories.length === 0) return;
+
+    const fetchDicts = async () => {
+      try {
+        console.log("🚀 Fetching dicts for categories:", categories);
+
+        const res = await api.get("/categories", {
+          params: { ids: categories.join(",") },
+        });
+
+        const dicts = {};
+        const labels = {};
+
+        for (const cat of res.data.categories || []) {
+          dicts[cat._id] = (cat.words || []).map((w) =>
+            String(w).trim().toLowerCase()
+          );
+          labels[cat._id] = cat.displayName?.mk || cat.name;
+        }
+
+        setDictByCategory(dicts);
+        setCategoryLabels((prev) => ({ ...prev, ...labels }));
+
+        console.log("📚 dictByCategory updated:", dicts);
+      } catch (err) {
+        console.error("❌ Failed to fetch category dicts:", err);
+      }
+    };
+
+    fetchDicts();
+  }, [categories]);
 
   // ========== SOCKET EVENTS ==========
   useEffect(() => {
@@ -262,7 +273,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
         setServerOffsetMs(serverNow - Date.now());
       }
 
-      // Reset to play mode
       setMode("play");
       setShowResults(false);
       setShowFinal(false);
@@ -285,7 +295,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       setBreakEndAt(breakEndTime || null);
       setMode("review");
       setShowResults(true);
-
       setHasMoreRounds(hasMore !== false);
 
       if (typeof serverNow === "number") {
@@ -314,7 +323,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
 
     const handleRoomUpdated = ({ room }) => {
       if (!room) return;
-
       setHostId(normalizeId(room.host));
       if (room.endMode) setEndMode(room.endMode);
 
@@ -350,7 +358,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       setSubmitted(true);
     };
 
-    // Register events
     socket.on("roundStarted", handleRoundStarted);
     socket.on("roundResults", handleRoundResults);
     socket.on("gameEnded", handleGameEnded);
@@ -372,7 +379,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     };
   }, [code, normalizeId]);
 
-  // Defensive: unlock submission if user has no answers but is marked as submitted
+  // Defensive unlock
   useEffect(() => {
     if (
       mode === "play" &&
@@ -404,7 +411,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
 
   const handleNextRound = useCallback(() => {
     if (!isHost) return;
-    console.log("➡️ Emitting nextRound for code:", code);
     socket.emit("nextRound", { code });
   }, [isHost, code]);
 
@@ -429,14 +435,11 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
 
   // ========== RETURN ==========
   return {
-    // Player & Room Info
     players,
     playerNameById,
     hostId,
     isHost,
     endMode,
-
-    // Round State
     currentRound,
     totalRounds,
     letter,
@@ -445,27 +448,20 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     waitingForRound,
     categories,
     categoryLabels,
-
-    // Play State
+    dictByCategory,
     answers,
     submitted,
     mode,
     hasMoreRounds,
-
-    // Results State
     showResults,
     roundScores,
     roundAnswers,
     answerDetails,
     breakEndAt,
     breakLeft,
-
-    // Final State
     showFinal,
     finalTotals,
     finalWinners,
-
-    // Handlers
     handleChange,
     handleSubmit,
     handleStopRound,
