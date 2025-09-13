@@ -164,22 +164,24 @@ export default function CategoryAnswersCard({
 
       {/* Mobile floating копчиња */}
       {mode === "play" && !waitingForRound && (
-        <div className="md:hidden right-4 bottom-4 z-50 fixed flex gap-2">
+        <div className="md:hidden right-4 bottom-4 z-50 fixed flex gap-3">
           {showStop && (
             <Button
+              size="lg"
               variant="destructive"
               onClick={onStop}
               disabled={(timeLeft ?? 0) <= 0}
-              className="px-6 py-3 rounded-full"
+              className="px-8 py-4 rounded-full"
             >
               Стоп
             </Button>
           )}
           {showSubmit && (
             <Button
+              size="lg"
               onClick={onSubmit}
               disabled={submitted || (timeLeft ?? 0) <= 0}
-              className="px-8 py-14 rounded-full"
+              className="px-8 py-4 rounded-full"
             >
               {submitted ? "Испратено" : "Испрати"}
             </Button>
