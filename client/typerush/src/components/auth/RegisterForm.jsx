@@ -139,14 +139,17 @@ export function RegisterForm({ handleRegister, onFlip }) {
         </Button>
 
         {/* Flip to login */}
-        <Button
-          variant="link"
-          className="mt-4 text-xs sm:text-sm"
-          onClick={onFlip}
-          type="button"
-        >
-          Имаш профил? <span className="font-semibold">Најави се!</span>
-        </Button>
+        <div className="mt-4 text-xs sm:text-sm text-center text[var(--text)]">
+          <span className="mr-1">Имаш профил?</span>
+          <Button
+            variant="link"
+            className="p-0 h-auto font-semibold text-[var(--primary)]"
+            onClick={onFlip}
+            type="button"
+          >
+            Најави се!
+          </Button>
+        </div>
       </form>
     </Form>
   );

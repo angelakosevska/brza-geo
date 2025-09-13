@@ -78,9 +78,9 @@ export default function RoundResultsModal({
                       onClick={onNextRound}
                       size="sm"
                       variant="outline"
-                      title="Скипни чекање"
+                      title="Прескокни чекање"
                     >
-                      Скипни чекање
+                      Прескокни чекање
                     </Button>
                   )}
                 </>

@@ -166,21 +166,21 @@ export default function FinalResultsModal({
               onClick={onLeaveToMain}
               title="Излези во мени"
             >
-              Излези
+              Излези во Мени
             </Button>
             <Button
               variant="outline"
               onClick={onBackToRoom}
               title="Назад во собата, промена на опции"
             >
-              Назад
+              Назад во Соба
             </Button>
             {isHost && (
               <Button
                 onClick={onStartNewGame}
                 title="Започни нова игра со истите опции"
               >
-                Започни нова игра
+                Нова Игра
               </Button>
             )}
           </div>

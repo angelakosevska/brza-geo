@@ -28,29 +28,29 @@ export default function InfoAccordion() {
     },
     {
       icon: ToggleLeft,
-      title: "Избери мод",
+      title: "Избери режим на игра",
       text: "Стандарден или „Стоп“ режим",
     },
     {
       icon: PlayCircle,
       title: "Започни рунда",
-      text: "Секој ќе добие буква и категории",
+      text: "Секој ќе добие иста буква и категории",
     },
     {
       icon: Keyboard,
       title: "Пополни одговори",
-      text: "Внеси зборови што почнуваат со буквата",
+      text: "Внеси зборови што почнуваат на генерираната буква",
     },
     {
       icon: Award,
-      title: "Освој поени",
-      text: "Точни и уникатни одговори носат повеќе поени",
+      title: "Освои поени",
+      text: "Точни и уникатни одговори носат повеќе поени, мали грешки се простуваат",
     },
   ];
 
   return (
     <GlassCard>
-      <h2 className="font-bold text-[var(--primary)] text-xl">За Играта</h2>
+      <h2 className="p-4 font-bold text-[var(--primary)] text-xl">За Играта</h2>
 
       <Accordion type="single" collapsible>
         {/* How to play */}

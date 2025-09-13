@@ -44,7 +44,7 @@ export default function RoundInfoCard({
       {/* Helper line for pre-round state */}
       {waiting && (
         <div className="opacity-70 mt-3 text-[var(--text)] text-sm text-center">
-          Waiting for the round to start…
+         Започнува нова рунда...
         </div>
       )}
     </GlassCard>

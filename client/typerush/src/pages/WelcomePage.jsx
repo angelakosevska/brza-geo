@@ -40,7 +40,7 @@ export default function Welcome() {
           />
 
           <CardFooter className="flex flex-col items-center gap-6 w-full">
-            <h1 className="text-[var(--primary)] text-4xl">Welcome to</h1>
+            <h1 className="text-[var(--primary)] text-4xl">ДОбредојде во</h1>
             {/* TRTitle е custom компонентата со стилизираното име на играта */}
             <TRTitle />
             <hr />

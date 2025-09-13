@@ -100,14 +100,18 @@ export function LoginForm({ handleLogin, onFlip, onForgotPassword }) {
         </Button>
 
         {/* Flip to register */}
-        <Button
-          variant="link"
-          className="mt-4 text-xs sm:text-sm"
-          onClick={onFlip}
-          type="button"
-        >
-          👉 Немаш профил? <span className="font-semibold">Регистрирај се</span>
-        </Button>
+
+        <div className="mt-4 text-[var(--text)] text-xs sm:text-sm text-center">
+          <span className="mr-1">Немаш профил?</span>
+          <Button
+            variant="link"
+            className="p-0 h-auto font-semibold text-[var(--primary)]"
+            onClick={onFlip}
+            type="button"
+          >
+            Регистрирај се
+          </Button>
+        </div>
       </form>
     </Form>
   );
