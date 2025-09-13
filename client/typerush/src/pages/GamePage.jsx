@@ -91,13 +91,13 @@ export default function GamePage() {
             dictByCategory={dictByCategory}
           />
 
-          <GlassCard className="overflow-hidden">
+          {/* <GlassCard className="overflow-hidden">
             <div className="flex justify-center items-center p-6 max-h-25">
               <div className="flex justify-center items-center rounded-2xl w-full h-[240px]">
                 <span className="opacity-80">📸 Placeholder</span>
               </div>
             </div>
-          </GlassCard>
+          </GlassCard> */}
         </div>
 
         {/* Right side: players */}
