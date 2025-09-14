@@ -14,25 +14,61 @@ async function startRound(io, roomDoc) {
   clearAllTimers(rt);
   rt.ending = false;
   rt.breakEndsAt = null;
-  rt.gen += 1; // invalidate old timers
+  rt.gen += 1;
   const myGen = rt.gen;
 
   if ((roomDoc.currentRound || 0) >= (roomDoc.rounds || 0)) return;
 
   const timerVal = Number(roomDoc.timer);
-  const duration = Math.max(3, isNaN(timerVal) ? 60 : timerVal); // fallback 60s
+  const duration = Math.max(3, isNaN(timerVal) ? 60 : timerVal);
   const endAt = new Date(Date.now() + duration * 1000);
-  if (isNaN(endAt.getTime())) {
-    console.error("❌ Invalid endAt generated in startRound", {
-      timer: roomDoc.timer,
-      duration,
+
+  const alphabet = "АБВГДЃЕЖЗЅИЈКЛЉМНЊОПРСТЌУФХЦЧЏШ".split("");
+
+  const categoryIds = (roomDoc.categories || []).map(String);
+  const categoryMeta = await fetchCategoryMeta(categoryIds);
+
+  // собери букви кои се навистина присутни во категориите
+  const validLetters = new Set();
+  for (const cat of categoryMeta) {
+    for (const w of cat.words || []) {
+      const l = String(w).charAt(0).toUpperCase();
+      if (alphabet.includes(l)) validLetters.add(l);
+    }
+  }
+
+  // ако нема валидни букви → скипни рундата
+  if (validLetters.size === 0) {
+    console.warn("⚠️ No valid letters found. Skipping round.");
+
+    io.to(roomCode).emit("roundSkipped", {
+      currentRound: (roomDoc.currentRound || 0) + 1,
+      totalRounds: roomDoc.rounds,
+      reason: "no-valid-words",
+      serverNow: Date.now(),
     });
+
+    // пауза пред следна рунда (2 секунди)
+    setTimeout(async () => {
+      const freshRoom = await Room.findOneAndUpdate(
+        { _id: roomDoc._id },
+        { $inc: { currentRound: 1 } }, // само зголеми рунда
+        { new: true }
+      );
+      if (freshRoom && freshRoom.currentRound <= freshRoom.rounds) {
+        await startRound(io, freshRoom);
+      }
+    }, 2000);
+
     return;
   }
 
-  const alphabet = "АБВГДЃЕЖЗЅИЈКЛЉМНЊОПРСТЌУФХЦЧЏШ";
-  const idx = Math.floor(Math.random() * alphabet.length);
-  const letter = alphabet[idx];
+  // нормално избери буква од валидни
+  const pool = Array.from(validLetters);
+  const idx = Math.floor(Math.random() * pool.length);
+  const letter = pool[idx];
+  console.log("🎲 Picked letter:", letter);
+
   const nextRound = (roomDoc.currentRound || 0) + 1;
 
   const updatedRoom = await Room.findOneAndUpdate(
@@ -54,9 +90,6 @@ async function startRound(io, roomDoc) {
   );
 
   await bumpActivity(roomCode);
-
-  const categoryIds = (updatedRoom.categories || []).map(String);
-  const categoryMeta = await fetchCategoryMeta(categoryIds);
 
   io.to(roomCode).emit("roundStarted", {
     currentRound: updatedRoom.currentRound,

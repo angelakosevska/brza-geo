@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { socket } from "@/lib/socket";
 import api from "@/lib/axios";
+import { useToast } from "@/components/ui/use-toast"; // ✅ додадено
 
 export default function useGameLogic({ code, currentUserId, navigate }) {
   // ========== STATE ==========
@@ -41,6 +42,8 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   const endAtRef = useRef(null);
   const joinedRef = useRef(false);
 
+  const { toast } = useToast(); // ✅ toaster hook
+
   useEffect(() => {
     answersRef.current = answers;
   }, [answers]);
@@ -55,7 +58,10 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   );
 
   const isHost = useMemo(
-    () => Boolean(hostId && currentUserId && String(hostId) === String(currentUserId)),
+    () =>
+      Boolean(
+        hostId && currentUserId && String(hostId) === String(currentUserId)
+      ),
     [hostId, currentUserId]
   );
 
@@ -358,6 +364,28 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       setSubmitted(true);
     };
 
+    // ✅ Round skipped handler
+    const handleRoundSkipped = (payload) => {
+      console.warn("⚠️ Round skipped:", payload);
+
+      if (payload.currentRound != null) setCurrentRound(payload.currentRound);
+      if (payload.totalRounds != null) setTotalRounds(payload.totalRounds);
+
+      setLetter(null);
+      setCategories([]);
+      setEndAt(null);
+
+      toast({
+        title: "Рундата е прескокната",
+        description:
+          payload.reason === "no-valid-words"
+            ? "Нема зборови за таа буква во категориите."
+            : "Оваа рунда беше прескокната.",
+        variant: "destructive",
+        duration: 3000,
+      });
+    };
+
     socket.on("roundStarted", handleRoundStarted);
     socket.on("roundResults", handleRoundResults);
     socket.on("gameEnded", handleGameEnded);
@@ -366,6 +394,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     socket.on("roomState", handleRoomState);
     socket.on("settingsUpdated", handleSettingsUpdated);
     socket.on("forceSubmit", handleForceSubmit);
+    socket.on("roundSkipped", handleRoundSkipped);
 
     return () => {
       socket.off("roundStarted", handleRoundStarted);
@@ -376,8 +405,9 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       socket.off("roomState", handleRoomState);
       socket.off("settingsUpdated", handleSettingsUpdated);
       socket.off("forceSubmit", handleForceSubmit);
+      socket.off("roundSkipped", handleRoundSkipped);
     };
-  }, [code, normalizeId]);
+  }, [code, normalizeId, toast]);
 
   // Defensive unlock
   useEffect(() => {

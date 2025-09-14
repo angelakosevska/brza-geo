@@ -19,7 +19,7 @@ export default function CategoryAnswersCard({
   showStop,
   onSubmit,
   onStop,
-  dictByCategory = {}, // default празно object
+  dictByCategory = {}, 
 }) {
   // Map validation status to Tailwind border + text colors
   const borderColors = {

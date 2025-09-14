@@ -12,6 +12,7 @@ import {
   PlayCircle,
   Keyboard,
   Award,
+  FolderPlus,
 } from "lucide-react";
 
 export default function InfoAccordion() {
@@ -49,9 +50,8 @@ export default function InfoAccordion() {
   ];
 
   return (
-    <GlassCard>
-      <h2 className="p-4 font-bold text-[var(--primary)] text-xl">За Играта</h2>
-
+    <GlassCard className="flex flex-col gap-1 p-4">
+      <h2 className="font-bold text-[var(--primary)] text-xl">За Играта</h2>
       <Accordion type="single" collapsible>
         {/* How to play */}
         <AccordionItem value="howto">
@@ -61,7 +61,7 @@ export default function InfoAccordion() {
           <AccordionContent>
             <ul className="space-y-3">
               {steps.map((s, i) => (
-                <li key={i} className="flex items-start gap-3">
+                <li key={i} className="flex items-start gap-1">
                   <s.icon className="w-5 h-5 text-[var(--primary)] shrink-0" />
                   <div>
                     <p className="font-semibold text-[var(--primary)] text-sm">
@@ -86,7 +86,8 @@ export default function InfoAccordion() {
                 Стандарден
               </h3>
               <p className="text-[var(--text)]/80 text-sm">
-                Рундата завршува кога ќе истече времето или кога сите играчи испратиле одговор.
+                Рундата завршува кога ќе истече времето или кога сите играчи
+                испратиле одговор.
               </p>
             </div>
 
@@ -97,6 +98,27 @@ export default function InfoAccordion() {
                 рундата веднаш и да започне бодувањето.
               </p>
             </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* Categories */}
+        <AccordionItem value="categories">
+          <AccordionTrigger className="text-[var(--primary)]">
+            Категории
+          </AccordionTrigger>
+          <AccordionContent className="space-y-3">
+            <div className="flex items-start gap-2">
+              <FolderPlus className="w-5 h-5 text-[var(--primary)] shrink-0" />
+              <p className="text-[var(--text)]/80 text-sm">
+                Играта има <b>основни категории</b> (додадени од админ) и{" "}
+                <b>категории додадени од играчите</b>.
+              </p>
+            </div>
+            <p className="text-[var(--text)]/80 text-sm">
+              Во делот<b>Додади категорија</b> можеш да внесеш нова
+              категорија со зборови одделени со запирка. Таа веднаш ќе биде
+              достапна во собата што ќе ја креираш.
+            </p>
           </AccordionContent>
         </AccordionItem>
       </Accordion>

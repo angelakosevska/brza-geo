@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useError } from "@/hooks/useError";
 import InfoAccordion from "@/components/InfoAccordion";
 import LevelCard from "@/components/level/LevelCard";
+import CategoriesPanel from "@/components/categories/CategoriesPanel";
 
 export default function MainPage() {
   const navigate = useNavigate();
@@ -51,39 +52,14 @@ export default function MainPage() {
   };
 
   return (
-    <div className="gap-2 grid grid-cols-1 lg:grid-cols-4 mx-auto max-w-[95vw] h-full">
+    <div className="gap-1 grid grid-cols-1 lg:grid-cols-3 mx-auto max-w-[95vw] h-full">
       {/* Left: Level + Quick Links (25%) */}
-      <div className="flex flex-col gap-4 col-span-1">
-        <LevelCard currentWP={22} level={3} />
-        <GlassCard className="flex flex-col gap-3 p-6 h-full">
-          <h3 className="font-bold text-[var(--primary)] text-lg">Секции</h3>
-          <ul className="space-y-2 text-[var(--text)] text-sm">
-            <li>
-              <a href="#categories" className="hover:text-[var(--primary)]">
-                📂 Категории
-              </a>
-            </li>
-            <li>
-              <a href="#rules" className="hover:text-[var(--primary)]">
-                📜 Правила
-              </a>
-            </li>
-            <li>
-              <a href="#faq" className="hover:text-[var(--primary)]">
-                ❓ ЧПП
-              </a>
-            </li>
-            <li>
-              <a href="#leaderboard" className="hover:text-[var(--primary)]">
-                🏆 Лидерборд
-              </a>
-            </li>
-          </ul>
-        </GlassCard>
+      <div className="flex flex-col gap-1 col-span-1">
+        <CategoriesPanel />
       </div>
 
       {/* Middle: Create/Join (50%) */}
-      <div className="col-span-2">
+      <div className="col-span-1">
         <GlassCard className="flex flex-col justify-center items-center p-6 h-full">
           <div className="flex flex-col justify-center items-center gap-4 w-full max-w-sm">
             <Button
@@ -116,7 +92,8 @@ export default function MainPage() {
       </div>
 
       {/* Right: How to Play (25%) */}
-      <div className="col-span-1 h-full">
+      <div className="flex flex-col gap-1 col-span-1 h-full">
+        <LevelCard currentWP={22} level={3} />
         <InfoAccordion />
       </div>
     </div>
