@@ -41,6 +41,7 @@ export default function Header() {
             src="/tr1.svg"
             alt="Type Rush Logo"
             className="w-12 h-12 blink-cursor"
+            onClick={() => navigate("/invitation")}
           />
           <span
             onClick={() => navigate("/main")}

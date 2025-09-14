@@ -43,7 +43,7 @@ export default function LetterBackground({ children }) {
 
       {/* Fixed footer (always at bottom, not pushed by children) */}
       <footer className="bottom-0 left-0 z-5 fixed py-3 w-full text-[var(--primary)]/70 text-xs sm:text-sm text-center">
-        © {new Date().getFullYear()} TypeRush. All rights reserved.
+        © {new Date().getFullYear()} TypeRush.
       </footer>
     </div>
   );
