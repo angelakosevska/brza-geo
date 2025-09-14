@@ -16,10 +16,14 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-
+  role: {
+    type: String,
+    enum: ["player", "admin"],
+    default: "player",
+  },
   resetCode: {
     type: String,
-  }, 
+  },
   resetCodeExpires: {
     type: Date,
   },
