@@ -62,24 +62,23 @@ const fetchCategoryMeta = async (categoryIds) => {
   if (!categoryIds.length) return [];
   try {
     const categories = await Category.find({ _id: { $in: categoryIds } })
-      .select("displayName name")
+      .select("name validLetters")
       .lean();
 
-    const nameById = Object.fromEntries(
-      categories.map((cat) => [
-        String(cat._id),
-        cat.displayName?.mk || cat.name || String(cat._id),
-      ])
-    );
-
-    return categoryIds.map((id) => ({
-      id: String(id),
-      name: nameById[String(id)] || String(id),
+    return categories.map((cat) => ({
+      id: String(cat._id),
+      name: cat.name || String(cat._id),
+      validLetters: cat.validLetters || [],
     }));
   } catch {
-    return categoryIds.map((id) => ({ id: String(id), name: String(id) }));
+    return categoryIds.map((id) => ({
+      id: String(id),
+      name: String(id),
+      validLetters: [],
+    }));
   }
 };
+
 
 module.exports = {
   computeFinalScores,

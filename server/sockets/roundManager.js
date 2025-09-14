@@ -28,14 +28,17 @@ async function startRound(io, roomDoc) {
   const categoryIds = (roomDoc.categories || []).map(String);
   const categoryMeta = await fetchCategoryMeta(categoryIds);
 
-  // собери букви кои се навистина присутни во категориите
+  // letters from validLetters in category
   const validLetters = new Set();
   for (const cat of categoryMeta) {
-    for (const w of cat.words || []) {
-      const l = String(w).charAt(0).toUpperCase();
-      if (alphabet.includes(l)) validLetters.add(l);
+    for (const l of cat.validLetters || []) {
+      const letter = String(l).trim().toUpperCase();
+      validLetters.add(letter);
     }
   }
+  console.log("📂 categoryMeta:", categoryMeta);
+  console.log("📚 collected validLetters:", Array.from(validLetters));
+
 
   // ако нема валидни букви → скипни рундата
   if (validLetters.size === 0) {

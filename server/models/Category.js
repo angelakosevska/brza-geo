@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const CYRILLIC_RE =
-  /^[АБВГДЃЕЖЗЅИЈКЛЉМНЊОПРСТЌУФХЦЧЏШабвгдѓежзѕијклљмнњопрстќуфхцчџш]+$/;
+  /^[АБВГДЃЕЖЗЅИЈКЛЉМНЊОПРСТЌУФХЦЧЏШабвгдѓежзѕијклљмнњопрстќуфхцчџш\s-]+$/;
 
 function isCyrillicWord(w) {
   return CYRILLIC_RE.test(String(w || "").trim());
