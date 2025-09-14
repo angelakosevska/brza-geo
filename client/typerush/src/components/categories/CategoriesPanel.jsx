@@ -10,6 +10,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
+import { Textarea } from "../ui/textarea";
 
 export default function CategoriesPanel() {
   const [categories, setCategories] = useState([]);
@@ -52,7 +53,10 @@ export default function CategoriesPanel() {
       setSaving(true);
       const res = await api.post("/categories", {
         name: newName.trim(),
-        words: newWords.split(",").map((w) => w.trim()).filter(Boolean),
+        words: newWords
+          .split(",")
+          .map((w) => w.trim())
+          .filter(Boolean),
       });
 
       showSuccess("Категоријата е додадена!");
@@ -78,18 +82,20 @@ export default function CategoriesPanel() {
         <>
           {/* Default categories */}
           <Collapsible defaultOpen>
-            <CollapsibleTrigger className="flex justify-between items-center mb-1 w-full font-semibold">
+            <CollapsibleTrigger className="flex justify-between items-center mb-1 w-full font-semibold text-[var(--accent)]">
               Основни
-              <ChevronDown className="w-4 h-4 data-[state=open]:rotate-180 transition-transform" />
+              <ChevronDown className="w-4 h-4 data-[state=open]:rotate-90 transition-transform" />
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <ul className="space-y-1 ml-4 max-h-40 overflow-y-auto text-sm list-disc">
+              <ul className="space-y-1 ml-4 max-h-40 overflow-y-auto text-[var(--text)] text-sm list-disc">
                 {defaultCategories.length > 0 ? (
                   defaultCategories.map((cat) => (
                     <li key={cat._id}>{cat.name}</li>
                   ))
                 ) : (
-                  <li className="text-[var(--glass)]">Нема основни категории</li>
+                  <li className="text-[var(--glass)]">
+                    Нема основни категории
+                  </li>
                 )}
               </ul>
             </CollapsibleContent>
@@ -97,15 +103,17 @@ export default function CategoriesPanel() {
 
           {/* Player categories */}
           <Collapsible>
-            <CollapsibleTrigger className="flex justify-between items-center mb-1 w-full font-semibold">
+            <CollapsibleTrigger className="flex justify-between items-center mb-1 w-full font-semibold text-[var(--accent)]">
               Додадени од играчите
-              <ChevronDown className="w-4 h-4 data-[state=open]:rotate-180 transition-transform" />
+              <ChevronDown className="w-4 h-4 data-[state=open]:rotate-90 transition-transform" />
             </CollapsibleTrigger>
             <CollapsibleContent>
               <ul className="space-y-1 ml-4 max-h-40 overflow-y-auto text-sm list-disc">
                 {playerCategories.length > 0 ? (
                   playerCategories.map((cat) => (
-                    <li key={cat._id}>{cat.name}</li>
+                    <li key={cat._id} className="text-[var(--text)]">
+                      {cat.name}
+                    </li>
                   ))
                 ) : (
                   <li className="text-[var(--glass)]">Сè уште нема додадени</li>
@@ -118,15 +126,16 @@ export default function CategoriesPanel() {
 
       {/* Add new category form */}
       <div className="mt-3 pt-3 border-[var(--glass)]/30 border-t">
-        <h4 className="mb-2 font-semibold text-sm">Додади категорија</h4>
+        <h4 className="mb-2 font-semibold text-[var(--primary)] text-sm">Додади категорија</h4>
         <Input
           placeholder="Име на категоријата"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           className="mb-2"
         />
-        <Input
-          placeholder="Зборови (одделени со запирка)"
+
+        <Textarea
+          placeholder="Зборови (одделени со запирка"
           value={newWords}
           onChange={(e) => setNewWords(e.target.value)}
           className="mb-2"

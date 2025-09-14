@@ -66,7 +66,7 @@ export default function CategoryAnswersCard({
   return (
     <div className={`grid gap-1 ${className}`}>
       {/* Header со статус */}
-      <GlassCard className="flex md:flex-row flex-col justify-between items-start md:items-center gap-2 p-4 text-[var(--text)]">
+      <GlassCard className="flex md:flex-row flex-col justify-between items-start md:items-center gap-1 p-4 text-[var(--text)]">
         <div className="flex flex-col">
           <div className="font-semibold text-[var(--primary)] text-lg">
             Внеси ги твоите одговори
@@ -86,7 +86,7 @@ export default function CategoryAnswersCard({
 
         {/* Desktop копчиња */}
         {mode === "play" && !waitingForRound && (
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-1">
             {showStop && (
               <Button
                 size="lg"
@@ -117,7 +117,7 @@ export default function CategoryAnswersCard({
           Чекам категории…
         </GlassCard>
       ) : (
-        <div className="gap-4 grid md:grid-cols-2">
+        <div className="gap-1 grid md:grid-cols-2">
           {categories.map((id) => {
             const value = answers[id] ?? "";
             const dictWords = dictByCategory[String(id)] || [];

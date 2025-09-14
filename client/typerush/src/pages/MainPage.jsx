@@ -53,15 +53,20 @@ export default function MainPage() {
 
   return (
     <div className="gap-1 grid grid-cols-1 lg:grid-cols-3 mx-auto max-w-[95vw] h-full">
-      {/* Left: Level + Quick Links (25%) */}
-      <div className="flex flex-col gap-1 col-span-1">
-        <CategoriesPanel />
+      {/* 1. Left (LevelCard + Info за desktop) */}
+      <div className="flex flex-col gap-1 order-1 col-span-1">
+        <LevelCard currentWP={22} level={3} />
+
+        {/* Show only on desktop */}
+        <div className="hidden lg:block">
+          <InfoAccordion />
+        </div>
       </div>
 
-      {/* Middle: Create/Join (50%) */}
-      <div className="col-span-1">
+      {/* 2. Middle (Create/Join) */}
+      <div className="order-2 col-span-1">
         <GlassCard className="flex flex-col justify-center items-center p-6 h-full">
-          <div className="flex flex-col justify-center items-center gap-4 w-full max-w-sm">
+          <div className="flex flex-col justify-center items-center gap-1 w-full max-w-sm">
             <Button
               className="w-full"
               onClick={handleCreateRoom}
@@ -72,7 +77,7 @@ export default function MainPage() {
 
             <span className="text-[var(--glass)] text-sm">или</span>
 
-            <div className="flex flex-col gap-2 w-full">
+            <div className="flex flex-col gap-1 w-full">
               <Input
                 placeholder="Внеси код од соба"
                 value={joinCode}
@@ -91,9 +96,13 @@ export default function MainPage() {
         </GlassCard>
       </div>
 
-      {/* Right: How to Play (25%) */}
-      <div className="flex flex-col gap-1 col-span-1 h-full">
-        <LevelCard currentWP={22} level={3} />
+      {/* 3. CategoriesPanel */}
+      <div className="order-3 col-span-1">
+        <CategoriesPanel />
+      </div>
+
+      {/* 4. InfoAccordion (само на mobile, долу) */}
+      <div className="lg:hidden order-4 col-span-1">
         <InfoAccordion />
       </div>
     </div>
