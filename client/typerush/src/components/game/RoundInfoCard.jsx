@@ -14,7 +14,7 @@ export default function RoundInfoCard({
         {/* Left: Round X / Y */}
         <div className="flex items-center gap-2">
           <span className="opacity-70 text-[var(--text)] text-xs uppercase tracking-wide">
-            Round
+            Рунда
           </span>
           <span className="font-medium text-[var(--text)]">
             {currentRound || "-"} / {totalRounds || "-"}
@@ -35,7 +35,7 @@ export default function RoundInfoCard({
 
         {/* Right: Timer */}
         <div className="flex justify-end items-center">
-          <div className="text-[var(--accent)]">
+          <div className="text-[var(--accent)] text-2xl">
             {timeLeft != null ? `${timeLeft}s` : "--"}
           </div>
         </div>

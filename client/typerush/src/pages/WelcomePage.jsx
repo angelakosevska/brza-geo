@@ -5,34 +5,34 @@ import TRTitle from "@/components/TRTitle";
 import { useNavigate } from "react-router-dom";
 import HowToPlay from "@/components/HowToPlay";
 
-// Главна Welcome компонента – ова е првата страница што ја гледа корисникот
+// Main Welcome component – this is the first screen users see
 export default function Welcome() {
-  // state за toggle на секцијата "Како да играш" на мобилен
+  // Toggle state for "How to play" section on mobile
   const [showHowToPlay, setShowHowToPlay] = useState(false);
 
-  // state за да знаеме дали viewport е desktop или mobile
+  // State to check if viewport is desktop size (>=768px)
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
 
-  // hook од react-router за програмска навигација
+  // Hook for programmatic navigation
   const navigate = useNavigate();
 
-  // useEffect за да слуша resize и автоматски да update-ира дали сме на desktop
+  // Listen to window resize and update isDesktop accordingly
   useEffect(() => {
     function handleResize() {
       setIsDesktop(window.innerWidth >= 768);
     }
     window.addEventListener("resize", handleResize);
 
-    // cleanup кога компонентата ќе се уништи 
+    // Cleanup listener on unmount
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   return (
     <div className="flex md:flex-row flex-col w-full min-h-[80vh]">
-      {/* Лева страна – логото, насловот и копчињата */}
+      {/* Left side – logo, title, and buttons */}
       <div className="flex justify-center items-center p-6 w-full md:w-1/2">
         <div className="flex flex-col items-center gap-6 w-full max-w-[50vh] text-center">
-          {/* Лого */}
+          {/* Logo */}
           <img
             src="/tr2.svg"
             alt="Type Rush Logo"
@@ -40,40 +40,40 @@ export default function Welcome() {
           />
 
           <CardFooter className="flex flex-col items-center gap-6 w-full">
-            <h1 className="text-[var(--primary)] text-4xl">Добредојде во</h1>
-            {/* TRTitle е custom компонентата со стилизираното име на играта */}
+            <h1 className="text-[var(--primary)] text-4xl">Welcome to</h1>
+            {/* TRTitle is a custom styled component for the game name */}
             <TRTitle />
             <hr />
 
-            {/* Копче за навигација кон логин/регистрација */}
+            {/* Button to go to login/register */}
             <Button
               size="lg"
               className="w-full"
               onClick={() => navigate("/auth")}
             >
-              Најави се или Регистрирај се
+              Log in or Register
             </Button>
 
-            {/* На мобилен имаме toggle копче за инструкции */}
+            {/* On mobile: toggle button for instructions */}
             {!isDesktop && (
               <Button
                 variant="link"
                 className="md:hidden"
                 onClick={() => setShowHowToPlay((prev) => !prev)}
               >
-                {showHowToPlay ? "Скриј инструкции" : "Како да играш"}
+                {showHowToPlay ? "Hide instructions" : "How to play"}
               </Button>
             )}
           </CardFooter>
         </div>
       </div>
 
-      {/* Десна страна – секцијата со инструкции */}
-      {/* На desktop секогаш се гледа, на мобилен само ако е отворено */}
+      {/* Right side – instructions */}
+      {/* Always visible on desktop, toggled on mobile */}
       {(isDesktop || showHowToPlay) && (
         <div className="flex justify-center items-center p-6 w-full md:w-1/2 text-[var(--text)] text-center">
           <div className="w-full">
-            {/* HowToPlay е компонентата со објаснувања за правилата */}
+            {/* HowToPlay is the component with the rules */}
             <HowToPlay columns={isDesktop ? 2 : 1} />
           </div>
         </div>

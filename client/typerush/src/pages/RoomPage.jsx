@@ -75,7 +75,8 @@ export default function RoomPage() {
     };
   }, [code, navigate]);
 
-  if (loading) return <div className="mt-10 text-center">Loading room...</div>;
+  if (loading)
+    return <div className="mt-10 text-center">Се вчитува собата...</div>;
   if (!room) return null;
 
   const isHost =

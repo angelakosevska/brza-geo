@@ -2,7 +2,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
 // UI
-import GlassCard from "@/components/global/GlassCard";
 import PlayersList from "@/components/PlayersList";
 import RoundInfoCard from "@/components/game/RoundInfoCard";
 import CategoryAnswersCard from "@/components/game/CategoryAnswersCard";
@@ -19,7 +18,7 @@ export default function GamePage() {
   const currentUserId = user?.id;
 
   const {
-    // base
+    // base state
     players,
     currentRound,
     totalRounds,
@@ -41,12 +40,14 @@ export default function GamePage() {
     handleStopRound,
     dictByCategory,
 
-    // modals
+    // round results
     showResults,
     roundScores,
     answerDetails,
     breakLeft,
     handleNextRound,
+
+    // final results
     showFinal,
     finalTotals,
     finalWinners,
@@ -60,7 +61,7 @@ export default function GamePage() {
   return (
     <div>
       <div className="gap-1 grid grid-cols-1 lg:grid-cols-4 max-h-[60vh]">
-        {/* Left side: info + answers + placeholder */}
+        {/* Left side – round info and answer input */}
         <div className="flex flex-col gap-1 lg:col-span-3">
           <RoundInfoCard
             currentRound={currentRound}
@@ -71,7 +72,7 @@ export default function GamePage() {
           />
 
           <CategoryAnswersCard
-            title="Внеси ги твоите одговори"
+            title="Enter your answers"
             categories={categories}
             categoryLabels={categoryLabels}
             letter={letter}
@@ -90,17 +91,9 @@ export default function GamePage() {
             code={code}
             dictByCategory={dictByCategory}
           />
-
-          {/* <GlassCard className="overflow-hidden">
-            <div className="flex justify-center items-center p-6 max-h-25">
-              <div className="flex justify-center items-center rounded-2xl w-full h-[240px]">
-                <span className="opacity-80">📸 Placeholder</span>
-              </div>
-            </div>
-          </GlassCard> */}
         </div>
 
-        {/* Right side: players */}
+        {/* Right side – players list */}
         <div className="lg:col-span-1">
           <PlayersList
             players={players}
@@ -111,7 +104,7 @@ export default function GamePage() {
         </div>
       </div>
 
-      {/* Modals */}
+      {/* Round results modal */}
       <RoundResultsModal
         show={showResults}
         isHost={isHost}
@@ -127,6 +120,8 @@ export default function GamePage() {
         hasMoreRounds={hasMoreRounds}
         onNextRound={handleNextRound}
       />
+
+      {/* Final results modal */}
       <FinalResultsModal
         show={showFinal}
         code={code}
