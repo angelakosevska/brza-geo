@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useCallback } from "react";
+import { useEffect, useMemo } from "react";
 import GlassCard from "@/components/global/GlassCard";
 import { Button } from "@/components/ui/button";
 
@@ -9,31 +9,36 @@ export default function FinalResultsModal({
   finalTotals = {},
   finalWinners = [],
   isHost = false,
-
+  wpEarned, // Word Power добиени по завршување на игра
   onBackToRoom,
   onLeaveToMain,
   onStartNewGame,
   onRequestClose,
-
   closeOnOverlay = true,
 }) {
   if (!show) return null;
 
+  // ✅ Сортирање на играчи според поени
   const sorted = useMemo(() => {
     const entries = Object.entries(finalTotals);
     return entries.sort((a, b) => {
       const [ida, pa] = a;
       const [idb, pb] = b;
+
+      // Прво по поени (descending)
       if (pb !== pa) return pb - pa;
 
+      // Ако поените се исти, сортирај по име
       const na = (playerNameById[ida] || String(ida).slice(-5)).toLowerCase();
       const nb = (playerNameById[idb] || String(idb).slice(-5)).toLowerCase();
       if (na !== nb) return na < nb ? -1 : 1;
 
+      // Ако и имињата се исти, сортирај по ID
       return String(ida) < String(idb) ? -1 : 1;
     });
   }, [finalTotals, playerNameById]);
 
+  // ✅ Имиња на победници
   const winnerNames =
     finalWinners.length > 0
       ? finalWinners
@@ -41,10 +46,12 @@ export default function FinalResultsModal({
           .join(", ")
       : null;
 
+  // ✅ Overlay клик за затворање
   const handleOverlayClick = () => {
     if (closeOnOverlay) onRequestClose?.();
   };
 
+  // ✅ ESC key за затворање
   useEffect(() => {
     if (!show) return;
     const onKey = (e) => {
@@ -54,6 +61,7 @@ export default function FinalResultsModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [show, onRequestClose]);
 
+  // ✅ Медали за прво, второ, трето место
   const medalForIndex = (idx) => {
     if (idx === 0) return "🥇";
     if (idx === 1) return "🥈";
@@ -61,10 +69,12 @@ export default function FinalResultsModal({
     return null;
   };
 
+  // ✅ Пресметка на место (за да има исто место ако има ист број поени)
   const placeByRow = useMemo(() => {
     const places = [];
     let currentPlace = 1;
     let prevPts = null;
+
     for (let i = 0; i < sorted.length; i++) {
       const pts = sorted[i][1];
       if (prevPts === null) {
@@ -88,12 +98,16 @@ export default function FinalResultsModal({
       aria-modal="true"
       aria-labelledby="final-results-title"
     >
+      {/* Overlay со blur позадина */}
       <div
         className="absolute inset-0 backdrop-blur-lg"
         onClick={handleOverlayClick}
       />
+
+      {/* Централна модална картичка */}
       <div className="absolute inset-0 flex justify-center items-center p-4">
         <GlassCard className="relative p-6 w-full max-w-3xl text-[var(--text)]">
+          {/* X копче за затворање */}
           <button
             onClick={onRequestClose}
             aria-label="Затвори"
@@ -115,7 +129,7 @@ export default function FinalResultsModal({
             )}
           </div>
 
-          {/* Winner(s) */}
+          {/* Победник(ци) */}
           <div className="mb-4">
             {winnerNames ? (
               <div className="text-lg">
@@ -129,8 +143,7 @@ export default function FinalResultsModal({
             )}
           </div>
 
-          {/* Final scores */}
-
+          {/* Финална табела со поени */}
           <div className="space-y-2 pr-1 max-h-[55vh] overflow-auto">
             {sorted.map(([pid, pts], idx) => {
               const isWinner = finalWinners.includes(pid);
@@ -142,10 +155,15 @@ export default function FinalResultsModal({
                 <div
                   key={pid}
                   className={`flex items-center justify-between rounded-2xl px-5 py-3
-    bg-[var(--primary)]/5 border 
-    ${isWinner ? "border-[var(--accent)]" : "border-[var(--text)]/5"}
-  `}
+                    bg-[var(--primary)]/5 border 
+                    ${
+                      isWinner
+                        ? "border-[var(--accent)]"
+                        : "border-[var(--text)]/5"
+                    }
+                  `}
                 >
+                  {/* Име и место */}
                   <div className="flex items-center gap-3 min-w-0">
                     <span className="opacity-80 w-6 font-mono text-right">
                       {place}.
@@ -153,35 +171,31 @@ export default function FinalResultsModal({
                     <span className="w-6">{medal ?? ""}</span>
                     <div className="font-medium truncate">{name}</div>
                   </div>
+
+                  {/* Поени */}
                   <div className="font-mono">#{pts}</div>
                 </div>
               );
             })}
           </div>
 
-          {/* Actions */}
+          {/* Word Power XP */}
+          {wpEarned > 0 && (
+            <div className="mt-4 font-semibold text-[var(--primary)] text-lg text-center">
+              Добивте +{wpEarned} Word Power!
+            </div>
+          )}
+
+          {/* Акции */}
           <div className="flex flex-wrap justify-end items-center gap-2 mt-6">
-            <Button
-              variant="ghost"
-              onClick={onLeaveToMain}
-              title="Излези во мени"
-            >
+            <Button variant="ghost" onClick={onLeaveToMain}>
               Излези во Мени
             </Button>
-            <Button
-              variant="outline"
-              onClick={onBackToRoom}
-              title="Назад во собата, промена на опции"
-            >
+            <Button variant="outline" onClick={onBackToRoom}>
               Назад во Соба
             </Button>
             {isHost && (
-              <Button
-                onClick={onStartNewGame}
-                title="Започни нова игра со истите опции"
-              >
-                Нова Игра
-              </Button>
+              <Button onClick={onStartNewGame}>Нова Игра</Button>
             )}
           </div>
         </GlassCard>

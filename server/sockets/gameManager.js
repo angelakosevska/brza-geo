@@ -8,14 +8,17 @@ async function endGame(io, roomCode) {
   const room = await Room.findOne({ code: roomCode });
   if (!room) return;
 
+  // Reset room state
   room.started = false;
   room.letter = null;
   room.roundEndTime = null;
   await room.save();
   await bumpActivity(roomCode);
 
+  // Compute final scores
   const finalScores = computeFinalScores(room);
 
+  // Save game history
   await Game.create({
     roomCode,
     players: room.players,
@@ -25,25 +28,33 @@ async function endGame(io, roomCode) {
     winners: finalScores.winners,
   });
 
+  // Award Word Power (WP) to all players
   for (const [playerId, totalPoints] of Object.entries(finalScores.totals)) {
     const user = await User.findById(playerId);
     if (!user) continue;
 
-    addWordPower(user, totalPoints);
-    await user.save();
+    // WP = half of total points
+    const wpEarned = Math.floor(totalPoints / 2);
+    if (wpEarned > 0) {
+      addWordPower(user, wpEarned); // update wordPower + level
+      await user.save();
 
-    io.to(roomCode).emit("playerWPUpdated", {
-      userId: playerId,
-      wordPower: user.wordPower,
-      level: user.level,
-    });
+      io.to(roomCode).emit("playerWPUpdated", {
+        userId: playerId,
+        wordPower: user.wordPower,
+        level: user.level,
+        wpEarned,
+      });
+    }
   }
 
+  // Emit final results to all players
   io.to(roomCode).emit("gameEnded", {
     ...finalScores,
     serverNow: Date.now(),
   });
 
+  // Send fresh room state
   const freshRoom = await Room.findOne({ code: roomCode }).populate(
     "players host"
   );

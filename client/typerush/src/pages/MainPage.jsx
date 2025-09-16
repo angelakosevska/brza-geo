@@ -1,20 +1,58 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import GlassCard from "@/components/global/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import api from "@/lib/axios";
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
 import { useError } from "@/hooks/useError";
 import InfoAccordion from "@/components/InfoAccordion";
 import LevelCard from "@/components/level/LevelCard";
 import CategoriesPanel from "@/components/categories/CategoriesPanel";
 import { useLoading } from "@/context/LoadingContext";
+import { useAuth } from "@/context/AuthContext";
+import { socket } from "@/lib/socket"; // 👈 listen for WP updates
 
 export default function MainPage() {
   const navigate = useNavigate();
   const [joinCode, setJoinCode] = useState("");
   const { showError, showSuccess } = useError();
   const { setLoading } = useLoading();
+  const { user } = useAuth();
+  const [profile, setProfile] = useState(null);
+
+  // Fetch profile on mount
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get(`/user/profile/${user.id}`);
+        setProfile(res.data);
+      } catch (err) {
+        console.error("❌ Failed to fetch profile:", err);
+      }
+    };
+
+    fetchProfile();
+  }, [user?.id]);
+
+  // Listen for WP updates from server
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const handleWPUpdate = ({ userId, wordPower, level }) => {
+      if (String(userId) === String(user.id)) {
+        setProfile((prev) => ({
+          ...prev,
+          wordPower,
+          level,
+        }));
+      }
+    };
+
+    socket.on("playerWPUpdated", handleWPUpdate);
+    return () => socket.off("playerWPUpdated", handleWPUpdate);
+  }, [user?.id]);
 
   // Handle create room
   const handleCreateRoom = async () => {
@@ -55,9 +93,12 @@ export default function MainPage() {
 
   return (
     <div className="gap-1 grid grid-cols-1 lg:grid-cols-3 mx-auto max-w-[95vw] h-full">
-      {/* 1. Left column – LevelCard + Info (desktop only) */}
+      {/* 1. Left column – LevelCard + Info */}
       <div className="flex flex-col gap-1 order-1 col-span-1">
-        <LevelCard currentWP={22} level={3} />
+        <LevelCard
+          currentWP={profile?.wordPower || 0}
+          level={profile?.level || 1}
+        />
         <div className="hidden lg:block">
           <InfoAccordion />
         </div>
@@ -93,7 +134,7 @@ export default function MainPage() {
         <CategoriesPanel />
       </div>
 
-      {/* 4. InfoAccordion (mobile only, shown at bottom) */}
+      {/* 4. InfoAccordion (mobile only) */}
       <div className="lg:hidden order-4 col-span-1">
         <InfoAccordion />
       </div>

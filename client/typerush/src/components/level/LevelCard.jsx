@@ -34,7 +34,7 @@ export default function LevelCard({ level, currentWP }) {
 
       {/* WP info */}
       <p className="text-[var(--glass)] text-sm">
-        Word Power: {currentLevelWP} / {wpForNextLevel * level}
+        Поени: {currentLevelWP}wp / {wpForNextLevel * level}wp
       </p>
 
       {/* Progress bar */}

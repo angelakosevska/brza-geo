@@ -3,7 +3,6 @@
     "concurrently": "^9.2.0"
   },
   "scripts": {
-   
     "client": "cd client/typerush && npm run dev",
     "server": "cd server && node server.js",
     "start": "concurrently \"npm run server\" \"npm run client\""

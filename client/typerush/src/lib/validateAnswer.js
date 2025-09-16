@@ -1,26 +1,24 @@
-import { distance } from "fastest-levenshtein";
-
 export function validateAnswer(raw, letter, dictWords = []) {
   const word = (raw || "").trim().toLowerCase();
   const upperLetter = (letter || "").toUpperCase();
 
   if (!word) return { status: "empty" };
 
-  // ✅ проверка за кирилица
+  // ✅ Check for Cyrillic
   const cyrillicRegex = /^[\u0400-\u04FF]/;
   if (!cyrillicRegex.test(word[0])) {
     return { status: "not-cyrillic" };
   }
 
-  // нормализирај речник
+  // Normalize dictionary
   const normalizedDict = dictWords.map((w) => String(w).trim().toLowerCase());
 
-  // проверка за правилна буква
+  // Check starting letter
   if (word[0]?.toUpperCase() !== upperLetter) {
     return { status: "wrong-letter" };
   }
 
-  // зборови со таа буква
+  // Words starting with the round letter
   const wordsForLetter = normalizedDict.filter(
     (w) => w[0]?.toUpperCase() === upperLetter
   );
@@ -29,13 +27,11 @@ export function validateAnswer(raw, letter, dictWords = []) {
     return { status: "no-words" };
   }
 
+  // Exact dictionary match
   if (wordsForLetter.includes(word)) {
     return { status: "exact" };
   }
 
-  if (wordsForLetter.some((dw) => distance(word, dw) === 1)) {
-    return { status: "typo" };
-  }
-
+  // Not found in dictionary
   return { status: "not-in-dictionary" };
 }

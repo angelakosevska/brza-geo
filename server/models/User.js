@@ -27,6 +27,15 @@ const UserSchema = new mongoose.Schema({
   resetCodeExpires: {
     type: Date,
   },
+
+  wordPower: {
+    type: Number,
+    default: 0, 
+  },
+  level: {
+    type: Number,
+    default: 1, 
+  },
 });
 
 module.exports = mongoose.model("User", UserSchema);

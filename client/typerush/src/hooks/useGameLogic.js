@@ -1,10 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { socket } from "@/lib/socket";
 import api from "@/lib/axios";
-import { useToast } from "@/components/ui/use-toast"; // ✅ додадено
+import { useToast } from "@/components/ui/use-toast";
 
+// ================== GAME LOGIC HOOK ==================
+// This hook manages the lifecycle of the game:
+// - handles socket events and syncing state
+// - tracks answers, rounds, timers
+// - shows WP (Word Power) updates from the backend
+// =====================================================
 export default function useGameLogic({ code, currentUserId, navigate }) {
-  // ========== STATE ==========
+  // ---------- STATE ----------
   const [players, setPlayers] = useState([]);
   const [playerNameById, setPlayerNameById] = useState({});
   const [hostId, setHostId] = useState(null);
@@ -37,13 +43,15 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
 
   const [serverOffsetMs, setServerOffsetMs] = useState(0);
 
-  // ========== REFS ==========
+  // ---------- REFS ----------
   const answersRef = useRef({});
   const endAtRef = useRef(null);
   const joinedRef = useRef(false);
 
-  const { toast } = useToast(); // ✅ toaster hook
+  // ---------- TOASTER ----------
+  const { toast } = useToast();
 
+  // Keep refs in sync with state
   useEffect(() => {
     answersRef.current = answers;
   }, [answers]);
@@ -51,23 +59,20 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     endAtRef.current = endAt;
   }, [endAt]);
 
-  // ========== COMPUTED ==========
+  // ---------- HELPERS ----------
   const normalizeId = useCallback(
     (v) => (typeof v === "string" ? v : v?._id ?? String(v ?? "")),
     []
   );
 
   const isHost = useMemo(
-    () =>
-      Boolean(
-        hostId && currentUserId && String(hostId) === String(currentUserId)
-      ),
+    () => Boolean(hostId && currentUserId && String(hostId) === String(currentUserId)),
     [hostId, currentUserId]
   );
 
   const waitingForRound = !letter || !categories?.length || !endAt;
 
-  // ========== API ==========
+  // ---------- API ----------
   const fetchRoom = useCallback(async () => {
     try {
       const res = await api.get(`/room/${code}`);
@@ -84,11 +89,11 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       setHostId(normalizeId(room.host));
       if (room.endMode) setEndMode(room.endMode);
     } catch (err) {
-      console.warn("Failed to fetch room:", err);
+      console.warn("⚠️ Failed to fetch room:", err);
     }
   }, [code, normalizeId]);
 
-  // ========== SOCKET CONNECTION ==========
+  // ---------- SOCKET CONNECTION ----------
   useEffect(() => {
     if (!code || !currentUserId) return;
 
@@ -104,6 +109,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     return () => socket.off("connect", tryJoin);
   }, [code, currentUserId, fetchRoom]);
 
+  // Cleanup on unmount → leave room
   useEffect(() => {
     return () => {
       if (joinedRef.current) {
@@ -113,7 +119,8 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     };
   }, [code]);
 
-  // ========== TIMERS ==========
+  // ---------- TIMERS ----------
+  // Round countdown
   useEffect(() => {
     const interval = setInterval(() => {
       if (!endAt) return;
@@ -124,6 +131,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     return () => clearInterval(interval);
   }, [endAt, serverOffsetMs]);
 
+  // Break countdown
   useEffect(() => {
     const interval = setInterval(() => {
       if (!breakEndAt) return;
@@ -134,7 +142,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     return () => clearInterval(interval);
   }, [breakEndAt, serverOffsetMs]);
 
-  // ========== AUTO SUBMIT ==========
+  // ---------- AUTO SUBMIT ----------
   useEffect(() => {
     if (timeLeft === 0 && endAt && !submitted && mode === "play") {
       socket.emit("submitAnswers", { code, answers: answersRef.current });
@@ -142,6 +150,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     }
   }, [timeLeft, endAt, submitted, mode, code]);
 
+  // Submit answers before page unload
   useEffect(() => {
     const onBeforeUnload = () => {
       if (!submitted && endAtRef.current && mode === "play") {
@@ -152,7 +161,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
   }, [submitted, mode, code]);
 
-  // ========== STATE REHYDRATION ==========
+  // ---------- STATE REHYDRATION ----------
   useEffect(() => {
     socket.emit("getRoundState", { code }, (state) => {
       if (!state) return;
@@ -213,14 +222,12 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     });
   }, [code]);
 
-  // ✅ Fetch dicts секогаш кога ќе се сетираат categories
+  // ---------- FETCH DICTIONARIES ----------
   useEffect(() => {
     if (!categories || categories.length === 0) return;
 
     const fetchDicts = async () => {
       try {
-        console.log("🚀 Fetching dicts for categories:", categories);
-
         const res = await api.get("/categories", {
           params: { ids: categories.join(",") },
         });
@@ -237,8 +244,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
 
         setDictByCategory(dicts);
         setCategoryLabels((prev) => ({ ...prev, ...labels }));
-
-        console.log("📚 dictByCategory updated:", dicts);
       } catch (err) {
         console.error("❌ Failed to fetch category dicts:", err);
       }
@@ -247,7 +252,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     fetchDicts();
   }, [categories]);
 
-  // ========== SOCKET EVENTS ==========
+  // ---------- SOCKET EVENTS ----------
   useEffect(() => {
     const handleRoundStarted = (payload) => {
       const {
@@ -364,10 +369,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       setSubmitted(true);
     };
 
-    // ✅ Round skipped handler
     const handleRoundSkipped = (payload) => {
-      console.warn("⚠️ Round skipped:", payload);
-
       if (payload.currentRound != null) setCurrentRound(payload.currentRound);
       if (payload.totalRounds != null) setTotalRounds(payload.totalRounds);
 
@@ -376,14 +378,23 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       setEndAt(null);
 
       toast({
-        title: "Рундата е прескокната",
+        title: "⚠️ Round skipped",
         description:
           payload.reason === "no-valid-words"
-            ? "Нема зборови за таа буква во категориите."
-            : "Оваа рунда беше прескокната.",
+            ? "No words available for this letter."
+            : "This round was skipped.",
         variant: "destructive",
         duration: 3000,
       });
+    };
+
+    const handleWPUpdate = ({ userId, wordPower, level }) => {
+      if (String(userId) === String(currentUserId)) {
+        toast({
+          title: "🎉 Word Power Updated!",
+          description: `You now have ${wordPower} WP • Level ${level}`,
+        });
+      }
     };
 
     socket.on("roundStarted", handleRoundStarted);
@@ -395,6 +406,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     socket.on("settingsUpdated", handleSettingsUpdated);
     socket.on("forceSubmit", handleForceSubmit);
     socket.on("roundSkipped", handleRoundSkipped);
+    socket.on("playerWPUpdated", handleWPUpdate);
 
     return () => {
       socket.off("roundStarted", handleRoundStarted);
@@ -406,10 +418,11 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       socket.off("settingsUpdated", handleSettingsUpdated);
       socket.off("forceSubmit", handleForceSubmit);
       socket.off("roundSkipped", handleRoundSkipped);
+      socket.off("playerWPUpdated", handleWPUpdate);
     };
-  }, [code, normalizeId, toast]);
+  }, [code, normalizeId, toast, currentUserId]);
 
-  // Defensive unlock
+  // ---------- DEFENSIVE UNLOCK ----------
   useEffect(() => {
     if (
       mode === "play" &&
@@ -422,7 +435,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     }
   }, [mode, endAt, timeLeft, submitted]);
 
-  // ========== HANDLERS ==========
+  // ---------- HANDLERS ----------
   const handleChange = useCallback((key, val) => {
     setAnswers((prev) => ({ ...prev, [key]: val }));
   }, []);
@@ -463,7 +476,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     setShowFinal(false);
   }, []);
 
-  // ========== RETURN ==========
+  // ---------- RETURN ----------
   return {
     players,
     playerNameById,
@@ -492,6 +505,11 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     showFinal,
     finalTotals,
     finalWinners,
+    wpEarned: currentUserId
+      ? Math.floor((finalTotals[currentUserId] || 0) / 2)
+      : 0,
+
+    // Handlers
     handleChange,
     handleSubmit,
     handleStopRound,
