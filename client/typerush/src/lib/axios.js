@@ -3,7 +3,7 @@ import axios from "axios";
 const DEV = import.meta.env.DEV;
 export const API_BASE = DEV
   ? "http://localhost:5000/api"
-  : import.meta.env.VITE_API_URL ||"https://brza-geo.onrender.com/api"; // e.g. https://your-backend.render.app
+  : "https://brza-geo.onrender.com/api"; // e.g. https://your-backend.render.app
 
 const api = axios.create({
   baseURL: API_BASE, 
