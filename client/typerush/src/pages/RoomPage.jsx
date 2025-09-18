@@ -85,11 +85,15 @@ export default function RoomPage() {
     (room.host._id === currentUserId || room.host === currentUserId);
 
   // ---- Handlers ----
-  const handleLeave = () => {
-    socket.emit("leaveRoom", { code });
-    navigate("/main");
+  const handleLeave = async () => {
+    try {
+      await api.post("/room/leave", { code: room.code }); // call REST API
+      navigate("/main");
+    } catch (err) {
+      console.error("❌ Failed to leave room:", err);
+      alert("Не успеавте да ја напуштите собата.");
+    }
   };
-
   const handleStartGame = async () => {
     await api.patch("/room/update-settings", {
       code: room.code,

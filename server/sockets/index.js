@@ -224,9 +224,9 @@ module.exports = (io) => {
 
       const fresh = await Room.findOne({ code: roomCode });
       if (fresh && fresh.currentRound < fresh.rounds) {
-        await startRound(io, fresh); 
+        await startRound(io, fresh);
       } else {
-        await endGame(io, roomCode); 
+        await endGame(io, roomCode);
       }
     });
   });
