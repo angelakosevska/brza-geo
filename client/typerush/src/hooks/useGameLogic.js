@@ -378,7 +378,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       setEndAt(null);
 
       toast({
-        title: "⚠️ Round skipped",
+        title: "Рундата е прескокната",
         description:
           payload.reason === "no-valid-words"
             ? "No words available for this letter."
@@ -391,8 +391,8 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     const handleWPUpdate = ({ userId, wordPower, level }) => {
       if (String(userId) === String(currentUserId)) {
         toast({
-          title: "🎉 Word Power Updated!",
-          description: `You now have ${wordPower} WP • Level ${level}`,
+          title: "Доби поени!",
+          description: `Сега имаш ${wordPower} WP • Ниво ${level}`,
         });
       }
     };
