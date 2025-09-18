@@ -54,11 +54,11 @@ exports.getCategoryById = async (req, res) => {
 
 /**
  * POST /api/categories
- * body: { name, words: string|array }
+ * body: { name, description?, words: string|array }
  */
 exports.createCategory = async (req, res) => {
   try {
-    const { name, words } = req.body;
+    const { name, words, description } = req.body;
     if (!name || !String(name).trim()) {
       return res.status(400).json({ message: "Name is required" });
     }
@@ -67,6 +67,7 @@ exports.createCategory = async (req, res) => {
 
     const category = await Category.create({
       name: String(name).trim(),
+      description: description ? String(description).trim() : "",
       words: normalized,
       createdBy: req.user?.userId || null,
       isDefault: req.user?.role === "admin",
@@ -81,7 +82,7 @@ exports.createCategory = async (req, res) => {
 
 /**
  * PUT /api/categories/:id
- * Replace name/words (admin or creator can edit)
+ * Replace name/description/words (admin or creator can edit)
  */
 exports.updateCategory = async (req, res) => {
   try {
@@ -98,8 +99,9 @@ exports.updateCategory = async (req, res) => {
       return res.status(403).json({ message: "Not allowed to update category" });
     }
 
-    const { name, words } = req.body;
+    const { name, words, description } = req.body;
     if (name) cat.name = String(name).trim();
+    if (description !== undefined) cat.description = String(description).trim();
     if (words !== undefined) {
       cat.words = normalizeWordsInput(words);
     }

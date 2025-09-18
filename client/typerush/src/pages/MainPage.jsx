@@ -10,7 +10,9 @@ import LevelCard from "@/components/level/LevelCard";
 import CategoriesPanel from "@/components/categories/CategoriesPanel";
 import { useLoading } from "@/context/LoadingContext";
 import { useAuth } from "@/context/AuthContext";
-import { socket } from "@/lib/socket"; // 👈 listen for WP updates
+import { socket } from "@/lib/socket";
+import { PlusCircle, DoorOpen } from "lucide-react";
+import LobbyCard from "@/components/LobbyCard";
 
 export default function MainPage() {
   const navigate = useNavigate();
@@ -104,29 +106,14 @@ export default function MainPage() {
         </div>
       </div>
 
-      {/* 2. Middle column – Create/Join room */}
+      {/* 2. Middle column – Game Lobby */}
       <div className="order-2 col-span-1">
-        <GlassCard className="flex flex-col justify-center items-center p-6 h-full">
-          <div className="flex flex-col justify-center items-center gap-1 w-full max-w-sm">
-            {/* Button: create room */}
-            <Button className="w-full" onClick={handleCreateRoom}>
-              Create room
-            </Button>
-
-            <span className="text-[var(--glass)] text-sm">or</span>
-
-            {/* Input + button: join room */}
-            <div className="flex flex-col gap-1 w-full">
-              <Input
-                placeholder="Enter room code"
-                value={joinCode}
-                onChange={(e) => setJoinCode(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleJoinRoom()}
-              />
-              <Button onClick={handleJoinRoom}>Join room</Button>
-            </div>
-          </div>
-        </GlassCard>
+        <LobbyCard
+          onCreate={handleCreateRoom}
+          onJoin={handleJoinRoom}
+          joinCode={joinCode}
+          setJoinCode={setJoinCode}
+        />
       </div>
 
       {/* 3. Right column – Categories panel */}

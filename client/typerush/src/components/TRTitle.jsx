@@ -10,12 +10,12 @@ export default function TRTitle() {
       </div>
 
       {/* Simple stacked version for mobile and tablets */}
-      <div className="flex flex-col md:hidden items-center gap-1">
-        <span className="text-3xl sm:text-4xl font-black uppercase text-[var(--primary)] leading-none">
+      <div className="md:hidden flex flex-col items-center gap-1">
+        <span className="font-black text-[var(--primary)] text-3xl sm:text-4xl uppercase leading-none">
           TYPE
         </span>
 
-        <span className="text-3xl sm:text-4xl font-black uppercase text-[var(--primary)] leading-none">
+        <span className="font-black text-[var(--primary)] text-3xl sm:text-4xl uppercase leading-none">
           RUSH
         </span>
       </div>

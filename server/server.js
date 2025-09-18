@@ -18,7 +18,7 @@ require("./sockets/index")(io);
 const allowedOrigins = [
   "http://localhost:5173",
   process.env.CLIENT_URL, // e.g. https://your-frontend.vercel.app
-  ...(process.env.CLIENT_URLS ? process.env.CLIENT_URLS.split(",") : []), // optional CSV
+  ...(process.env.CLIENT_URLS ? process.env.CLIENT_URLS.split(",") : []), 
 ].filter(Boolean);
 
 app.use(

@@ -40,7 +40,7 @@ export default function Welcome() {
           />
 
           <CardFooter className="flex flex-col items-center gap-6 w-full">
-            <h1 className="text-[var(--primary)] text-4xl">Welcome to</h1>
+            <h1 className="text-[var(--primary)] text-4xl">Добре дојде во</h1>
             {/* TRTitle is a custom styled component for the game name */}
             <TRTitle />
             <hr />
@@ -51,7 +51,7 @@ export default function Welcome() {
               className="w-full"
               onClick={() => navigate("/auth")}
             >
-              Log in or Register
+              Најави се или регистрирај се
             </Button>
 
             {/* On mobile: toggle button for instructions */}
