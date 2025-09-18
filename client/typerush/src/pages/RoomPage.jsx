@@ -8,6 +8,7 @@ import RoomCodeCard from "@/components/room/RoomCodeCard";
 import CategorySelector from "@/components/room/CategorySelector";
 import RoomSettingsForm from "@/components/room/RoomSettingsForm";
 import api from "@/lib/axios";
+import SelectedCategoriesPanel from "@/components/room/SelectedCategoriesPanel";
 
 export default function RoomPage() {
   const { code } = useParams();
@@ -151,9 +152,10 @@ export default function RoomPage() {
           className="p-4 lg:w-2/4"
         />
 
-        <GlassCard className="flex justify-center items-center w-full lg:w-1/4 min-h-[200px]">
-          Image
-        </GlassCard>
+        <SelectedCategoriesPanel
+          categories={room.categories || []}
+          className="lg:w-1/4"
+        />
       </div>
     </div>
   );

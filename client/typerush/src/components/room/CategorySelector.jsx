@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { socket } from "@/lib/socket";
 import GlassCard from "@/components/global/GlassCard";
 import api from "@/lib/axios";
 
@@ -12,7 +11,9 @@ export default function CategorySelector({
   className,
 }) {
   const [categories, setCategories] = useState([]);
-  const [selectedCategories, setSelectedCategories] = useState(selected || []);
+  const [selectedCategories, setSelectedCategories] = useState(
+    (selected || []).map((c) => (typeof c === "object" ? c._id : c)) // normalize to IDs
+  );
   const [loading, setLoading] = useState(true);
 
   // Fetch all categories
@@ -31,9 +32,11 @@ export default function CategorySelector({
     fetchCategories();
   }, []);
 
-  // Sync selection from props
+  // Sync selection from props (normalize to IDs)
   useEffect(() => {
-    setSelectedCategories(selected || []);
+    setSelectedCategories(
+      (selected || []).map((c) => (typeof c === "object" ? c._id : c))
+    );
   }, [selected]);
 
   // Toggle category
@@ -45,21 +48,8 @@ export default function CategorySelector({
 
   // Save categories
   const handleSave = () => {
-    socket.emit("setCategories", {
-      code: room.code,
-      categories: selectedCategories,
-    });
     if (onUpdate) onUpdate(selectedCategories);
   };
-
-  // Listen for updates from server
-  useEffect(() => {
-    const handleCategoriesSet = ({ categories }) => {
-      setSelectedCategories(categories);
-    };
-    socket.on("categoriesSet", handleCategoriesSet);
-    return () => socket.off("categoriesSet", handleCategoriesSet);
-  }, []);
 
   // Split categories
   const defaultCategories = categories.filter((c) => c.isDefault);
@@ -73,24 +63,27 @@ export default function CategorySelector({
           Нема категории.
         </div>
       )}
-      {list.map((cat) => (
-        <button
-          key={cat._id}
-          type="button"
-          className={`px-3 py-1.5 rounded-full border transition text-sm font-medium
-            ${
-              selectedCategories.includes(cat._id)
-                ? "bg-[var(--primary)] text-white border-[var(--primary)] shadow-sm"
-                : "bg-transparent text-[var(--primary)] border-[var(--primary)] hover:bg-[var(--primary)]/10"
-            }
-            ${readOnly ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}
-          `}
-          onClick={() => !readOnly && toggleCategory(cat._id)}
-          disabled={readOnly}
-        >
-          {cat.displayName?.mk || cat.name}
-        </button>
-      ))}
+      {list.map((cat) => {
+        const isSelected = selectedCategories.includes(cat._id);
+        return (
+          <button
+            key={cat._id}
+            type="button"
+            className={`px-3 py-1.5 rounded-full border transition text-sm font-medium
+              ${
+                isSelected
+                  ? "bg-[var(--primary)] text-white border-[var(--primary)] shadow-sm"
+                  : "bg-transparent text-[var(--primary)] border-[var(--primary)] hover:bg-[var(--primary)]/10"
+              }
+              ${readOnly ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}
+            `}
+            onClick={() => !readOnly && toggleCategory(cat._id)}
+            disabled={readOnly}
+          >
+            {cat.displayName?.mk || cat.name}
+          </button>
+        );
+      })}
     </div>
   );
 
