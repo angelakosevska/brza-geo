@@ -44,7 +44,8 @@ exports.getCategories = async (req, res) => {
 exports.getCategoryById = async (req, res) => {
   try {
     const category = await Category.findById(req.params.id).lean();
-    if (!category) return res.status(404).json({ message: "Category not found" });
+    if (!category)
+      return res.status(404).json({ message: "Category not found" });
     return res.json({ category });
   } catch (err) {
     console.error("❌ Error in getCategoryById:", err);
@@ -96,7 +97,9 @@ exports.updateCategory = async (req, res) => {
     const isCreator = userId && String(cat.createdBy) === String(userId);
 
     if (!isAdmin && !isCreator) {
-      return res.status(403).json({ message: "Not allowed to update category" });
+      return res
+        .status(403)
+        .json({ message: "Not allowed to update category" });
     }
 
     const { name, words, description } = req.body;
@@ -152,14 +155,25 @@ exports.appendWords = async (req, res) => {
 
 /**
  * DELETE /api/categories/:id
- * Admin only
+ * Admin or creator can delete
  */
 exports.deleteCategory = async (req, res) => {
   try {
-    if (req.user?.role !== "admin") {
-      return res.status(403).json({ message: "Only admin can delete categories" });
+    const cat = await Category.findById(req.params.id);
+    if (!cat) return res.status(404).json({ message: "Category not found" });
+
+    const userId = req.user?.userId;
+    const userRole = req.user?.role || "player";
+    const isAdmin = userRole === "admin";
+    const isCreator = userId && String(cat.createdBy) === String(userId);
+
+    if (!isAdmin && !isCreator) {
+      return res
+        .status(403)
+        .json({ message: "Not allowed to delete this category" });
     }
-    await Category.findByIdAndDelete(req.params.id);
+
+    await cat.deleteOne();
     return res.json({ ok: true });
   } catch (err) {
     console.error("❌ Error in deleteCategory:", err);
