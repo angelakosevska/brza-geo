@@ -10,7 +10,7 @@ export default function SelectedCategoriesPanel({ categories =[], className }) {
   }
 
   return (
-    <GlassCard className={`${className} flex flex-col gap-4 p-6 h-full`}>
+    <GlassCard className={`${className} flex flex-col gap-4 p-6 `}>
       {/* Header with badge */}
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-[var(--primary)] text-lg">

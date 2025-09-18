@@ -79,7 +79,7 @@ export default function InfoAccordion() {
       <Accordion type="single" collapsible>
         {/* How to play */}
         <AccordionItem value="howto">
-          <AccordionTrigger className="text-[var(--primary)] hover:text-[var(--accent)] text-lg transition-colors">
+          <AccordionTrigger className="text-[var(--primary)] hover:text-[var(--primary)]/50 text-lg transition-colors">
             Како да играш
           </AccordionTrigger>
           <AccordionContent>
@@ -108,7 +108,7 @@ export default function InfoAccordion() {
 
         {/* Modes */}
         <AccordionItem value="modes">
-          <AccordionTrigger className="text-[var(--primary)] hover:text-[var(--accent)] text-lg transition-colors">
+          <AccordionTrigger className="text-[var(--primary)] hover:text-[var(--primary)]/50 text-lg transition-colors">
             Модови
           </AccordionTrigger>
           <AccordionContent className="space-y-4">
@@ -134,7 +134,7 @@ export default function InfoAccordion() {
 
         {/* Categories */}
         <AccordionItem value="categories">
-          <AccordionTrigger className="text-[var(--primary)] hover:text-[var(--accent)] text-lg transition-colors">
+          <AccordionTrigger className="text-[var(--primary)] hover:text-[var(--primary)]/50 text-lg transition-colors">
             Категории
           </AccordionTrigger>
           <AccordionContent>
@@ -158,6 +158,21 @@ export default function InfoAccordion() {
                 </li>
               ))}
             </ul>
+          </AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="levelup">
+          <AccordionTrigger className="text-[var(--primary)] hover:text-[var(--primary)]/50 text-lg transition-colors">
+            Поени и Нивоа
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 p-3 rounded-lg transition">
+              <p className="text-[var(--text)]/80 text-sm">
+                По завршување на секоја игра сите играчи добиваат поени врз
+                основа на своите резултати. Со собирање на поени се качуваш на
+                повисоки нивоа кои ја прикажуваат твојата активност и искуство
+                во играта.
+              </p>
+            </div>
           </AccordionContent>
         </AccordionItem>
       </Accordion>

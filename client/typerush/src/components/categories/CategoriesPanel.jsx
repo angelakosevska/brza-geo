@@ -9,7 +9,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown, PlusCircle, Pencil } from "lucide-react";
+import { ChevronDown, Plus, Pencil } from "lucide-react";
 import { Textarea } from "../ui/textarea";
 import CategoryEditModal from "@/components/categories/CategoryEditModal";
 import { useAuth } from "@/context/AuthContext";
@@ -136,9 +136,9 @@ export default function CategoriesPanel() {
         ) : (
           <>
             <Collapsible defaultOpen>
-              <CollapsibleTrigger className="flex justify-between items-center mb-1 w-full font-semibold text-[var(--primary)] text-lg">
+              <CollapsibleTrigger className="group flex justify-between items-center mb-1 w-full font-semibold text-[var(--primary)] text-lg">
                 Основни
-                <ChevronDown className="w-4 h-4 text-[var(--primary)] data-[state=open]:rotate-90 transition-transform" />
+                <ChevronDown className="w-5 h-5 text-[var(--primary)] group-data-[state=open]:rotate-180 transition-transform" />
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <ul className="space-y-2 ml-2 max-h-40 overflow-y-auto text-sm">
@@ -154,9 +154,9 @@ export default function CategoriesPanel() {
             </Collapsible>
 
             <Collapsible>
-              <CollapsibleTrigger className="flex justify-between items-center mb-1 w-full font-semibold text-[var(--primary)] text-lg">
+              <CollapsibleTrigger className="group flex justify-between items-center mb-1 w-full font-semibold text-[var(--primary)] text-lg">
                 Додадени од играчите
-                <ChevronDown className="w-4 h-4 text-[var(--primary)] data-[state=open]:rotate-90 transition-transform" />
+                <ChevronDown className="w-5 h-5 text-[var(--primary)] group-data-[state=open]:rotate-180 transition-transform" />
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <ul className="space-y-2 ml-2 max-h-40 overflow-y-auto text-sm">
@@ -173,9 +173,9 @@ export default function CategoriesPanel() {
 
             {/* Add new */}
             <Collapsible>
-              <CollapsibleTrigger className="flex justify-between items-center mb-1 w-full font-semibold text-[var(--primary)] text-lg">
+              <CollapsibleTrigger className="group flex justify-between items-center mb-1 w-full font-semibold text-[var(--primary)] text-lg">
                 Додади категорија
-                <PlusCircle className="w-4 h-4 text-[var(--primary)]" />
+                <Plus className="w-5 h-5 text-[var(--primary)] group-data-[state=open]:rotate-45 transition-transform" />
               </CollapsibleTrigger>
               <CollapsibleContent className="flex flex-col gap-2">
                 <Input
