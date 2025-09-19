@@ -3,9 +3,10 @@ import GlassCard from "@/components/global/GlassCard";
 import { useAuth } from "@/context/AuthContext";
 
 export default function LevelCard({ level, currentWP }) {
-  // секој левел бара 100 WP
   const wpForNextLevel = 100;
-  const currentLevelWP = currentWP % wpForNextLevel;
+  const wpRequired = level * wpForNextLevel; 
+  const wpAtLevelStart = (level - 1) * wpForNextLevel;
+  const currentLevelWP = currentWP - wpAtLevelStart; // progress inside current level
   const progress = (currentLevelWP / wpForNextLevel) * 100;
   const { user } = useAuth();
   return (
@@ -34,7 +35,7 @@ export default function LevelCard({ level, currentWP }) {
 
       {/* WP info */}
       <p className="text-[var(--glass)] text-sm">
-        Поени: {currentLevelWP}wp / {wpForNextLevel * level}wp
+        Поени: {currentWP}wp / {wpRequired}wp
       </p>
 
       {/* Progress bar */}

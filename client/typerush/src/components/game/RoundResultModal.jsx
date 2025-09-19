@@ -12,7 +12,6 @@ export default function RoundResultsModal({
   players = [],
   playerNameById = {},
   answerDetails = {},
-  roundScores = {},
 
   breakLeft = null,
   hasMoreRounds,
@@ -23,14 +22,6 @@ export default function RoundResultsModal({
 
   const normalizeId = (p) =>
     typeof p === "string" ? p : p?._id ?? String(p ?? "");
-
-  const roundTotals = Object.entries(roundScores)
-    .map(([id, pts]) => ({
-      id,
-      pts,
-      name: playerNameById[id] || String(id).slice(-5),
-    }))
-    .sort((a, b) => b.pts - a.pts);
 
   return (
     <div
@@ -109,7 +100,7 @@ export default function RoundResultsModal({
                       valid: false,
                       unique: false,
                       points: 0,
-                      reason: "empty",
+                      reason: "празно",
                     };
 
                     const badgeText = info.valid

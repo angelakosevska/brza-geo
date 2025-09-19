@@ -1,8 +1,8 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Welcome from "./pages/WelcomePage";
-import Layout from "./Layout";
-import Layout1 from "./Layout1";
-import Layout2 from "./Layout2";
+import Layout from "./layout/Layout";
+import Layout1 from "./layout/Layout1";
+import Layout2 from "./layout/Layout2";
 import MainPage from "./pages/MainPage";
 import AuthPage from "./pages/AuthPage";
 import RoomPage from "./pages/RoomPage";
@@ -23,7 +23,7 @@ export default function AppRoutes() {
 
   return (
     <Routes>
-      {/* Welcome → ако е логнат директно редирект кон /main */}
+      {/* Welcome → if you are logged in navigate to /main*/}
       <Route element={<Layout />}>
         <Route
           path="/"

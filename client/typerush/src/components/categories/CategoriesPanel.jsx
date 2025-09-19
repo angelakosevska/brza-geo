@@ -105,7 +105,7 @@ export default function CategoriesPanel() {
     return (
       <li
         key={cat._id}
-        className="flex justify-between items-center bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 p-2 rounded-lg text-[var(--text)]"
+        className="flex flex-1/3 justify-between items-center bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 p-2 rounded-lg text-[var(--text)]"
       >
         <div>
           <p className="font-semibold">{cat.name}</p>

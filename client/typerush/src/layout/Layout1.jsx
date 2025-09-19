@@ -1,6 +1,8 @@
 import { Outlet } from "react-router-dom";
-import LetterBackground from "./components/global/LetterBackground";
+import LetterBackground from "@/components/global/LetterBackground";
 
+//letter backgorund without any cards
+//for auth pages where the cards vary in sizes
 export default function Layout1() {
   return (
     <LetterBackground>

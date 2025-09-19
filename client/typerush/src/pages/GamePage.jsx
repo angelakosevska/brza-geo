@@ -17,9 +17,7 @@ export default function GamePage() {
   const { user } = useAuth();
   const currentUserId = user?.id;
 
-  // ✅ Сите state-ови и хендлери од custom hook-от
   const {
-    // основна состојба
     players,
     currentRound,
     totalRounds,
@@ -41,15 +39,11 @@ export default function GamePage() {
     handleSubmit,
     handleStopRound,
     dictByCategory,
-
-    // резултати по рунда
     showResults,
     roundScores,
     answerDetails,
     breakLeft,
     handleNextRound,
-
-    // финални резултати
     showFinal,
     finalTotals,
     finalWinners,
@@ -61,11 +55,11 @@ export default function GamePage() {
   } = useGameLogic({ code, currentUserId, navigate });
 
   return (
-    <div>
-      {/* Горен дел: левата страна е рундата и одговорите, десната страна е листата на играчи */}
-      <div className="gap-1 grid grid-cols-1 lg:grid-cols-4 max-h-[60vh]">
-        {/* Лева страна – информации за рундата и внес на одговори */}
-        <div className="flex flex-col gap-1 lg:col-span-3">
+    <div className="flex flex-col gap-2 mx-auto w-full max-w-[90vw] min-h-[75vh]">
+      {/* Main content */}
+      <div className="flex-1 gap-2 grid grid-cols-1 lg:grid-cols-4">
+        {/* Left: Round info + answers */}
+        <div className="flex flex-col gap-2 lg:col-span-3">
           <RoundInfoCard
             currentRound={currentRound}
             totalRounds={totalRounds}
@@ -96,7 +90,7 @@ export default function GamePage() {
           />
         </div>
 
-        {/* Десна страна – листа на играчи */}
+        {/* Right: Players list */}
         <div className="lg:col-span-1">
           <PlayersList
             players={players}
@@ -107,7 +101,7 @@ export default function GamePage() {
         </div>
       </div>
 
-      {/* Модал со резултати по рунда */}
+      {/* Round results modal */}
       <RoundResultsModal
         show={showResults}
         isHost={isHost}
@@ -124,7 +118,7 @@ export default function GamePage() {
         onNextRound={handleNextRound}
       />
 
-      {/* Финален модал со резултати и добиен Word Power */}
+      {/* Final results modal */}
       <FinalResultsModal
         show={showFinal}
         code={code}

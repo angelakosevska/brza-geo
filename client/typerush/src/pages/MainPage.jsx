@@ -94,14 +94,14 @@ export default function MainPage() {
   };
 
   return (
-    <div className="gap-1 grid grid-cols-1 lg:grid-cols-3 mx-auto max-w-[95vw]">
+    <div className="gap-1 grid grid-cols-1 lg:grid-cols-3 mx-auto w-full max-w-[95vw]">
       {/* 1. Left column – LevelCard + Info */}
       <div className="flex flex-col gap-1 order-1 col-span-1">
         <LevelCard
           currentWP={profile?.wordPower || 0}
           level={profile?.level || 1}
         />
-        <div className="hidden lg:block">
+        <div className="hidden lg:block h-full">
           <InfoAccordion />
         </div>
       </div>

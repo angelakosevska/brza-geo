@@ -1,7 +1,8 @@
 import { Outlet } from "react-router-dom";
-import LetterBackground from "./components/global/LetterBackground";
-import GlassCard from "./components/global/GlassCard";
+import LetterBackground from "@/components/global/LetterBackground";
+import GlassCard from "@/components/global/GlassCard";
 
+//letter background with one big glass card layout
 export default function Layout() {
   return (
     <LetterBackground>

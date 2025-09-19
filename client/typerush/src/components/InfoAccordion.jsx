@@ -72,7 +72,7 @@ export default function InfoAccordion() {
   ];
 
   return (
-    <GlassCard className="flex flex-col gap-2 p-4">
+    <GlassCard className="flex-col flex-1/3 gap-2 p-4 h-full">
       <h2 className="mb-2 font-bold text-[var(--primary)] text-xl">
         За Играта
       </h2>
