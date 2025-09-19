@@ -34,7 +34,7 @@ exports.getCategories = async (req, res) => {
     return res.json({ categories });
   } catch (err) {
     console.error("❌ Error in getCategories:", err);
-    return res.status(500).json({ message: "Failed to get categories" });
+    return res.status(500).json({ message: res.__("failed_get_categories") });
   }
 };
 
@@ -45,11 +45,11 @@ exports.getCategoryById = async (req, res) => {
   try {
     const category = await Category.findById(req.params.id).lean();
     if (!category)
-      return res.status(404).json({ message: "Category not found" });
+      return res.status(404).json({ message: res.__("category_not_found") });
     return res.json({ category });
   } catch (err) {
     console.error("❌ Error in getCategoryById:", err);
-    return res.status(500).json({ message: "Failed to get category" });
+    return res.status(500).json({ message: res.__("failed_get_category") });
   }
 };
 
@@ -61,7 +61,9 @@ exports.createCategory = async (req, res) => {
   try {
     const { name, words, description } = req.body;
     if (!name || !String(name).trim()) {
-      return res.status(400).json({ message: "Name is required" });
+      return res
+        .status(400)
+        .json({ message: res.__("category_name_required") });
     }
 
     const normalized = normalizeWordsInput(words);
@@ -77,7 +79,7 @@ exports.createCategory = async (req, res) => {
     return res.status(201).json({ category });
   } catch (err) {
     console.error("❌ Error in createCategory:", err);
-    return res.status(500).json({ message: "Failed to create category" });
+    return res.status(500).json({ message: res.__("failed_create_category") });
   }
 };
 
@@ -89,7 +91,8 @@ exports.updateCategory = async (req, res) => {
   try {
     const id = req.params.id;
     const cat = await Category.findById(id);
-    if (!cat) return res.status(404).json({ message: "Category not found" });
+    if (!cat)
+      return res.status(404).json({ message: res.__("category_not_found") });
 
     const userId = req.user?.userId;
     const userRole = req.user?.role || "player";
@@ -99,7 +102,7 @@ exports.updateCategory = async (req, res) => {
     if (!isAdmin && !isCreator) {
       return res
         .status(403)
-        .json({ message: "Not allowed to update category" });
+        .json({ message: res.__("not_allowed_update_category") });
     }
 
     const { name, words, description } = req.body;
@@ -109,11 +112,11 @@ exports.updateCategory = async (req, res) => {
       cat.words = normalizeWordsInput(words);
     }
 
-    await cat.save(); // pre('save') ќе ја апдејтира validLetters
+    await cat.save(); // pre('save') updates validLetters
     return res.json({ category: cat });
   } catch (err) {
     console.error("❌ Error in updateCategory:", err);
-    return res.status(500).json({ message: "Failed to update category" });
+    return res.status(500).json({ message: res.__("failed_update_category") });
   }
 };
 
@@ -125,7 +128,8 @@ exports.appendWords = async (req, res) => {
   try {
     const id = req.params.id;
     const cat = await Category.findById(id);
-    if (!cat) return res.status(404).json({ message: "Category not found" });
+    if (!cat)
+      return res.status(404).json({ message: res.__("category_not_found") });
 
     const newWords = normalizeWordsInput(req.body.words);
 
@@ -140,16 +144,23 @@ exports.appendWords = async (req, res) => {
     }
 
     if (!toAdd.length) {
-      return res.status(200).json({ message: "No new words added", added: [] });
+      return res.status(200).json({
+        message: res.__("no_new_words"),
+        added: [],
+      });
     }
 
     cat.words = [...cat.words, ...toAdd];
-    await cat.save(); // validLetters ќе се апдејтира
+    await cat.save();
 
-    return res.json({ added: toAdd, category: cat });
+    return res.json({
+      message: res.__("words_added"),
+      added: toAdd,
+      category: cat,
+    });
   } catch (err) {
     console.error("❌ Error in appendWords:", err);
-    return res.status(500).json({ message: "Failed to append words" });
+    return res.status(500).json({ message: res.__("failed_append_words") });
   }
 };
 
@@ -160,7 +171,8 @@ exports.appendWords = async (req, res) => {
 exports.deleteCategory = async (req, res) => {
   try {
     const cat = await Category.findById(req.params.id);
-    if (!cat) return res.status(404).json({ message: "Category not found" });
+    if (!cat)
+      return res.status(404).json({ message: res.__("category_not_found") });
 
     const userId = req.user?.userId;
     const userRole = req.user?.role || "player";
@@ -170,13 +182,12 @@ exports.deleteCategory = async (req, res) => {
     if (!isAdmin && !isCreator) {
       return res
         .status(403)
-        .json({ message: "Not allowed to delete this category" });
+        .json({ message: res.__("not_allowed_delete_category") });
     }
 
     await cat.deleteOne();
-    return res.json({ ok: true });
+    return res.json({ message: res.__("category_deleted") });
   } catch (err) {
-    console.error("❌ Error in deleteCategory:", err);
-    return res.status(500).json({ message: "Failed to delete category" });
+    return res.status(500).json({ message: res.__("failed_delete_category") });
   }
 };

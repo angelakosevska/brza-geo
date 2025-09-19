@@ -8,20 +8,33 @@ const { sendPasswordResetEmail } = require("../utils/email");
 exports.register = async (req, res) => {
   const { username, email, password, confirmPassword } = req.body;
 
+  // Basic checks
   if (!username || !email || !password || !confirmPassword) {
     return res.status(400).json({ message: res.__("all_fields_required") });
   }
   if (!validator.isEmail(email)) {
     return res.status(400).json({ message: res.__("invalid_email") });
   }
-  if (password.length < 6) {
-    return res.status(400).json({ message: res.__("password_too_short") });
+
+  // Strong password validation
+  if (
+    !validator.isStrongPassword(password, {
+      minLength: 8,
+      minLowercase: 1,
+      minUppercase: 1,
+      minNumbers: 1,
+      minSymbols: 1,
+    })
+  ) {
+    return res.status(400).json({ message: res.__("password_not_strong") });
   }
+
   if (password !== confirmPassword) {
     return res.status(400).json({ message: res.__("passwords_do_not_match") });
   }
 
   try {
+    // Check if username or email already exists
     const existing = await User.findOne({
       $or: [
         { email: email.toLowerCase().trim() },
@@ -36,7 +49,7 @@ exports.register = async (req, res) => {
 
     const hash = await bcrypt.hash(password, 10);
 
-    // 👑 ако е со ADMIN_EMAIL → role: admin
+    // Assign role (admin if matches ADMIN_EMAIL, otherwise player)
     const role =
       email.toLowerCase().trim() === process.env.ADMIN_EMAIL?.toLowerCase()
         ? "admin"
@@ -49,13 +62,14 @@ exports.register = async (req, res) => {
       role,
     });
 
-    // optional welcome email
+    // Optional welcome email
     try {
       await require("../utils/email").sendWelcomeEmail(newUser);
     } catch (err) {
       console.warn("📭 Failed to send welcome email:", err.message);
     }
 
+    // Generate JWT
     const token = jwt.sign(
       { userId: newUser._id, username: newUser.username, role: newUser.role },
       process.env.JWT_SECRET,
@@ -86,7 +100,7 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: res.__("all_fields_required") });
     }
 
-    // email или username
+    // Check if login input is email or username
     const isEmail = validator.isEmail((login || "").trim());
     const query = isEmail
       ? { email: login.toLowerCase().trim() }
@@ -156,9 +170,20 @@ exports.resetPassword = async (req, res) => {
   if (!email || !resetCode || !newPassword || !confirmPassword) {
     return res.status(400).json({ message: res.__("all_fields_required") });
   }
-  if (newPassword.length < 6) {
-    return res.status(400).json({ message: res.__("password_too_short") });
+
+  // Strong password validation for new password
+  if (
+    !validator.isStrongPassword(newPassword, {
+      minLength: 8,
+      minLowercase: 1,
+      minUppercase: 1,
+      minNumbers: 1,
+      minSymbols: 1,
+    })
+  ) {
+    return res.status(400).json({ message: res.__("password_not_strong") });
   }
+
   if (newPassword !== confirmPassword) {
     return res.status(400).json({ message: res.__("passwords_do_not_match") });
   }

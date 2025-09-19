@@ -2,7 +2,7 @@ const generateUniqueRoomCode = require("../utils/generateUniqueRoomCode");
 const Room = require("../models/Room");
 const { getIO } = require("../sockets/ioInstance");
 
-// Utility: normalize hostId (whether it's ObjectId or populated object)
+// Utility: extract hostId consistently (ObjectId vs populated object)
 const getHostId = (host) => (host?._id ? host._id.toString() : host.toString());
 
 /**
@@ -14,13 +14,12 @@ exports.createRoom = async (req, res) => {
     let code;
     let exists = true;
 
-    // Ensure the room code is unique
+    // Loop until unique code
     while (exists) {
       code = generateUniqueRoomCode().toUpperCase();
       exists = await Room.exists({ code });
     }
 
-    // Create the room with default settings
     const room = await Room.create({
       code,
       host: hostId,
@@ -31,7 +30,6 @@ exports.createRoom = async (req, res) => {
       categories: [],
     });
 
-    // Fetch the full room object with populated fields
     const populatedRoom = await Room.findById(room._id)
       .populate("players")
       .populate("host")
@@ -40,7 +38,7 @@ exports.createRoom = async (req, res) => {
     res.json({ room: populatedRoom });
   } catch (err) {
     console.error("❌ Error creating room:", err);
-    res.status(500).json({ message: "Failed to create room." });
+    res.status(500).json({ message: res.__("failed_create_room") });
   }
 };
 
@@ -52,15 +50,13 @@ exports.joinRoom = async (req, res) => {
   try {
     const userId = req.user.userId;
     let room = await Room.findOne({ code: code.toUpperCase() });
-    if (!room) return res.status(404).json({ message: "Room not found." });
+    if (!room) return res.status(404).json({ message: res.__("room_not_found") });
 
-    // Add user if not already in room
     if (!room.players.some((id) => id.toString() === userId)) {
       room.players.push(userId);
       await room.save();
     }
 
-    // Re-fetch with all populated fields
     room = await Room.findOne({ code: code.toUpperCase() })
       .populate("players")
       .populate("host")
@@ -71,7 +67,7 @@ exports.joinRoom = async (req, res) => {
     res.json({ room });
   } catch (err) {
     console.error("❌ Error joining room:", err);
-    res.status(500).json({ message: "Failed to join room." });
+    res.status(500).json({ message: res.__("failed_join_room") });
   }
 };
 
@@ -84,19 +80,16 @@ exports.leaveRoom = async (req, res) => {
     const userId = req.user.userId;
 
     let room = await Room.findOne({ code });
-    if (!room) return res.status(404).json({ message: "Room not found." });
+    if (!room) return res.status(404).json({ message: res.__("room_not_found") });
 
-    // Remove player from room
     room.players = room.players.filter((id) => id.toString() !== userId);
 
-    // If host leaves → transfer to next player or null
     if (room.host.toString() === userId) {
       room.host = room.players.length > 0 ? room.players[0] : null;
     }
 
     await room.save();
 
-    // Re-fetch with full populate
     room = await Room.findOne({ code })
       .populate("players")
       .populate("host")
@@ -105,11 +98,11 @@ exports.leaveRoom = async (req, res) => {
     const io = getIO();
     io.to(code).emit("roomUpdated", { room });
 
-    res.json({ message: "Successfully left the room.", room });
+    res.json({ message: res.__("left_room_success"), room });
     console.log("👋 Player left room:", { code, userId });
   } catch (err) {
     console.error("❌ Error leaving room:", err);
-    res.status(500).json({ message: "Failed to leave room." });
+    res.status(500).json({ message: res.__("failed_leave_room") });
   }
 };
 
@@ -124,16 +117,16 @@ exports.getRoom = async (req, res) => {
       .populate("host")
       .populate("categories");
 
-    if (!room) return res.status(404).json({ message: "Room not found." });
+    if (!room) return res.status(404).json({ message: res.__("room_not_found") });
     res.json({ room });
   } catch (err) {
     console.error("❌ Error fetching room:", err);
-    res.status(500).json({ message: "Failed to load room." });
+    res.status(500).json({ message: res.__("failed_load_room") });
   }
 };
 
 /**
- * Update room settings (host only)
+ * Update settings (host only)
  */
 exports.updateSettings = async (req, res) => {
   const { code, rounds, timer, endMode } = req.body;
@@ -143,21 +136,18 @@ exports.updateSettings = async (req, res) => {
       .populate("players")
       .populate("host");
 
-    if (!room) return res.status(404).json({ message: "Room not found." });
+    if (!room) return res.status(404).json({ message: res.__("room_not_found") });
 
-    // Check host permission
     const hostId = getHostId(room.host);
     if (hostId !== req.user.userId) {
-      return res.status(403).json({ message: "Only the host can update settings." });
+      return res.status(403).json({ message: res.__("only_host_update") });
     }
 
-    // Apply updates
     room.rounds = Math.max(1, Number(rounds || 5));
     room.timer = Math.max(3, Number(timer || 60));
     room.endMode = endMode === "PLAYER_STOP" ? "PLAYER_STOP" : "ALL_SUBMIT";
     await room.save();
 
-    // Re-fetch with categories
     room = await Room.findOne({ code: roomCode })
       .populate("players")
       .populate("host")
@@ -169,12 +159,12 @@ exports.updateSettings = async (req, res) => {
     res.json({ room });
   } catch (err) {
     console.error("❌ Error updating settings:", err);
-    res.status(500).json({ message: "Failed to update settings." });
+    res.status(500).json({ message: res.__("failed_update_settings") });
   }
 };
 
 /**
- * Update room categories (host only)
+ * Update categories (host only)
  */
 exports.updateCategories = async (req, res) => {
   const { code, categories } = req.body;
@@ -184,19 +174,16 @@ exports.updateCategories = async (req, res) => {
       .populate("players")
       .populate("host");
 
-    if (!room) return res.status(404).json({ message: "Room not found." });
+    if (!room) return res.status(404).json({ message: res.__("room_not_found") });
 
-    // Check host permission
     const hostId = getHostId(room.host);
     if (hostId !== req.user.userId) {
-      return res.status(403).json({ message: "Only the host can update categories." });
+      return res.status(403).json({ message: res.__("only_host_update") });
     }
 
-    // Save new categories (array of ObjectIds)
     room.categories = categories;
     await room.save();
 
-    // Re-fetch with category objects
     room = await Room.findOne({ code: roomCode })
       .populate("players")
       .populate("host")
@@ -208,6 +195,6 @@ exports.updateCategories = async (req, res) => {
     res.json({ room });
   } catch (err) {
     console.error("❌ Error updating categories:", err);
-    res.status(500).json({ message: "Failed to update categories." });
+    res.status(500).json({ message: res.__("failed_update_categories") });
   }
 };

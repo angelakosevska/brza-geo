@@ -1,78 +1,85 @@
 const Room = require("../models/Room");
 const Submission = require("../models/Submission");
 const User = require("../models/User");
-const Word = require("../models/Word");
+const Category = require("../models/Category"); // ✅ use Category.words
 const { getIO } = require("../sockets/ioInstance");
 const io = getIO();
 
-
+/**
+ * Handle player submitting answers for current round
+ */
 exports.submitAnswers = async (req, res) => {
   try {
     const { code } = req.params;
     const { words } = req.body;
 
-    const room = await Room.findOne({ code });
-    if (!room) return res.status(404).json({ message: "Собата не постои." });
+    // Populate categories so we can access .words arrays
+    const room = await Room.findOne({ code }).populate("categories");
+    if (!room) return res.status(404).json({ message: res.__("room_not_found") });
 
     const currentRound = room.currentRound;
     const letter = room.letter.toUpperCase();
 
+    // Prevent duplicate submissions
     const existing = await Submission.findOne({
       room: room._id,
       user: req.user.userId,
       round: currentRound,
     });
     if (existing) {
-      return res.status(400).json({ message: "Веќе сте поднеле одговори за оваа рунда." });
+      return res.status(400).json({ message: res.__("already_submitted") });
     }
 
-    const categories = room.categories;
     const invalidEntries = [];
 
-    for (const category of categories) {
-      const answer = (words[category] || "").trim();
+    for (const cat of room.categories) {
+      const categoryId = cat._id.toString();
+      const displayName = cat.displayName?.mk || cat.name;
+      const answer = (words[categoryId] || "").trim();
+
+      // Empty answer → check if dictionary had valid words
       if (!answer) {
-        const validWords = await Word.find({
-          category,
-          word: { $regex: `^${letter}`, $options: "i" },
-        });
-        if (validWords.length > 0) {
+        const hasMatching = cat.words.some(w =>
+          w.toUpperCase().startsWith(letter)
+        );
+        if (hasMatching) {
           invalidEntries.push({
-            category,
-            reason: `Мора да внесете збор за категоријата "${category}".`,
+            category: displayName,
+            reason: res.__("must_enter_word", { category: displayName }),
           });
         }
         continue;
       }
 
+      // Wrong starting letter
       if (!answer.toUpperCase().startsWith(letter)) {
         invalidEntries.push({
-          category,
-          reason: `Зборот "${answer}" не почнува со буквата "${letter}".`,
+          category: displayName,
+          reason: res.__("wrong_start_letter", { answer, letter }),
         });
         continue;
       }
 
-      const validWord = await Word.findOne({
-        category,
-        word: { $regex: `^${answer}$`, $options: "i" },
-      });
-
-      if (!validWord) {
+      // Not in dictionary
+      const isValid = cat.words.some(
+        w => w.toLowerCase() === answer.toLowerCase()
+      );
+      if (!isValid) {
         invalidEntries.push({
-          category,
-          reason: `Зборот "${answer}" не е валиден за категоријата "${category}".`,
+          category: displayName,
+          reason: res.__("invalid_word", { answer, category: displayName }),
         });
       }
     }
 
     if (invalidEntries.length > 0) {
       return res.status(400).json({
-        message: "Некои одговори не се валидни.",
+        message: res.__("some_invalid_answers"),
         errors: invalidEntries,
       });
     }
 
+    // Save submission
     const submission = new Submission({
       room: room._id,
       user: req.user.userId,
@@ -86,25 +93,29 @@ exports.submitAnswers = async (req, res) => {
     const user = await User.findById(req.user.userId);
     io.to(code).emit("playerSubmittedUpdate", { username: user.username });
 
-    res.status(201).json({ message: "Одговорите се успешно зачувани!" });
+    res.status(201).json({ message: res.__("answers_saved") });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Грешка при поднесување на одговорите." });
+    res.status(500).json({ message: res.__("submit_error") });
   }
 };
 
+/**
+ * Get results for current round
+ */
 exports.getRoundResults = async (req, res) => {
   try {
     const { code } = req.params;
 
     const room = await Room.findOne({ code });
-    if (!room) return res.status(404).json({ message: "Собата не постои." });
+    if (!room) return res.status(404).json({ message: res.__("room_not_found") });
 
     const submissions = await Submission.find({
       room: room._id,
       round: room.currentRound,
     }).populate("user", "username");
 
+    // Count how many times each word was used per category
     const categoryWordMap = {};
     submissions.forEach((sub) => {
       Object.entries(sub.words).forEach(([category, word]) => {
@@ -115,6 +126,7 @@ exports.getRoundResults = async (req, res) => {
       });
     });
 
+    // Score submissions
     const scoredSubmissions = submissions.map((sub) => {
       let score = 0;
       const scoredWords = {};
@@ -137,7 +149,7 @@ exports.getRoundResults = async (req, res) => {
       });
 
       sub.score = score;
-      sub.save(); // Optional: persist score
+      sub.save(); // optional persistence
 
       return {
         user: sub.user.username,
@@ -157,6 +169,6 @@ exports.getRoundResults = async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Грешка при прикажување резултати." });
+    res.status(500).json({ message: res.__("results_error") });
   }
 };
