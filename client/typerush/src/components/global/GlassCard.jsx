@@ -3,14 +3,14 @@ import { Card } from "@/components/ui/card";
 export default function GlassCard({
   children,
   className = "",
-  width = "max-w-[90vw]",
+
   ...props
 }) {
   return (
     <Card
       className={`
         w-full
-        ${width}
+        max-w-[90vw]
         h-auto
         bg-[var(--background)]/20
         border border-[var(--background)]

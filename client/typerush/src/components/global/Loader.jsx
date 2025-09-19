@@ -13,7 +13,7 @@ export default function Loader({ fullscreen = false, size = 48 }) {
   return (
     <div
       className={`flex items-center justify-center transition-opacity duration-300 ${
-        fullscreen ? "fixed inset-0 bg-[var(--background)] z-50" : ""
+        fullscreen ? "fixed inset-0 bg-[var(--background)]/60 backdrop-blur-lg z-50" : ""
       } ${visible ? "opacity-100" : "opacity-0"}`}
     >
       <style>

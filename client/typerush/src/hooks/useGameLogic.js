@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { socket } from "@/lib/socket";
 import api from "@/lib/axios";
 import { useToast } from "@/components/ui/use-toast";
+import { useLoading } from "@/context/LoadingContext";
 
 // ================== GAME LOGIC HOOK ==================
 // This hook manages the lifecycle of the game:
@@ -50,6 +51,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
 
   // ---------- TOASTER ----------
   const { toast } = useToast();
+  const { setLoading } = useLoading();
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -66,7 +68,10 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   );
 
   const isHost = useMemo(
-    () => Boolean(hostId && currentUserId && String(hostId) === String(currentUserId)),
+    () =>
+      Boolean(
+        hostId && currentUserId && String(hostId) === String(currentUserId)
+      ),
     [hostId, currentUserId]
   );
 
@@ -300,6 +305,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       serverNow,
       hasMore,
     }) => {
+      setLoading(false);
       setRoundScores(scores || {});
       setRoundAnswers(answers || {});
       setAnswerDetails(details || {});
@@ -444,12 +450,23 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     if (submitted || mode !== "play") return;
     socket.emit("submitAnswers", { code, answers: answersRef.current });
     setSubmitted(true);
+    setLoading(true);
+
+    // ✅ Stop timer immediately
+
+    setEndAt(null);
+    setTimeLeft(0);
   }, [submitted, mode, code]);
 
   const handleStopRound = useCallback(() => {
     if (mode !== "play" || endMode !== "PLAYER_STOP") return;
     socket.emit("playerStopRound", { code, answers: answersRef.current });
     setSubmitted(true);
+    setLoading(true);
+
+    // ✅ Stop timer immediately
+    setEndAt(null);
+    setTimeLeft(0);
   }, [mode, endMode, code]);
 
   const handleNextRound = useCallback(() => {

@@ -1,4 +1,4 @@
-import { UserRound, LogOut, Sun, Moon, Monitor } from "lucide-react";
+import { UserRound, LogOut, Sun, Moon, Monitor, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -18,19 +18,56 @@ export default function Header() {
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") || "system";
+    setTheme(savedTheme);
     applyTheme(savedTheme);
+
+    // Only listen to system changes if theme = "system"
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = () => {
+      if (localStorage.getItem("theme") === "system") {
+        applyTheme("system");
+      }
+    };
+    mediaQuery.addEventListener("change", handler);
+    return () => mediaQuery.removeEventListener("change", handler);
   }, []);
 
   const applyTheme = (mode) => {
     const root = document.documentElement;
-    if (mode === "dark") {
-      root.classList.add("dark");
+
+    if (mode === "system") {
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (prefersDark) {
+        root.classList.add("dark");
+      } else {
+        root.classList.remove("dark");
+      }
+    } else if (mode === "dark") {
+      root.classList.add("dark"); // force dark
     } else {
-      root.classList.remove("dark");
+      root.classList.remove("dark"); // force light
     }
+
     localStorage.setItem("theme", mode);
     setTheme(mode);
   };
+
+  const ThemeItem = ({ mode, icon: Icon, label }) => (
+    <DropdownMenuItem
+      onClick={() => applyTheme(mode)}
+      className={`flex items-center justify-between gap-2 text-md lg:text-lg cursor-pointer ${
+        theme === mode
+          ? "text-[var(--primary)] font-semibold"
+          : "text-[var(--text)] hover:text-[var(--accent)]"
+      }`}
+    >
+      <div className="flex items-center gap-2">
+        <Icon className="w-5 h-5" />
+        {label}
+      </div>
+      {theme === mode && <Check className="w-4 h-4 text-[var(--primary)]" />}
+    </DropdownMenuItem>
+  );
 
   return (
     <GlassCardHeader className="z-50 mt-2 max-h-25 align-middle">
@@ -72,41 +109,9 @@ export default function Header() {
             <DropdownMenuSeparator />
 
             {/* Theme switcher */}
-            <DropdownMenuItem
-              onClick={() => applyTheme("light")}
-              className={`flex items-center gap-2 text-md lg:text-lg cursor-pointer ${
-                theme === "light"
-                  ? "text-[var(--primary)] font-semibold"
-                  : "text-[var(--text)] hover:text-[var(--accent)]"
-              }`}
-            >
-              <Sun className="w-5 h-5" />
-              Светла тема
-            </DropdownMenuItem>
-
-            <DropdownMenuItem
-              onClick={() => applyTheme("dark")}
-              className={`flex items-center gap-2 text-md lg:text-lg cursor-pointer ${
-                theme === "dark"
-                  ? "text-[var(--primary)] font-semibold"
-                  : "text-[var(--text)] hover:text-[var(--accent)]"
-              }`}
-            >
-              <Moon className="w-5 h-5" />
-              Темна тема
-            </DropdownMenuItem>
-
-            <DropdownMenuItem
-              onClick={() => applyTheme("system")}
-              className={`flex items-center gap-2 text-md lg:text-lg cursor-pointer ${
-                theme === "system"
-                  ? "text-[var(--primary)] font-semibold"
-                  : "text-[var(--text)] hover:text-[var(--accent)]"
-              }`}
-            >
-              <Monitor className="w-5 h-5" />
-              Автоматска
-            </DropdownMenuItem>
+            <ThemeItem mode="light" icon={Sun} label="Светла тема" />
+            <ThemeItem mode="dark" icon={Moon} label="Темна тема" />
+            <ThemeItem mode="system" icon={Monitor} label="Автоматска" />
 
             <DropdownMenuSeparator className="bg-[var(--glass)]/5 mx-auto border-0 w-[95%] h-px" />
 
