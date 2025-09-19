@@ -1,15 +1,16 @@
 const mongoose = require("mongoose");
 
-// Regex for validating Macedonian Cyrillic letters (uppercase + lowercase + space + dash)
+// Regex for validating Macedonian Cyrillic letters (uppercase, lowercase, spaces, and dash)
 const CYRILLIC_RE =
   /^[АБВГДЃЕЖЗЅИЈКЛЉМНЊОПРСТЌУФХЦЧЏШабвгдѓежзѕијклљмнњопрстќуфхцчџш\s-]+$/;
 
-// Helper: check if a word is valid Cyrillic
+// Helper function: checks if a word contains only valid Cyrillic characters
 function isCyrillicWord(w) {
   return CYRILLIC_RE.test(String(w || "").trim());
 }
 
-// Helper: compute all valid first letters from a list of words
+// Helper function: calculates the set of first letters from the given words
+// Used for faster validation during gameplay (e.g., check if letter exists in category)
 function computeValidLetters(words = []) {
   const set = new Set();
   for (const w of words || []) {
@@ -19,47 +20,48 @@ function computeValidLetters(words = []) {
   return Array.from(set);
 }
 
-// Category schema
+// Category schema definition
 const CategorySchema = new mongoose.Schema(
   {
-    // Category name (short identifier)
+    // Internal identifier for the category (short name, not localized)
     name: { type: String, required: true },
 
-    // Category description (optional, limited to 300 chars)
+    // Human-readable description of the category (optional, up to 300 chars)
     description: {
       type: String,
       default: "",
       maxlength: 300,
     },
 
-    // Word list for the category
+    // List of words belonging to this category
     words: {
       type: [String],
       default: [],
       validate: {
+        // Ensure all words are valid Cyrillic
         validator: function (arr) {
           return arr.every((w) => isCyrillicWord(w));
         },
-        message: "All words must be in Cyrillic.",
+        message: "Сите зборови треба да се на македонски.",
       },
     },
 
-    // Letters automatically derived from the words (first letters)
+    // Pre-computed list of valid starting letters for faster gameplay checks
     validLetters: {
       type: [String],
       default: [],
     },
 
-    // Reference to user who created the category
+    // Reference to the User who created the category (null if system default)
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 
-    // Flag for default system categories
+    // Distinguish between categories from admin (default true) and user-created ones (default false)
     isDefault: { type: Boolean, default: false },
   },
   { collection: "categories", timestamps: true }
 );
 
-// Middleware: automatically update validLetters when words change
+// Middleware: before saving, recompute validLetters if the words list has changed
 CategorySchema.pre("save", function (next) {
   if (this.isModified("words")) {
     this.validLetters = computeValidLetters(this.words);
@@ -67,4 +69,5 @@ CategorySchema.pre("save", function (next) {
   next();
 });
 
+// Export Category model for use throughout the app
 module.exports = mongoose.model("Category", CategorySchema);
