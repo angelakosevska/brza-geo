@@ -36,14 +36,9 @@ async function startRound(io, roomDoc) {
       validLetters.add(letter);
     }
   }
-  console.log("📂 categoryMeta:", categoryMeta);
-  console.log("📚 collected validLetters:", Array.from(validLetters));
-
 
   // ако нема валидни букви → скипни рундата
   if (validLetters.size === 0) {
-    console.warn("⚠️ No valid letters found. Skipping round.");
-
     io.to(roomCode).emit("roundSkipped", {
       currentRound: (roomDoc.currentRound || 0) + 1,
       totalRounds: roomDoc.rounds,
@@ -70,7 +65,7 @@ async function startRound(io, roomDoc) {
   const pool = Array.from(validLetters);
   const idx = Math.floor(Math.random() * pool.length);
   const letter = pool[idx];
-  console.log("🎲 Picked letter:", letter);
+  
 
   const nextRound = (roomDoc.currentRound || 0) + 1;
 
