@@ -7,27 +7,28 @@ export default function RoundInfoCard({
   letter, // string like "A" (or null before round)
   waiting = false,
   className = "",
+  
 }) {
   return (
-    <GlassCard className={`p-4 lg:p-6 ${className}`}>
-      <div className="flex sm:flex-row flex-col sm:justify-between sm:items-center gap-4">
+    <GlassCard className={`p-4 sm:p-5 lg:p-6 ${className}`}>
+      <div className="flex sm:flex-row flex-col sm:justify-between sm:items-center gap-3 sm:gap-6">
         {/* Left: Round X / Y */}
         <div className="flex items-center gap-2">
-          <span className="opacity-70 text-[var(--text)] text-xs uppercase tracking-wide">
+          <span className="opacity-70 text-[var(--text)] text-xs sm:text-sm uppercase tracking-wide">
             Рунда
           </span>
-          <span className="font-medium text-[var(--text)]">
+          <span className="font-medium text-[var(--text)] text-base sm:text-lg lg:text-xl">
             {currentRound || "-"} / {totalRounds || "-"}
           </span>
         </div>
 
         {/* Center: Letter */}
         <div className="flex justify-center">
-          <div className="flex justify-center items-center">
-            <span className="hidden sm:inline opacity-70 mr-3 text-[var(--text)] text-xs uppercase">
-             Буква
+          <div className="flex items-center">
+            <span className="hidden sm:inline opacity-70 mr-2 text-[var(--text)] text-xs sm:text-sm uppercase">
+              Буква
             </span>
-            <span className="font-extrabold text-[var(--secondary)] text-4xl sm:text-5xl tracking-widest">
+            <span className="font-extrabold text-[var(--secondary)] text-2xl sm:text-3xl lg:text-4xl tracking-widest">
               {waiting ? "—" : letter ?? "—"}
             </span>
           </div>
@@ -35,7 +36,7 @@ export default function RoundInfoCard({
 
         {/* Right: Timer */}
         <div className="flex justify-end items-center">
-          <div className="text-[var(--accent)] text-2xl">
+          <div className="text-[var(--accent)] text-lg sm:text-xl lg:text-2xl">
             {timeLeft != null ? `${timeLeft}s` : "--"}
           </div>
         </div>
@@ -43,8 +44,8 @@ export default function RoundInfoCard({
 
       {/* Helper line for pre-round state */}
       {waiting && (
-        <div className="opacity-70 mt-3 text-[var(--text)] text-sm text-center">
-         Започнува нова рунда...
+        <div className="opacity-70 mt-3 text-[var(--text)] text-sm sm:text-base text-center">
+          Започнува нова рунда...
         </div>
       )}
     </GlassCard>

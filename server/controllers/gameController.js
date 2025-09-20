@@ -1,7 +1,7 @@
 const Room = require("../models/Room");
 const Submission = require("../models/Submission");
 const User = require("../models/User");
-const Category = require("../models/Category"); // ✅ use Category.words
+const Category = require("../models/Category");
 const { getIO } = require("../sockets/ioInstance");
 const io = getIO();
 

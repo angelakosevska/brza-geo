@@ -9,36 +9,32 @@ export default function FinalResultsModal({
   finalTotals = {},
   finalWinners = [],
   isHost = false,
-  wpEarned, // Word Power добиени по завршување на игра
+  wpEarned, 
   onBackToRoom,
   onLeaveToMain,
   onStartNewGame,
   onRequestClose,
   closeOnOverlay = true,
+  currentUserId,
 }) {
   if (!show) return null;
 
-  // ✅ Сортирање на играчи според поени
+
   const sorted = useMemo(() => {
     const entries = Object.entries(finalTotals);
     return entries.sort((a, b) => {
       const [ida, pa] = a;
       const [idb, pb] = b;
 
-      // Прво по поени (descending)
-      if (pb !== pa) return pb - pa;
-
-      // Ако поените се исти, сортирај по име
+      if (pb !== pa) return pb - pa; 
       const na = (playerNameById[ida] || String(ida).slice(-5)).toLowerCase();
       const nb = (playerNameById[idb] || String(idb).slice(-5)).toLowerCase();
       if (na !== nb) return na < nb ? -1 : 1;
-
-      // Ако и имињата се исти, сортирај по ID
       return String(ida) < String(idb) ? -1 : 1;
     });
   }, [finalTotals, playerNameById]);
 
-  // ✅ Имиња на победници
+
   const winnerNames =
     finalWinners.length > 0
       ? finalWinners
@@ -46,22 +42,21 @@ export default function FinalResultsModal({
           .join(", ")
       : null;
 
-  // ✅ Overlay клик за затворање
+
   const handleOverlayClick = () => {
     if (closeOnOverlay) onRequestClose?.();
   };
 
-  // ✅ ESC key за затворање
+ 
   useEffect(() => {
     if (!show) return;
     const onKey = (e) => {
       if (e.key === "Escape") onRequestClose?.();
-    };
+    }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [show, onRequestClose]);
 
-  // ✅ Медали за прво, второ, трето место
   const medalForIndex = (idx) => {
     if (idx === 0) return "🥇";
     if (idx === 1) return "🥈";
@@ -69,7 +64,7 @@ export default function FinalResultsModal({
     return null;
   };
 
-  // ✅ Пресметка на место (за да има исто место ако има ист број поени)
+
   const placeByRow = useMemo(() => {
     const places = [];
     let currentPlace = 1;
@@ -143,33 +138,32 @@ export default function FinalResultsModal({
             )}
           </div>
 
-          {/* Финална табела со поени */}
+          {/* Финална табела */}
           <div className="space-y-2 pr-1 max-h-[55vh] overflow-auto">
             {sorted.map(([pid, pts], idx) => {
-              const isWinner = finalWinners.includes(pid);
-              const name = playerNameById[pid] || String(pid).slice(-5);
               const place = placeByRow[idx];
               const medal = medalForIndex(idx);
+              const name = playerNameById[pid] || String(pid).slice(-5);
+              const isCurrent = String(pid) === String(currentUserId);
 
               return (
                 <div
                   key={pid}
-                  className={`flex items-center justify-between rounded-2xl px-5 py-3
-                    bg-[var(--primary)]/5 border 
+                  className={`flex items-center justify-between rounded-xl px-5 py-3 transition
                     ${
-                      isWinner
-                        ? "border-[var(--accent)]"
-                        : "border-[var(--text)]/5"
+                      isCurrent
+                        ? "bg-[var(--accent)]/20 border border-[var(--accent)] text-[var(--accent)] font-semibold"
+                        : "bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 border border-[var(--text)]/10"
                     }
                   `}
                 >
                   {/* Име и место */}
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className="opacity-80 w-6 font-mono text-right">
+                    <span className="opacity-70 w-6 font-mono text-right">
                       {place}.
                     </span>
                     <span className="w-6">{medal ?? ""}</span>
-                    <div className="font-medium truncate">{name}</div>
+                    <div className="truncate">{name}</div>
                   </div>
 
                   {/* Поени */}
@@ -194,9 +188,7 @@ export default function FinalResultsModal({
             <Button variant="outline" onClick={onBackToRoom}>
               Назад во Соба
             </Button>
-            {isHost && (
-              <Button onClick={onStartNewGame}>Нова Игра</Button>
-            )}
+            {isHost && <Button onClick={onStartNewGame}>Нова Игра</Button>}
           </div>
         </GlassCard>
       </div>

@@ -1,5 +1,5 @@
 import GlassCard from "@/components/global/GlassCard";
-import { Users, LogOut } from "lucide-react";
+import { Users, LogOut, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function PlayersList({
@@ -11,7 +11,7 @@ export default function PlayersList({
 }) {
   return (
     <GlassCard className={`p-4 ${className ?? ""}`}>
-      <div className="flex justify-between items-center w-full">
+      <div className="flex justify-between items-center mb-3 w-full">
         <h3 className="flex items-center gap-2 font-bold text-[var(--accent)] text-lg">
           <Users className="w-5 h-5" />
           Играчи
@@ -23,28 +23,32 @@ export default function PlayersList({
             size="icon"
             onClick={onLeave}
             aria-label="Leave room"
-            className="p-2 rounded"
+            title="Напушти соба"
+            className="p-2 rounded-full"
           >
             <LogOut className="w-5 h-5" />
           </Button>
         )}
       </div>
 
-      <ul className="flex flex-wrap gap-2 text-[var(--text)] text-sm">
+      <ul className="flex sm:flex-row flex-col sm:flex-wrap gap-2 text-[var(--text)] text-sm">
         {players.map((player, idx) => {
-          const isHost = hostId && player._id?.toString() === hostId.toString();
+          const isHost =
+            hostId && player._id?.toString() === hostId.toString();
 
           return (
             <li
               key={player._id ?? idx}
-              className={`px-3 py-1 rounded-full border-2 ${
+              className={`flex items-center gap-1 px-3 py-1 rounded-full border-2 ${
                 isHost
                   ? "border-[var(--accent)] bg-[var(--accent)]/20 font-semibold"
                   : "border-[var(--primary)] bg-[var(--background)]/60"
               }`}
             >
               {player.username || "Unknown"}
-              {isHost}
+              {isHost && (
+                <Crown className="w-4 h-4 text-[var(--accent)]" />
+              )}
             </li>
           );
         })}

@@ -5,8 +5,6 @@ export default function RoundResultsModal({
   show = false,
   isHost = false,
   currentRound = 1,
-  totalRounds = 1,
-
   categories = [],
   categoryLabels = {},
   players = [],
@@ -17,6 +15,8 @@ export default function RoundResultsModal({
   hasMoreRounds,
   onNextRound,
   onRequestClose,
+
+  currentUserId, // ID на најавениот корисник
 }) {
   if (!show) return null;
 
@@ -54,7 +54,7 @@ export default function RoundResultsModal({
               )}
               {isHost && (
                 <>
-                  {hasMoreRounds && (
+                  {hasMoreRounds ? (
                     <Button
                       onClick={onNextRound}
                       size="sm"
@@ -63,8 +63,7 @@ export default function RoundResultsModal({
                     >
                       Започни следна рунда
                     </Button>
-                  )}
-                  {!hasMoreRounds && (
+                  ) : (
                     <Button
                       onClick={onNextRound}
                       size="sm"
@@ -84,7 +83,7 @@ export default function RoundResultsModal({
             {categories.map((cid) => (
               <div
                 key={cid}
-                className="bg-[var(--primary)]/5 p-3 border border-[var(--text)]/5 rounded-2xl"
+                className="bg-[var(--primary)]/10 p-3 border border-[var(--text)]/10 rounded-2xl"
               >
                 <div className="mb-2 font-semibold text-sm">
                   {categoryLabels[cid] || cid}
@@ -94,14 +93,18 @@ export default function RoundResultsModal({
                   {(players || []).map((p) => {
                     const pid = normalizeId(p);
                     const name = playerNameById[pid] || String(pid).slice(-5);
-                    const info = (answerDetails[pid] &&
-                      answerDetails[pid][cid]) || {
-                      value: "",
-                      valid: false,
-                      unique: false,
-                      points: 0,
-                      reason: "празно",
-                    };
+
+                    const info =
+                      (answerDetails[pid] && answerDetails[pid][cid]) || {
+                        value: "",
+                        valid: false,
+                        unique: false,
+                        points: 0,
+                        reason: "празно",
+                      };
+
+                    const isCurrent =
+                      String(pid) === String(currentUserId);
 
                     const badgeText = info.valid
                       ? info.unique
@@ -118,10 +121,21 @@ export default function RoundResultsModal({
                     return (
                       <div
                         key={pid}
-                        className="flex justify-between items-center px-3 py-2 rounded-lg"
+                        className={`flex justify-between items-center px-3 py-2 rounded-lg transition
+                          ${
+                            isCurrent
+                              ? "bg-[var(--accent)]/20"
+                              : "bg-[var(--primary)]/5 hover:bg-[var(--primary)]/10"
+                          }`}
                       >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="font-medium truncate">{name}</div>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div
+                            className={`font-medium truncate ${
+                              isCurrent ? "text-[var(--accent)]" : ""
+                            }`}
+                          >
+                            {name}
+                          </div>
                           <div className="opacity-80 text-sm truncate">
                             — {info.value || "—"}
                           </div>

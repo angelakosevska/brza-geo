@@ -19,7 +19,7 @@ export default function CategoryAnswersCard({
   showStop,
   onSubmit,
   onStop,
-  dictByCategory = {}, 
+  dictByCategory = {},
 }) {
   // Map validation status to Tailwind border + text colors
   const borderColors = {
@@ -66,12 +66,12 @@ export default function CategoryAnswersCard({
   return (
     <div className={`grid gap-1 ${className}`}>
       {/* Header со статус */}
-      <GlassCard className="flex md:flex-row flex-col justify-between items-start md:items-center gap-1 p-4 text-[var(--text)]">
+      <GlassCard className="flex md:flex-row flex-col justify-between items-start md:items-center gap-2 p-4 text-[var(--text)]">
         <div className="flex flex-col">
-          <div className="font-semibold text-[var(--primary)] text-lg">
+          <div className="font-semibold text-[var(--primary)] text-base sm:text-lg">
             Внеси ги твоите одговори
           </div>
-          <div className="opacity-70 mt-1 text-xs">
+          <div className="opacity-70 text-xs sm:text-sm">
             {mode !== "play"
               ? "Резултати помеѓу рунди."
               : waitingForRound
@@ -86,7 +86,7 @@ export default function CategoryAnswersCard({
 
         {/* Desktop копчиња */}
         {mode === "play" && !waitingForRound && (
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-2">
             {showStop && (
               <Button
                 size="lg"
@@ -117,7 +117,7 @@ export default function CategoryAnswersCard({
           Чекам категории…
         </GlassCard>
       ) : (
-        <div className="gap-1 grid md:grid-cols-2">
+        <div className="gap-1 grid md:grid-cols-2 lg:grid-cols-3">
           {categories.map((id) => {
             const value = answers[id] ?? "";
             const dictWords = dictByCategory[String(id)] || [];
@@ -131,7 +131,7 @@ export default function CategoryAnswersCard({
                 {/* Label */}
                 <label
                   htmlFor={`answer-${id}`}
-                  className="font-medium text-sm truncate"
+                  className="mb-1 font-medium text-sm sm:text-base truncate"
                   title={categoryLabels[id] || id}
                 >
                   {categoryLabels[id] || id}
@@ -140,19 +140,20 @@ export default function CategoryAnswersCard({
                 {/* Input */}
                 <Input
                   id={`answer-${id}`}
-                  placeholder={letter ? `Почнува со ${letter}` : "Одговор"}
+                  placeholder={letter ? `${letter}...` : "Одговор"}
                   value={value}
                   onChange={(e) => handleChange(id, e.target.value)}
                   disabled={disabled}
                   aria-label={`${categoryLabels[id] || id} answer`}
-                  className={`w-full ${
+                  className={`${
                     borderColors[status] || ""
                   } focus-visible:ring-2 focus-visible:ring-[var(--primary)]`}
                 />
-
                 {/* Feedback text */}
                 <span
-                  className={`text-xs ${textColors[status] || "text-gray-400"}`}
+                  className={`text-xs mt-1 ${
+                    textColors[status] || "text-gray-400"
+                  }`}
                 >
                   {textMessages[status]}
                 </span>
@@ -171,7 +172,7 @@ export default function CategoryAnswersCard({
               variant="destructive"
               onClick={onStop}
               disabled={(timeLeft ?? 0) <= 0}
-              className="px-8 py-4 rounded-full"
+              className="shadow-lg backdrop-blur px-8 py-4 rounded-full"
             >
               Стоп
             </Button>
@@ -181,7 +182,7 @@ export default function CategoryAnswersCard({
               size="lg"
               onClick={onSubmit}
               disabled={submitted || (timeLeft ?? 0) <= 0}
-              className="px-8 py-4 rounded-full"
+              className="bg-[var(--primary)]/80 shadow-lg backdrop-blur px-8 py-4 rounded-full"
             >
               {submitted ? "Испратено" : "Испрати"}
             </Button>

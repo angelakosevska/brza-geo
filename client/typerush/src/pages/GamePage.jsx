@@ -55,17 +55,18 @@ export default function GamePage() {
   } = useGameLogic({ code, currentUserId, navigate });
 
   return (
-    <div className="flex flex-col gap-2 mx-auto w-full max-w-[90vw] min-h-[75vh]">
+    <div className="flex flex-col gap-1 mx-auto w-full max-w-[90vw] min-h-[75vh]">
       {/* Main content */}
-      <div className="flex-1 gap-2 grid grid-cols-1 lg:grid-cols-4">
+      <div className="flex-1 gap-1 grid grid-cols-1 lg:grid-cols-4">
         {/* Left: Round info + answers */}
-        <div className="flex flex-col gap-2 lg:col-span-3">
+        <div className="flex flex-col gap-1 lg:col-span-3">
           <RoundInfoCard
             currentRound={currentRound}
             totalRounds={totalRounds}
             timeLeft={endAt ? timeLeft : null}
             letter={letter}
             waiting={waitingForRound}
+            code={code}
           />
 
           <CategoryAnswersCard
@@ -95,7 +96,8 @@ export default function GamePage() {
           <PlayersList
             players={players}
             className="w-full h-full"
-            showLeave={false}
+            showLeave={true}
+            onLeave={handleLeaveRoom}
             hostId={hostId}
           />
         </div>
@@ -116,6 +118,7 @@ export default function GamePage() {
         breakLeft={breakLeft}
         hasMoreRounds={hasMoreRounds}
         onNextRound={handleNextRound}
+        currentUserId={currentUserId}
       />
 
       {/* Final results modal */}
@@ -131,6 +134,7 @@ export default function GamePage() {
         onLeaveToMain={handleLeaveRoom}
         onStartNewGame={handlePlayAgain}
         onRequestClose={handleStayHere}
+        currentUserId={currentUserId}
       />
     </div>
   );
