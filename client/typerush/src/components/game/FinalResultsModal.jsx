@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import GlassCard from "@/components/global/GlassCard";
 import { Button } from "@/components/ui/button";
-import { Award, Medal, Trophy } from "lucide-react";
+import { Award, Medal, Trophy } from "lucide-react"; 
 
 export default function FinalResultsModal({
   show = false,
@@ -60,18 +60,19 @@ export default function FinalResultsModal({
       return {
         icon: <Trophy className="w-5 h-5 text-yellow-500" />,
         className:
-          "border-yellow-500 bg-yellow-500/10 text-yellow-500 font-semibold broder-2",
+          "border-yellow-500 bg-yellow-500/10 text-[var(--text)] font-semibold broder-2",
       };
     if (place === 2)
       return {
         icon: <Medal className="w-5 h-5 text-gray-500" />,
-        className: "border-gray-500 bg-gray-100/10 text-gray-500 font-semibold",
+        className:
+          "border-gray-500 bg-gray-100/10 text-[var(--text)]font-semibold",
       };
     if (place === 3)
       return {
         icon: <Award className="w-5 h-5 text-amber-600" />,
         className:
-          "border-amber-600 bg-amber-600/10 text-amber-600 font-semibold",
+          "border-amber-600 bg-amber-600/10 text-[var(--text)] font-semibold",
       };
     return { icon: null, className: "" };
   };
@@ -154,19 +155,24 @@ export default function FinalResultsModal({
             {sorted.map(([pid, pts], idx) => {
               const place = placeByRow[idx];
               const name = playerNameById[pid] || String(pid).slice(-5);
+              const isCurrent = String(pid) === String(currentUserId);
 
               const { icon, className } = styleForPlace(place);
 
               return (
                 <div
                   key={pid}
-                  className={
-                    "flex items-center justify-between rounded-xl px-5 py-3 border transition"
-                  }
+                  className={`flex items-center justify-between rounded-xl px-5 py-3 border transition
+                    ${
+                      isCurrent
+                        ? " " + className
+                        : className || "bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 border border-[var(--text)]/10"
+                    }
+                  `}
                 >
                   {/* Name + place */}
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className="opacity-70 w-6 font-mono text-right">
+                    <span className="opacity-90 w-6 font-mono text-[var(--text)] text-right">
                       {place}.
                     </span>
                     <span className="w-6">{icon}</span>
@@ -183,12 +189,9 @@ export default function FinalResultsModal({
           {/* Word Power XP */}
           {wpEarned > 0 && (
             <div className="mt-4 font-semibold text-[var(--primary)] text-lg text-center">
-              Добивте
-              <span className="text-[var(--secondary)] text-xl">
-                {" "}
-                +{wpEarned}{" "}
-              </span>
-              Word Power!
+              Добивте {" "}{" "}{" "}
+              <span className="bg-[var(--primary)]/20 px-3 py-4 rounded-full text-[var(--secondary)]"> +{wpEarned}</span>
+              {" "}{" "}{" "}Word Power!
             </div>
           )}
 

@@ -3,6 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { validateAnswer } from "@/lib/validateAnswer";
 
+// Lucide icons
+import {
+  CheckCircle,
+  AlertTriangle,
+  BookX,
+  XCircle,
+  Languages,
+} from "lucide-react";
+
 export default function CategoryAnswersCard({
   categories = [],
   categoryLabels = {},
@@ -33,12 +42,12 @@ export default function CategoryAnswersCard({
   };
 
   const textMessages = {
-    exact: "✔️ Точен збор",
-    typo: "⚠️ Мала грешка (прифатено)",
-    "no-words": "🟠 Нема зборови за оваа буква во категоријата",
-    "wrong-letter": "❌ Почнува со погрешна буква",
-    "not-in-dictionary": "❌ Не е во речникот за оваа категорија",
-    "not-cyrillic": "❌ Користи кирилица (А-Ш)",
+    exact: "Точен збор",
+    typo: "Мала грешка (прифатено)",
+    "no-words": "Нема зборови за оваа буква во категоријата",
+    "wrong-letter": "Почнува со погрешна буква",
+    "not-in-dictionary": "Не е во речникот за оваа категорија",
+    "not-cyrillic": "Користи кирилица (А-Ш)",
     empty: "",
   };
 
@@ -50,6 +59,16 @@ export default function CategoryAnswersCard({
     "not-in-dictionary": "text-red-600",
     "not-cyrillic": "text-red-600",
     empty: "text-[var(--text)]",
+  };
+
+  const icons = {
+    exact: <CheckCircle className="inline w-4 h-4 text-green-600" />,
+    typo: <AlertTriangle className="inline w-4 h-4 text-yellow-600" />,
+    "no-words": <BookX className="inline w-4 h-4 text-orange-600" />,
+    "wrong-letter": <XCircle className="inline w-4 h-4 text-red-600" />,
+    "not-in-dictionary": <BookX className="inline w-4 h-4 text-red-600" />,
+    "not-cyrillic": <Languages className="inline w-4 h-4 text-red-600" />,
+    empty: null,
   };
 
   const disabled =
@@ -140,6 +159,7 @@ export default function CategoryAnswersCard({
                 {/* Input */}
                 <Input
                   id={`answer-${id}`}
+                  name={`answer-${id}`}
                   autoComplete="off"
                   placeholder={letter ? `${letter}...` : "Одговор"}
                   value={value}
@@ -150,12 +170,14 @@ export default function CategoryAnswersCard({
                     borderColors[status] || ""
                   } focus-visible:ring-2 focus-visible:ring-[var(--primary)]`}
                 />
-                {/* Feedback text */}
+
+                {/* Feedback text with icon */}
                 <span
-                  className={`text-xs mt-1 ${
+                  className={`text-xs mt-1 flex items-center gap-1 ${
                     textColors[status] || "text-gray-400"
                   }`}
                 >
+                  {icons[status]}
                   {textMessages[status]}
                 </span>
               </GlassCard>
