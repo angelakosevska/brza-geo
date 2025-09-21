@@ -48,7 +48,7 @@ export default function Welcome() {
             {/* Button to go to login/register */}
             <Button
               size="lg"
-              className="w-full"
+              className="w-[30vw]"
               onClick={() => navigate("/auth")}
             >
               Најави се или регистрирај се
@@ -61,7 +61,7 @@ export default function Welcome() {
                 className="md:hidden"
                 onClick={() => setShowHowToPlay((prev) => !prev)}
               >
-                {showHowToPlay ? "Hide instructions" : "How to play"}
+                {showHowToPlay ? "Затовори" : "Како да играш"}
               </Button>
             )}
           </CardFooter>

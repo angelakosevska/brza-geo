@@ -19,7 +19,7 @@ export default function InvitationPage() {
         <h1 className="font-bold text-[var(--primary)] text-6xl">ПОКАНА</h1>
 
         {/* Subtitle */}
-        <p className="text-muted-foreground text-lg">
+        <p className="text-[var(--text)] text-lg">
           Со задоволство Ве поканувам на мојата одбрана на дипломската работа!
         </p>
 
@@ -36,23 +36,23 @@ export default function InvitationPage() {
         <div className="gap-4 grid md:grid-cols-3 text-left">
           <div className="flex flex-col items-center gap-2">
             <Calendar className="text-[var(--primary)]" />
-            <span className="font-medium">Датум</span>
-            <span className="text-muted-foreground">18.09.2025г.</span>
+            <span className="font-medium text-[var(--text)]">Датум</span>
+            <span className="text-[var(--text)]">18.09.2025г.</span>
           </div>
           <div className="flex flex-col items-center gap-2">
             <Clock className="text-[var(--primary)]" />
-            <span className="font-medium">Време</span>
-            <span className="text-muted-foreground">11:30h</span>
+            <span className="font-medium text-[var(--text)]">Време</span>
+            <span className="text-[var(--text)]">11:30h</span>
           </div>
           <div className="flex flex-col items-center gap-2">
             <MapPin className="text-[var(--primary)]" />
-            <span className="font-medium">Локација</span>
-            <span className="text-muted-foreground">ФИКТ</span>
+            <span className="font-medium text-[var(--text)]">Локација</span>
+            <span className="text-[var(--text)]">ФИКТ</span>
           </div>
         </div>
 
         {/* Signature aligned right */}
-        <div className="mt-6 text-muted-foreground text-right italic">
+        <div className="mt-6 text-[var(--text)] text-right italic">
           Ваша{" "}
           <span className="font-semibold text-[var(--primary)]">Ангела</span>,
           Type Rush
