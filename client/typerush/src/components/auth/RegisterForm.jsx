@@ -19,7 +19,12 @@ const registerSchema = z
       .string()
       .min(3, "Корисничкото име мора да има барем 3 карактери"),
     email: z.string().email("Внесете валиден email"),
-    password: z.string().min(6, "Лозинката мора да има најмалку 6 карактери"),
+    password: z
+      .string()
+      .min(
+        6,
+        "Лозинката мора да има најмалку 8 карактери од кои најмалку една голема, една мала буква и еден број."
+      ),
     confirmPassword: z.string().min(6, "Потврдата на лозинка е задолжителна"),
   })
   .refine((data) => data.password === data.confirmPassword, {

@@ -21,8 +21,8 @@ export default function AuthPage() {
     try {
       setLoading(true);
       const res = await api.post("/auth/register", data);
-      const { token } = res.data;
-      login(token);
+      const { token, user } = res.data;
+      login(token, user);
       showSuccess("Registration successful!");
       navigate("/main");
     } catch (err) {
@@ -43,7 +43,7 @@ export default function AuthPage() {
       });
       const { token, user } = res.data;
       login(token, user);
-      showSuccess("Welcome back!");
+      showSuccess(`Добре дојде, ${user.username}!`);
       navigate("/main");
     } catch (err) {
       const message = err.response?.data?.message || "Login failed";
@@ -53,23 +53,21 @@ export default function AuthPage() {
     }
   };
 
-  // Navigate to forgot password page
   const handleForgotPassword = () => {
     navigate("/auth/forgot-password");
   };
 
   return (
     <div className="relative flex justify-center items-center w-full min-h-screen">
-      <GlassCard className="p-6 w-full max-w-xs sm:max-w-sm md:max-w-md">
+      <GlassCard className="p-6 min-w-[320px] sm:min-w-[380px] max-w-md">
         <AnimatePresence mode="wait">
-          {/* Login card */}
           {!showRegister ? (
             <motion.div
               key="login"
-              initial={{ x: -50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: 50, opacity: 0 }}
-              transition={{ duration: 0.4 }}
+              initial={{ x: -50, opacity: 0, scale: 0.95 }}
+              animate={{ x: 0, opacity: 1, scale: 1 }}
+              exit={{ x: 50, opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
             >
               <LoginForm
                 handleLogin={handleLogin}
@@ -78,13 +76,12 @@ export default function AuthPage() {
               />
             </motion.div>
           ) : (
-            // Register card
             <motion.div
               key="register"
-              initial={{ x: 50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -50, opacity: 0 }}
-              transition={{ duration: 0.4 }}
+              initial={{ x: 50, opacity: 0, scale: 0.95 }}
+              animate={{ x: 0, opacity: 1, scale: 1 }}
+              exit={{ x: -50, opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
             >
               <RegisterForm
                 handleRegister={handleRegister}

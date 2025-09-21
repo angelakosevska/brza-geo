@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { socket } from "@/lib/socket";
 import api from "@/lib/axios";
-import { useToast } from "@/components/ui/use-toast";
+import { useError } from "@/hooks/useError";
 import { useLoading } from "@/context/LoadingContext";
 
 // ================== GAME LOGIC HOOK ==================
@@ -51,7 +51,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   const joinedRef = useRef(false);
 
   // ---------- HELPERS ----------
-  const { toast } = useToast();
+  const { showError, showSuccess, showInfo } = useError();
   const { setLoading } = useLoading();
 
   // Keep latest answers/timer in refs (avoids stale closures)
@@ -398,25 +398,12 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       setLetter(null);
       setCategories([]);
       setEndAt(null);
-
-      toast({
-        title: "Рундата е прескокната",
-        description:
-          payload.reason === "no-valid-words"
-            ? "Нема валидни зборови за оваа буква."
-            : "Оваа рунда беше прескокната.",
-        variant: "destructive",
-        duration: 3000,
-      });
     };
 
     // Word Power updated for a player
     const handleWPUpdate = ({ userId, wordPower, level }) => {
       if (String(userId) === String(currentUserId)) {
-        toast({
-          title: "Доби поени!",
-          description: `Сега имаш ${wordPower} WP • Ниво ${level}`,
-        });
+        showSuccess(`Доби поени! Сега имаш ${wordPower} WP • Ниво ${level}`);
       }
     };
 
@@ -445,7 +432,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       socket.off("roundSkipped", handleRoundSkipped);
       socket.off("playerWPUpdated", handleWPUpdate);
     };
-  }, [code, normalizeId, toast, currentUserId]);
+  }, [code, normalizeId, currentUserId]);
 
   // ---------- DEFENSIVE UNLOCK ----------
   // If state desync happens → allow editing again

@@ -1,7 +1,8 @@
 {
   "all_fields_required": "All fields are required",
   "invalid_email": "Invalid email address",
-  "password_too_short": "Password must be at least 6 characters",
+  "password_too_short": "Password must be at least 8 characters",
+  "password_not_strong":"Password must contain min 8 characters, one uppercase, one lowercase and one number.",
   "passwords_do_not_match": "Passwords do not match",
   "username_or_email_taken": "Username or email already taken",
   "registration_failed": "Registration failed",

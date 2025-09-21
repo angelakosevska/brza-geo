@@ -17,7 +17,7 @@ export default function HowToPlay({ columns = 1 }) {
     {
       icon: <DoorOpen className="w-8 h-8 text-[var(--primary)]" />,
       title: "Креирај или влези во соба",
-      text: "Домаќинот креира соба, другите влегуваат со код.",
+      text: "Домаќинот креира соба и одредува опции, другите влегуваат со код.",
     },
     {
       icon: <ToggleLeft className="w-8 h-8 text-[var(--primary)]" />,
@@ -27,7 +27,7 @@ export default function HowToPlay({ columns = 1 }) {
     {
       icon: <PlayCircle className="w-8 h-8 text-[var(--primary)]" />,
       title: "Започни рунда",
-      text: "Секој ќе добие буква и категории.",
+      text: "Секој ќе добие буква и категории кои треба да ги пополни во одредено време.",
     },
     {
       icon: <Keyboard className="w-8 h-8 text-[var(--primary)]" />,
