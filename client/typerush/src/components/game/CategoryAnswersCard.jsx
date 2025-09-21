@@ -140,6 +140,7 @@ export default function CategoryAnswersCard({
                 {/* Input */}
                 <Input
                   id={`answer-${id}`}
+                  autoComplete="off"
                   placeholder={letter ? `${letter}...` : "Одговор"}
                   value={value}
                   onChange={(e) => handleChange(id, e.target.value)}
