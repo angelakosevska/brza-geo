@@ -12,7 +12,7 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import InvitationPage from "./pages/InvitationPage";
 import PrivateRoute from "./components/PrivateRoute";
 import { useAuth } from "@/context/AuthContext";
-import Loader from "@/components/global/Loader"; // 👈 увези го Loader-от
+import Loader from "@/components/global/Loader"; 
 
 export default function AppRoutes() {
   const { user, loading } = useAuth();
