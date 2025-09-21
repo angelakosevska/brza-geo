@@ -23,13 +23,13 @@ exports.getProfile = async (req, res) => {
     if (!user)
       return res.status(404).json({ message: res.__("user_not_found") });
 
-    const progress = calculateProgress(user.wordPower, user.level);
+    const progress = getLevelProgress(user.wordPower);
 
     res.json({
       username: user.username,
       level: user.level,
       wordPower: user.wordPower,
-      ...progress, // includes wpAtLevelStart, wpForNextLevel, currentLevelWP, progressPercent
+      ...progress, // wpAtLevelStart, wpForNextLevel, currentLevelWP, progressPercent
     });
   } catch (err) {
     console.error("getProfile error:", err);
