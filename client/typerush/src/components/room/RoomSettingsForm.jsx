@@ -1,7 +1,13 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { InputCat } from "@/components/ui/inputCat";
 import GlassCard from "../global/GlassCard";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function RoomSettingsForm({
   room,
@@ -16,7 +22,6 @@ export default function RoomSettingsForm({
   const [saving, setSaving] = useState(false);
   const [starting, setStarting] = useState(false);
 
-  // keep local state in sync with latest room from server
   useEffect(() => {
     setRounds(room.rounds);
     setTimer(room.timer);
@@ -59,27 +64,54 @@ export default function RoomSettingsForm({
   return (
     <GlassCard className={className}>
       <div className="flex flex-col gap-6 p-4 w-full h-full">
-        <InputCat
-          type="number"
-          value={rounds}
-          onChange={(e) => setRounds(Math.max(1, Number(e.target.value)))}
-          label="Број на рунди"
-          placeholder="Total number of rounds"
-          min={1}
-          disabled={readOnly}
-          className="mb-2"
-        />
+        {/* Select Rounds */}
+        <div>
+          <label className="block mb-2 font-medium text-[var(--primary)] text-sm">
+            Број на рунди
+          </label>
+          <Select
+            value={String(rounds)}
+            onValueChange={(val) => setRounds(Number(val))}
+            disabled={readOnly}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Избери рунди" />
+            </SelectTrigger>
+            <SelectContent>
+              {Array.from({ length: 25 }, (_, i) => (
+                <SelectItem key={i + 1} value={String(i + 1)}>
+                  {i + 1}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-        <InputCat
-          type="number"
-          value={timer}
-          onChange={(e) => setTimer(Math.max(10, Number(e.target.value)))}
-          label="Време за рунда (секунди)"
-          placeholder="Time in seconds"
-          min={10}
-          className="mb-2"
-          disabled={readOnly}
-        />
+        {/* Select Timer */}
+        <div>
+          <label className="block mb-2 font-medium text-[var(--primary)] text-sm">
+            Време за рунда
+          </label>
+          <Select
+            value={String(timer)}
+            onValueChange={(val) => setTimer(Number(val))}
+            disabled={readOnly}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Избери време" />
+            </SelectTrigger>
+            <SelectContent>
+              {Array.from({ length: 18 }, (_, i) => {
+                const value = (i + 1) * 10; // 10, 20, ..., 180
+                return (
+                  <SelectItem key={value} value={String(value)} className="hover:bg-[var(--primary)]/20">
+                    {value} сек.
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+        </div>
 
         {/* Game Mode */}
         <div className="mb-2">

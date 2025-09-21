@@ -23,10 +23,10 @@ export default function AuthPage() {
       const res = await api.post("/auth/register", data);
       const { token, user } = res.data;
       login(token, user);
-      showSuccess("Registration successful!");
+      showSuccess("Успешно се регистриравте!");
       navigate("/main");
     } catch (err) {
-      const message = err.response?.data?.message || "Registration failed";
+      const message = err.response?.data?.message || "Неуспешна регистрација!";
       showError(message);
     } finally {
       setLoading(false);

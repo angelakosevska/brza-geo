@@ -62,7 +62,7 @@ export default function MainPage() {
       setLoading(true);
       const res = await api.post("/room/create", {});
       const { room } = res.data;
-      showSuccess(`Room created! Code: ${room.code}`);
+      showSuccess(`Собата е креирана! Код: ${room.code}`);
       navigate(`/room/${room.code}`);
     } catch (err) {
       const msg =
@@ -82,11 +82,11 @@ export default function MainPage() {
     try {
       setLoading(true);
       await api.post("/room/join", { code: joinCode.toUpperCase() });
-      showSuccess(`Joined room ${joinCode.toUpperCase()} successfully.`);
+      showSuccess(`Успешно се приклучи во собата ${joinCode.toUpperCase()}.`);
       navigate(`/room/${joinCode.toUpperCase()}`);
     } catch (err) {
       const msg =
-        err.response?.data?.message || "Server error while joining room.";
+        err.response?.data?.message || "Проблем на серверот при креирање на собата.";
       showError(msg);
     } finally {
       setLoading(false);
