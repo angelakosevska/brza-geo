@@ -11,12 +11,14 @@ export default function PlayersList({
 }) {
   return (
     <GlassCard className={`p-4 ${className ?? ""}`}>
+      {/* Header */}
       <div className="flex justify-between items-center mb-3 w-full">
-        <h3 className="flex items-center gap-2 font-bold text-[var(--accent)] text-lg">
+        <h3 className="flex items-center gap-2 font-bold text-[var(--primary)] text-lg">
           <Users className="w-5 h-5" />
           Играчи
           <span className="font-normal">({players.length})</span>
         </h3>
+
         {showLeave && (
           <Button
             variant="destructive"
@@ -31,23 +33,23 @@ export default function PlayersList({
         )}
       </div>
 
+      {/* Players list */}
       <ul className="flex sm:flex-row flex-col sm:flex-wrap gap-2 text-[var(--text)] text-sm">
         {players.map((player, idx) => {
-          const isHost =
-            hostId && player._id?.toString() === hostId.toString();
+          const isHost = hostId && player._id?.toString() === hostId.toString();
 
           return (
             <li
               key={player._id ?? idx}
-              className={`flex items-center gap-1 px-3 py-1 rounded-full border-2 ${
+              className={`flex items-center gap-1 px-3 py-1 rounded-full border-2 transition-all ${
                 isHost
-                  ? "border-[var(--accent)] bg-[var(--accent)]/20 font-semibold"
+                  ? "border-[var(--secondary)] bg-[var(--secondary)]/20 font-semibold shadow-[0_0_10px_var(--secondary)] "
                   : "border-[var(--primary)] bg-[var(--background)]/60"
               }`}
             >
               {player.username || "Unknown"}
               {isHost && (
-                <Crown className="w-4 h-4 text-[var(--accent)]" />
+                <Crown className="drop-shadow-[0_0_6px_var(--secondary)] w-4 h-4 text-[var(--secondary)]" />
               )}
             </li>
           );

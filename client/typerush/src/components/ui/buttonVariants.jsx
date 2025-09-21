@@ -7,7 +7,7 @@ export const buttonVariants = cva(
         default:
           "bg-[var(--primary)] text-[var(--background)] hover:bg-[var(--primary)]/70 rounded-full",
         destructive:
-          "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-400/50",
+          "bg-red-500 text-white hover:bg-red-700 focus-visible:ring-red-400/50",
         outline:
           "border-2 border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)]/70 hover:text-[var(--background)]",
         secondary:

@@ -98,9 +98,14 @@ export default function MainPage() {
       {/* 1. Left column – LevelCard + Info */}
       <div className="flex flex-col gap-1 order-1 col-span-1">
         <LevelCard
-          currentWP={profile?.wordPower || 0}
           level={profile?.level || 1}
+          wordPower={profile?.wordPower || 0}
+          wpAtLevelStart={profile?.wpAtLevelStart || 0}
+          wpForNextLevel={profile?.wpForNextLevel || 100}
+          currentLevelWP={profile?.currentLevelWP || 0}
+          progressPercent={profile?.progressPercent || 0}
         />
+
         <div className="hidden lg:block h-full">
           <InfoAccordion />
         </div>

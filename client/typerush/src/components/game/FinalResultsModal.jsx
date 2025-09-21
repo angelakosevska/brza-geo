@@ -9,7 +9,7 @@ export default function FinalResultsModal({
   finalTotals = {},
   finalWinners = [],
   isHost = false,
-  wpEarned, 
+  wpEarned,
   onBackToRoom,
   onLeaveToMain,
   onStartNewGame,
@@ -19,21 +19,19 @@ export default function FinalResultsModal({
 }) {
   if (!show) return null;
 
-
   const sorted = useMemo(() => {
     const entries = Object.entries(finalTotals);
     return entries.sort((a, b) => {
       const [ida, pa] = a;
       const [idb, pb] = b;
 
-      if (pb !== pa) return pb - pa; 
+      if (pb !== pa) return pb - pa;
       const na = (playerNameById[ida] || String(ida).slice(-5)).toLowerCase();
       const nb = (playerNameById[idb] || String(idb).slice(-5)).toLowerCase();
       if (na !== nb) return na < nb ? -1 : 1;
       return String(ida) < String(idb) ? -1 : 1;
     });
   }, [finalTotals, playerNameById]);
-
 
   const winnerNames =
     finalWinners.length > 0
@@ -42,17 +40,15 @@ export default function FinalResultsModal({
           .join(", ")
       : null;
 
-
   const handleOverlayClick = () => {
     if (closeOnOverlay) onRequestClose?.();
   };
 
- 
   useEffect(() => {
     if (!show) return;
     const onKey = (e) => {
       if (e.key === "Escape") onRequestClose?.();
-    }
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [show, onRequestClose]);
@@ -63,7 +59,6 @@ export default function FinalResultsModal({
     if (idx === 2) return "🥉";
     return null;
   };
-
 
   const placeByRow = useMemo(() => {
     const places = [];
@@ -176,7 +171,9 @@ export default function FinalResultsModal({
           {/* Word Power XP */}
           {wpEarned > 0 && (
             <div className="mt-4 font-semibold text-[var(--primary)] text-lg text-center">
-              Добивте +{wpEarned} Word Power!
+              Добивте
+              <span className="text-[var(--secondary)] text-xl"> +{wpEarned} </span>
+              Word Power!
             </div>
           )}
 

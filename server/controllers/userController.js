@@ -1,15 +1,36 @@
 const User = require("../models/User");
-const { addWordPower } = require("../utils/levelSystem");
+const { addWordPower, getLevelProgress } = require("../utils/levelSystem");
 
 /**
  * GET /api/user/profile/:id
- * Returns username, level, and wordPower for a user
+ * Fetch a user's profile with progress details.
+ *
+ * Returns:
+ * - username
+ * - level
+ * - wordPower (total XP)
+ * - wpAtLevelStart → XP at the start of current level
+ * - wpForNextLevel → XP required to reach next level
+ * - currentLevelWP → how much XP user has gained in current level
+ * - progressPercent → percentage toward next level
  */
+
 exports.getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select("username level wordPower");
-    if (!user) return res.status(404).json({ message: res.__("user_not_found") });
-    res.json(user);
+    const user = await User.findById(req.params.id).select(
+      "username level wordPower"
+    );
+    if (!user)
+      return res.status(404).json({ message: res.__("user_not_found") });
+
+    const progress = calculateProgress(user.wordPower, user.level);
+
+    res.json({
+      username: user.username,
+      level: user.level,
+      wordPower: user.wordPower,
+      ...progress, // includes wpAtLevelStart, wpForNextLevel, currentLevelWP, progressPercent
+    });
   } catch (err) {
     console.error("getProfile error:", err);
     res.status(500).json({ message: res.__("failed_fetch_profile") });
@@ -18,24 +39,40 @@ exports.getProfile = async (req, res) => {
 
 /**
  * POST /api/user/:id/addWP
- * Add Word Power points to a user and recalc level
+ * Add Word Power (XP) to a user and recalc level.
+ *
+ * Input:
+ * - req.body.amount → number of XP points to add
+ *
+ * Returns:
+ * - updated wordPower
+ * - updated level
+ * - updated progress (same as profile)
  */
 exports.addWordPowerToUser = async (req, res) => {
   try {
     const { amount } = req.body;
-    let user = await User.findById(req.params.id);
-    if (!user) return res.status(404).json({ message: res.__("user_not_found") });
 
+    let user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: res.__("user_not_found") });
+    }
+
+    // Add XP + recalc level
     addWordPower(user, amount);
     await user.save();
+
+    // Compute progress details
+    const progress = getLevelProgress(user.wordPower);
 
     res.json({
       wordPower: user.wordPower,
       level: user.level,
+      ...progress,
       message: res.__("word_power_updated"),
     });
   } catch (err) {
-    console.error("addWordPowerToUser error:", err);
+    console.error("❌ addWordPowerToUser error:", err);
     res.status(500).json({ message: res.__("failed_update_wordpower") });
   }
 };

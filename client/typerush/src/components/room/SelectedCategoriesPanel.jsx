@@ -1,6 +1,19 @@
+import { useEffect, useRef } from "react";
 import GlassCard from "@/components/global/GlassCard";
 
-export default function SelectedCategoriesPanel({ categories =[], className }) {
+export default function SelectedCategoriesPanel({
+  categories = [],
+  className,
+}) {
+  const listRef = useRef(null);
+
+  // Auto scroll to bottom when categories update
+  useEffect(() => {
+    if (listRef.current) {
+      listRef.current.scrollTop = listRef.current.scrollHeight;
+    }
+  }, [categories]);
+
   if (!categories.length) {
     return (
       <GlassCard className="lg:w-1/4 text-[var(--glass)] text-sm text-center italic">
@@ -10,7 +23,7 @@ export default function SelectedCategoriesPanel({ categories =[], className }) {
   }
 
   return (
-    <GlassCard className={`${className} flex flex-col gap-4 p-6 `}>
+    <GlassCard className={`${className} flex flex-col gap-4 p-6`}>
       {/* Header with badge */}
       <div className="flex justify-between items-center">
         <h3 className="font-bold text-[var(--primary)] text-lg">
@@ -22,7 +35,7 @@ export default function SelectedCategoriesPanel({ categories =[], className }) {
       </div>
 
       {/* List of categories */}
-      <ul className="space-y-3 pr-1 max-h-72 overflow-y-auto">
+      <ul ref={listRef} className="space-y-3 pr-1 max-h-80 overflow-y-auto">
         {categories.map((cat) => (
           <li
             key={cat._id || cat.name}

@@ -122,9 +122,9 @@ export default function RoomPage() {
 
   // ---- UI ----
   return (
-    <div className="flex flex-col gap-1 mx-auto w-full max-w-[90vw] min-h-[80vh]">
+    <div className="flex flex-col gap-1 mx-auto w-full max-w-[90vw]">
       {/* Row 1: Players + Room Code */}
-      <div className="flex lg:flex-row flex-col gap-1 w-full">
+      <div className="flex lg:flex-row flex-col gap-1 w-full h-full">
         <PlayersList
           players={room.players}
           onLeave={handleLeave}

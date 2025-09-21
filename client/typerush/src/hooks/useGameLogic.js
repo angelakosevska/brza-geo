@@ -5,10 +5,11 @@ import { useToast } from "@/components/ui/use-toast";
 import { useLoading } from "@/context/LoadingContext";
 
 // ================== GAME LOGIC HOOK ==================
-// This hook manages the lifecycle of the game:
-// - handles socket events and syncing state
-// - tracks answers, rounds, timers
-// - shows WP (Word Power) updates from the backend
+// This custom React hook manages the entire game lifecycle. (To gamepage-> to components)
+//   - Sync state with server through Socket.IO
+//   - Track players, rounds, timers, and answers
+//   - Handle auto-submission, skips, and results
+//   - Display Word Power (WP) updates from backend
 // =====================================================
 export default function useGameLogic({ code, currentUserId, navigate }) {
   // ---------- STATE ----------
@@ -23,20 +24,20 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   const [categoryLabels, setCategoryLabels] = useState({});
   const [dictByCategory, setDictByCategory] = useState({});
   const [endMode, setEndMode] = useState("ALL_SUBMIT");
-  const [mode, setMode] = useState("play");
+  const [mode, setMode] = useState("play"); // "play" | "review" (playing or between rounds)
   const [hasMoreRounds, setHasMoreRounds] = useState(true);
 
   const [answers, setAnswers] = useState({});
   const [submitted, setSubmitted] = useState(false);
-  const [endAt, setEndAt] = useState(null);
-  const [timeLeft, setTimeLeft] = useState(0);
+  const [endAt, setEndAt] = useState(null); // round end time
+  const [timeLeft, setTimeLeft] = useState(0); // seconds left
 
   const [showResults, setShowResults] = useState(false);
   const [roundScores, setRoundScores] = useState({});
   const [roundAnswers, setRoundAnswers] = useState({});
   const [answerDetails, setAnswerDetails] = useState({});
-  const [breakEndAt, setBreakEndAt] = useState(null);
-  const [breakLeft, setBreakLeft] = useState(0);
+  const [breakEndAt, setBreakEndAt] = useState(null); // break end timestamp
+  const [breakLeft, setBreakLeft] = useState(0); // seconds left for break
 
   const [showFinal, setShowFinal] = useState(false);
   const [finalTotals, setFinalTotals] = useState({});
@@ -49,11 +50,11 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   const endAtRef = useRef(null);
   const joinedRef = useRef(false);
 
-  // ---------- TOASTER ----------
+  // ---------- HELPERS ----------
   const { toast } = useToast();
   const { setLoading } = useLoading();
 
-  // Keep refs in sync with state
+  // Keep latest answers/timer in refs (avoids stale closures)
   useEffect(() => {
     answersRef.current = answers;
   }, [answers]);
@@ -61,7 +62,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     endAtRef.current = endAt;
   }, [endAt]);
 
-  // ---------- HELPERS ----------
   const normalizeId = useCallback(
     (v) => (typeof v === "string" ? v : v?._id ?? String(v ?? "")),
     []
@@ -78,6 +78,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   const waitingForRound = !letter || !categories?.length || !endAt;
 
   // ---------- API ----------
+  // Fetch initial room info (players, host, settings)
   const fetchRoom = useCallback(async () => {
     try {
       const res = await api.get(`/room/${code}`);
@@ -102,6 +103,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   useEffect(() => {
     if (!code || !currentUserId) return;
 
+    // Join the room once socket is connected
     const tryJoin = () => {
       if (socket.connected && !joinedRef.current) {
         socket.emit("joinRoom", { code, userId: currentUserId });
@@ -125,7 +127,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   }, [code]);
 
   // ---------- TIMERS ----------
-  // Round countdown
+  // Round countdown timer
   useEffect(() => {
     const interval = setInterval(() => {
       if (!endAt) return;
@@ -136,7 +138,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     return () => clearInterval(interval);
   }, [endAt, serverOffsetMs]);
 
-  // Break countdown
+  // Break countdown timer
   useEffect(() => {
     const interval = setInterval(() => {
       if (!breakEndAt) return;
@@ -148,6 +150,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   }, [breakEndAt, serverOffsetMs]);
 
   // ---------- AUTO SUBMIT ----------
+  // Auto-submit answers when timer hits 0
   useEffect(() => {
     if (timeLeft === 0 && endAt && !submitted && mode === "play") {
       socket.emit("submitAnswers", { code, answers: answersRef.current });
@@ -155,7 +158,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     }
   }, [timeLeft, endAt, submitted, mode, code]);
 
-  // Submit answers before page unload
+  // Auto-submit on page unload/refresh
   useEffect(() => {
     const onBeforeUnload = () => {
       if (!submitted && endAtRef.current && mode === "play") {
@@ -167,6 +170,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   }, [submitted, mode, code]);
 
   // ---------- STATE REHYDRATION ----------
+  // Fetch latest round state from server (useful on refresh/reconnect)
   useEffect(() => {
     socket.emit("getRoundState", { code }, (state) => {
       if (!state) return;
@@ -202,6 +206,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
         setServerOffsetMs(serverNow - Date.now());
       }
 
+      // Sync phase (play/review/final)
       if (breakEndTime) {
         setMode("review");
         setShowResults(true);
@@ -220,6 +225,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
         setShowFinal(false);
       }
 
+      // Sync submission state
       if (phase === "play" || (!phase && roundEndTime)) {
         setSubmitted(Boolean(hasSubmitted));
         if (!hasSubmitted) setAnswers({});
@@ -228,6 +234,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   }, [code]);
 
   // ---------- FETCH DICTIONARIES ----------
+  // Fetch dictionary words for each category (for answer validation)
   useEffect(() => {
     if (!categories || categories.length === 0) return;
 
@@ -259,6 +266,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
 
   // ---------- SOCKET EVENTS ----------
   useEffect(() => {
+    // Round started
     const handleRoundStarted = (payload) => {
       const {
         currentRound,
@@ -297,6 +305,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       if (!hasSubmitted) setAnswers({});
     };
 
+    // Round results received
     const handleRoundResults = ({
       scores,
       answers,
@@ -319,6 +328,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       }
     };
 
+    // Game ended → show final results
     const handleGameEnded = (payload) => {
       setShowResults(false);
       setBreakEndAt(null);
@@ -334,10 +344,12 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       }
     };
 
+    // Players list updated
     const handlePlayersUpdated = ({ players: list }) => {
       setPlayers(list || []);
     };
 
+    // Room settings updated
     const handleRoomUpdated = ({ room }) => {
       if (!room) return;
       setHostId(normalizeId(room.host));
@@ -354,6 +366,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       }
     };
 
+    // Room reset (back to lobby)
     const handleRoomState = (state) => {
       if (state?.started === false) {
         setMode("review");
@@ -365,16 +378,19 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       }
     };
 
+    // Settings changed (rounds/endMode)
     const handleSettingsUpdated = ({ endMode, rounds }) => {
       if (typeof endMode === "string") setEndMode(endMode);
       if (typeof rounds === "number") setTotalRounds(rounds);
     };
 
+    // Force submit triggered (e.g. by host)
     const handleForceSubmit = () => {
       socket.emit("submitAnswers", { code, answers: answersRef.current });
       setSubmitted(true);
     };
 
+    // Round skipped
     const handleRoundSkipped = (payload) => {
       if (payload.currentRound != null) setCurrentRound(payload.currentRound);
       if (payload.totalRounds != null) setTotalRounds(payload.totalRounds);
@@ -387,13 +403,14 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
         title: "Рундата е прескокната",
         description:
           payload.reason === "no-valid-words"
-            ? "No words available for this letter."
-            : "This round was skipped.",
+            ? "Нема валидни зборови за оваа буква."
+            : "Оваа рунда беше прескокната.",
         variant: "destructive",
         duration: 3000,
       });
     };
 
+    // Word Power updated for a player
     const handleWPUpdate = ({ userId, wordPower, level }) => {
       if (String(userId) === String(currentUserId)) {
         toast({
@@ -403,6 +420,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       }
     };
 
+    // Register listeners
     socket.on("roundStarted", handleRoundStarted);
     socket.on("roundResults", handleRoundResults);
     socket.on("gameEnded", handleGameEnded);
@@ -414,6 +432,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     socket.on("roundSkipped", handleRoundSkipped);
     socket.on("playerWPUpdated", handleWPUpdate);
 
+    // Cleanup
     return () => {
       socket.off("roundStarted", handleRoundStarted);
       socket.off("roundResults", handleRoundResults);
@@ -429,6 +448,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   }, [code, normalizeId, toast, currentUserId]);
 
   // ---------- DEFENSIVE UNLOCK ----------
+  // If state desync happens → allow editing again
   useEffect(() => {
     if (
       mode === "play" &&
@@ -442,53 +462,60 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   }, [mode, endAt, timeLeft, submitted]);
 
   // ---------- HANDLERS ----------
+  // Handle input change
   const handleChange = useCallback((key, val) => {
     setAnswers((prev) => ({ ...prev, [key]: val }));
   }, []);
 
+  // Handle "Submit" action
   const handleSubmit = useCallback(() => {
     if (submitted || mode !== "play") return;
     socket.emit("submitAnswers", { code, answers: answersRef.current });
     setSubmitted(true);
     setLoading(true);
 
-    // ✅ Stop timer immediately
-
+    // Stop timer immediately
     setEndAt(null);
     setTimeLeft(0);
   }, [submitted, mode, code]);
 
+  // Handle "Stop Round" action (only if PLAYER_STOP mode)
   const handleStopRound = useCallback(() => {
     if (mode !== "play" || endMode !== "PLAYER_STOP") return;
     socket.emit("playerStopRound", { code, answers: answersRef.current });
     setSubmitted(true);
     setLoading(true);
 
-    // ✅ Stop timer immediately
+    // Stop timer immediately
     setEndAt(null);
     setTimeLeft(0);
   }, [mode, endMode, code]);
 
+  // Host: start next round
   const handleNextRound = useCallback(() => {
     if (!isHost) return;
     socket.emit("nextRound", { code });
   }, [isHost, code]);
 
+  // Host: start new game
   const handlePlayAgain = useCallback(() => {
     if (!isHost) return;
     socket.emit("startGame", { code });
   }, [isHost, code]);
 
+  // Go back to room (lobby)
   const handleBackToRoom = useCallback(() => {
     socket.emit("backToLobby", { code });
     navigate(`/room/${code}`);
   }, [code, navigate]);
 
+  // Leave room → back to main menu
   const handleLeaveRoom = useCallback(() => {
     socket.emit("leaveRoom", { code });
     navigate("/main");
   }, [code, navigate]);
 
+  // Stay in final results modal
   const handleStayHere = useCallback(() => {
     setShowFinal(false);
   }, []);

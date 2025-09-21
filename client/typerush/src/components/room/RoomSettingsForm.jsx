@@ -58,7 +58,7 @@ export default function RoomSettingsForm({
 
   return (
     <GlassCard className={className}>
-      <div className="flex flex-col gap-6 p-4 w-full">
+      <div className="flex flex-col gap-6 p-4 w-full h-full">
         <InputCat
           type="number"
           value={rounds}
@@ -118,7 +118,7 @@ export default function RoomSettingsForm({
             </Button>
 
             <Button
-              variant="attention"
+              variant="secondary"
               onClick={handleSaveThenStart}
               disabled={!canStart || starting || saving}
               title={

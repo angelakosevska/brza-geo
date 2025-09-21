@@ -88,14 +88,14 @@ export default function CategorySelector({
   );
 
   return (
-    <GlassCard className={className}>
+    <GlassCard className={className }>
       {loading ? (
         <div className="p-4 text-[var(--glass)] text-sm">Вчитување...</div>
       ) : (
-        <div className="flex flex-col gap-6 p-4">
+        <div className="flex flex-col gap-6 p-4 h-full">
           {/* Default categories */}
           <div className="space-y-2">
-            <p className="font-semibold text-[var(--accent)] text-sm uppercase tracking-wide">
+            <p className="font-semibold text-[var(--primary)] text-sm uppercase tracking-wide">
               Основни категории
             </p>
             {renderCategoryList(defaultCategories)}
@@ -103,7 +103,7 @@ export default function CategorySelector({
 
           {/* Player categories */}
           <div className="space-y-2">
-            <p className="font-semibold text-[var(--accent)] text-sm uppercase tracking-wide">
+            <p className="font-semibold text-[var(--primary)] text-sm uppercase tracking-wide">
               Категории од играчи
             </p>
             {renderCategoryList(playerCategories)}
