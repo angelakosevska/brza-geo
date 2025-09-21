@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from "react";
 import GlassCard from "@/components/global/GlassCard";
 import { Button } from "@/components/ui/button";
+import { Award, Medal, Trophy } from "lucide-react";
 
 export default function FinalResultsModal({
   show = false,
@@ -53,11 +54,26 @@ export default function FinalResultsModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [show, onRequestClose]);
 
-  const medalForIndex = (idx) => {
-    if (idx === 0) return "🥇";
-    if (idx === 1) return "🥈";
-    if (idx === 2) return "🥉";
-    return null;
+  // Styling for top 3 places
+  const styleForPlace = (place) => {
+    if (place === 1)
+      return {
+        icon: <Trophy className="w-5 h-5 text-yellow-500" />,
+        className:
+          "border-yellow-500 bg-yellow-500/10 text-yellow-500 font-semibold broder-2",
+      };
+    if (place === 2)
+      return {
+        icon: <Medal className="w-5 h-5 text-gray-500" />,
+        className: "border-gray-500 bg-gray-100/10 text-gray-500 font-semibold",
+      };
+    if (place === 3)
+      return {
+        icon: <Award className="w-5 h-5 text-amber-600" />,
+        className:
+          "border-amber-600 bg-amber-600/10 text-amber-600 font-semibold",
+      };
+    return { icon: null, className: "" };
   };
 
   const placeByRow = useMemo(() => {
@@ -88,16 +104,16 @@ export default function FinalResultsModal({
       aria-modal="true"
       aria-labelledby="final-results-title"
     >
-      {/* Overlay со blur позадина */}
+      {/* Overlay */}
       <div
         className="absolute inset-0 backdrop-blur-lg"
         onClick={handleOverlayClick}
       />
 
-      {/* Централна модална картичка */}
+      {/* Modal card */}
       <div className="absolute inset-0 flex justify-center items-center p-4">
         <GlassCard className="relative p-6 w-full max-w-3xl text-[var(--text)]">
-          {/* X копче за затворање */}
+          {/* Close button */}
           <button
             onClick={onRequestClose}
             aria-label="Затвори"
@@ -119,7 +135,7 @@ export default function FinalResultsModal({
             )}
           </div>
 
-          {/* Победник(ци) */}
+          {/* Winners */}
           <div className="mb-4">
             {winnerNames ? (
               <div className="text-lg">
@@ -133,35 +149,31 @@ export default function FinalResultsModal({
             )}
           </div>
 
-          {/* Финална табела */}
+          {/* Final table */}
           <div className="space-y-2 pr-1 max-h-[55vh] overflow-auto">
             {sorted.map(([pid, pts], idx) => {
               const place = placeByRow[idx];
-              const medal = medalForIndex(idx);
               const name = playerNameById[pid] || String(pid).slice(-5);
-              const isCurrent = String(pid) === String(currentUserId);
+
+              const { icon, className } = styleForPlace(place);
 
               return (
                 <div
                   key={pid}
-                  className={`flex items-center justify-between rounded-xl px-5 py-3 transition
-                    ${
-                      isCurrent
-                        ? "bg-[var(--accent)]/20 border border-[var(--accent)] text-[var(--accent)] font-semibold"
-                        : "bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 border border-[var(--text)]/10"
-                    }
-                  `}
+                  className={
+                    "flex items-center justify-between rounded-xl px-5 py-3 border transition"
+                  }
                 >
-                  {/* Име и место */}
+                  {/* Name + place */}
                   <div className="flex items-center gap-3 min-w-0">
                     <span className="opacity-70 w-6 font-mono text-right">
                       {place}.
                     </span>
-                    <span className="w-6">{medal ?? ""}</span>
+                    <span className="w-6">{icon}</span>
                     <div className="truncate">{name}</div>
                   </div>
 
-                  {/* Поени */}
+                  {/* Points */}
                   <div className="font-mono">#{pts}</div>
                 </div>
               );
@@ -172,12 +184,15 @@ export default function FinalResultsModal({
           {wpEarned > 0 && (
             <div className="mt-4 font-semibold text-[var(--primary)] text-lg text-center">
               Добивте
-              <span className="text-[var(--secondary)] text-xl"> +{wpEarned} </span>
+              <span className="text-[var(--secondary)] text-xl">
+                {" "}
+                +{wpEarned}{" "}
+              </span>
               Word Power!
             </div>
           )}
 
-          {/* Акции */}
+          {/* Actions */}
           <div className="flex flex-wrap justify-end items-center gap-2 mt-6">
             <Button variant="ghost" onClick={onLeaveToMain}>
               Излези во Мени

@@ -1,5 +1,6 @@
 import GlassCard from "@/components/global/GlassCard";
 import { Button } from "@/components/ui/button";
+import { CheckCircle, Copy, XCircle } from "lucide-react"; // 👈 import icons
 
 export default function RoundResultsModal({
   show = false,
@@ -94,29 +95,34 @@ export default function RoundResultsModal({
                     const pid = normalizeId(p);
                     const name = playerNameById[pid] || String(pid).slice(-5);
 
-                    const info =
-                      (answerDetails[pid] && answerDetails[pid][cid]) || {
-                        value: "",
-                        valid: false,
-                        unique: false,
-                        points: 0,
-                        reason: "празно",
-                      };
+                    const info = (answerDetails[pid] &&
+                      answerDetails[pid][cid]) || {
+                      value: "",
+                      valid: false,
+                      unique: false,
+                      points: 0,
+                      reason: "празно",
+                    };
 
-                    const isCurrent =
-                      String(pid) === String(currentUserId);
+                    const isCurrent = String(pid) === String(currentUserId);
 
-                    const badgeText = info.valid
-                      ? info.unique
-                        ? "✔ уникатно"
-                        : "≡ дупликат"
-                      : "✖ невалидно";
-
-                    const badgeClass = info.valid
-                      ? info.unique
-                        ? "text-emerald-600"
-                        : "text-amber-600"
-                      : "text-rose-600";
+                    // Decide icon + text + color
+                    let badgeIcon, badgeText, badgeClass;
+                    if (info.valid && info.unique) {
+                      badgeIcon = (
+                        <CheckCircle className="w-4 h-4 text-emerald-600" />
+                      );
+                      badgeText = "уникатно";
+                      badgeClass = "text-emerald-600";
+                    } else if (info.valid && !info.unique) {
+                      badgeIcon = <Copy className="w-4 h-4 text-amber-600" />;
+                      badgeText = "дупликат";
+                      badgeClass = "text-amber-600";
+                    } else {
+                      badgeIcon = <XCircle className="w-4 h-4 text-rose-600" />;
+                      badgeText = "невалидно";
+                      badgeClass = "text-rose-600";
+                    }
 
                     return (
                       <div
@@ -124,14 +130,14 @@ export default function RoundResultsModal({
                         className={`flex justify-between items-center px-3 py-2 rounded-lg transition
                           ${
                             isCurrent
-                              ? "bg-[var(--accent)]/20"
+                              ? "bg-[var(--secondary)]/20"
                               : "bg-[var(--primary)]/5 hover:bg-[var(--primary)]/10"
                           }`}
                       >
                         <div className="flex items-center gap-2 min-w-0">
                           <div
                             className={`font-medium truncate ${
-                              isCurrent ? "text-[var(--accent)]" : ""
+                              isCurrent ? "text-[var(--secondary)]" : ""
                             }`}
                           >
                             {name}
@@ -140,7 +146,8 @@ export default function RoundResultsModal({
                             — {info.value || "—"}
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                          {badgeIcon}
                           <span className={`text-xs ${badgeClass}`}>
                             {badgeText}
                           </span>
