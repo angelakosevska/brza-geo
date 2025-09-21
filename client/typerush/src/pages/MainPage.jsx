@@ -66,7 +66,7 @@ export default function MainPage() {
       navigate(`/room/${room.code}`);
     } catch (err) {
       const msg =
-        err.response?.data?.message || "Server error while creating room.";
+        err.response?.data?.message || "Серверска грешка при креирање на соба!";
       showError(msg);
     } finally {
       setLoading(false);

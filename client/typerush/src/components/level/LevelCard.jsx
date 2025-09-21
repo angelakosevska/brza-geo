@@ -4,15 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 
 /**
  * Displays the player's level, Word Power, and progress toward next level.
- * Expects data directly from the backend profile API:
- * {
- *   level,
- *   wordPower,
- *   wpAtLevelStart,
- *   wpForNextLevel,
- *   currentLevelWP,
- *   progressPercent
- * }
+ * Expects data directly from the backend profile API.
  */
 export default function LevelCard({
   level,

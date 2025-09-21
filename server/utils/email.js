@@ -1,4 +1,3 @@
-// utils/email.js
 const transporter = require("./mailer");
 
 exports.sendWelcomeEmail = async (user) => {
