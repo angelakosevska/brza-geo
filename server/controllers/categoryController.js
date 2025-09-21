@@ -121,50 +121,6 @@ exports.updateCategory = async (req, res) => {
 };
 
 /**
- * PATCH /api/categories/:id/words
- * Append words to existing category
- */
-exports.appendWords = async (req, res) => {
-  try {
-    const id = req.params.id;
-    const cat = await Category.findById(id);
-    if (!cat)
-      return res.status(404).json({ message: res.__("category_not_found") });
-
-    const newWords = normalizeWordsInput(req.body.words);
-
-    const existing = new Set((cat.words || []).map((w) => w.toLowerCase()));
-    const toAdd = [];
-    for (const w of newWords) {
-      const lw = String(w).toLowerCase();
-      if (!existing.has(lw)) {
-        toAdd.push(w);
-        existing.add(lw);
-      }
-    }
-
-    if (!toAdd.length) {
-      return res.status(200).json({
-        message: res.__("no_new_words"),
-        added: [],
-      });
-    }
-
-    cat.words = [...cat.words, ...toAdd];
-    await cat.save();
-
-    return res.json({
-      message: res.__("words_added"),
-      added: toAdd,
-      category: cat,
-    });
-  } catch (err) {
-    console.error("❌ Error in appendWords:", err);
-    return res.status(500).json({ message: res.__("failed_append_words") });
-  }
-};
-
-/**
  * DELETE /api/categories/:id
  * Admin or creator can delete
  */
