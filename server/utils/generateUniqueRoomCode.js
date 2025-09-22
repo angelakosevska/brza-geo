@@ -7,3 +7,4 @@ function generateUniqueRoomCode(length = 5) {
   return code.toUpperCase();
 }
 module.exports = generateUniqueRoomCode;
+//Helper function for generating a room code

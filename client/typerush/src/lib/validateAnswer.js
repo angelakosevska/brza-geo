@@ -1,3 +1,4 @@
+//nciton that validates the answers in realtime when players input answers
 export function validateAnswer(raw, letter, dictWords = []) {
   const word = (raw || "").trim().toLowerCase();
   const upperLetter = (letter || "").toUpperCase();

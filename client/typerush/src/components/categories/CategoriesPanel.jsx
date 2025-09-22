@@ -208,7 +208,7 @@ export default function CategoriesPanel() {
         )}
 
         {/* Modal */}
-      </GlassCard>{" "}
+      </GlassCard>
       <CategoryEditModal
         show={!!selectedCategory}
         category={selectedCategory}

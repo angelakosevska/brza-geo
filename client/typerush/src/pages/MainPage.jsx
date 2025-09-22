@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import GlassCard from "@/components/global/GlassCard";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import api from "@/lib/axios";
 import { useError } from "@/hooks/useError";
 import InfoAccordion from "@/components/InfoAccordion";
@@ -11,7 +8,6 @@ import CategoriesPanel from "@/components/categories/CategoriesPanel";
 import { useLoading } from "@/context/LoadingContext";
 import { useAuth } from "@/context/AuthContext";
 import { socket } from "@/lib/socket";
-import { PlusCircle, DoorOpen } from "lucide-react";
 import LobbyCard from "@/components/LobbyCard";
 
 export default function MainPage() {
@@ -22,7 +18,7 @@ export default function MainPage() {
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
 
-  // Fetch profile on mount
+  // Fetch profile on mount for level card API
   useEffect(() => {
     if (!user?.id) return;
 
@@ -38,7 +34,7 @@ export default function MainPage() {
     fetchProfile();
   }, [user?.id]);
 
-  // Listen for WP updates from server
+  // Listen for WP updates from server Socket
   useEffect(() => {
     if (!user?.id) return;
 
@@ -73,20 +69,23 @@ export default function MainPage() {
     }
   };
 
-  // Handle join room
+  // Handle join room API only
   const handleJoinRoom = async () => {
     if (!joinCode.trim()) {
-      showError("Enter a room code.");
+      showError("Внеси код за соба.");
       return;
     }
     try {
       setLoading(true);
       await api.post("/room/join", { code: joinCode.toUpperCase() });
+
       showSuccess(`Успешно се приклучи во собата ${joinCode.toUpperCase()}.`);
+
       navigate(`/room/${joinCode.toUpperCase()}`);
     } catch (err) {
       const msg =
-        err.response?.data?.message || "Проблем на серверот при креирање на собата.";
+        err.response?.data?.message ||
+        "Проблем на серверот при креирање на собата.";
       showError(msg);
     } finally {
       setLoading(false);
@@ -121,7 +120,7 @@ export default function MainPage() {
         />
       </div>
 
-      {/* 3. Right column – Categories panel */}
+      {/* 3. Right column – Categories panel has seperate logic in it */}
       <div className="order-3 col-span-1">
         <CategoriesPanel />
       </div>

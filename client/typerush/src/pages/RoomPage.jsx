@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { socket } from "@/lib/socket";
-import GlassCard from "@/components/global/GlassCard";
 import { useAuth } from "@/context/AuthContext";
 import PlayersList from "@/components/PlayersList";
 import RoomCodeCard from "@/components/room/RoomCodeCard";
@@ -51,17 +50,6 @@ export default function RoomPage() {
     return () => socket.off("roomUpdated", onRoomUpdated);
   }, []);
 
-  // ---- Refresh on user join/leave ----
-  useEffect(() => {
-    const handleUserChange = () => fetchRoom();
-    socket.on("userJoined", handleUserChange);
-    socket.on("userLeft", handleUserChange);
-    return () => {
-      socket.off("userJoined", handleUserChange);
-      socket.off("userLeft", handleUserChange);
-    };
-  }, [fetchRoom]);
-
   // ---- Navigate when game starts ----
   useEffect(() => {
     const onRoundStarted = () => navigate(`/game/${code}`);
@@ -87,13 +75,15 @@ export default function RoomPage() {
   // ---- Handlers ----
   const handleLeave = async () => {
     try {
-      await api.post("/room/leave", { code: room.code }); // call REST API
+      await api.post("/room/leave", { code: room.code }); // update DB
+      socket.emit("leaveRoom", { code: room.code }); // unsubscribe socket
       navigate("/main");
     } catch (err) {
       console.error("❌ Failed to leave room:", err);
       alert("Не успеавте да ја напуштите собата.");
     }
   };
+
   const handleStartGame = async () => {
     await api.patch("/room/update-settings", {
       code: room.code,

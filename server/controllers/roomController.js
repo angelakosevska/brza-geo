@@ -6,7 +6,7 @@ const { getIO } = require("../sockets/ioInstance");
 const getHostId = (host) => (host?._id ? host._id.toString() : host.toString());
 
 /**
- * Create a new room
+ * Create a new room from Main page
  */
 exports.createRoom = async (req, res) => {
   try {
@@ -43,7 +43,7 @@ exports.createRoom = async (req, res) => {
 };
 
 /**
- * Join an existing room
+ * Join an existing room from Main Page
  */
 exports.joinRoom = async (req, res) => {
   const { code } = req.body;
