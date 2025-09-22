@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 // Regex for validating Macedonian Cyrillic letters (uppercase, lowercase, spaces, and dash)
 const CYRILLIC_RE =
-  /^[АБВГДЃЕЖЗЅИЈКЛЉМНЊОПРСТЌУФХЦЧЏШабвгдѓежзѕијклљмнњопрстќуфхцчџш\s-]+$/;
+  /^[АБВГДЃЕЖЗЅИЈКЛЉМНЊОПРСТЌУФХЦЧЏШабвгдѓежзѕијклљмнњопрстќуфхцчџш\s-'`]+$/;
 
 // Helper function: checks if a word contains only valid Cyrillic characters
 function isCyrillicWord(w) {

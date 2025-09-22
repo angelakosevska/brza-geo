@@ -4,7 +4,6 @@ export function validateAnswer(raw, letter, dictWords = []) {
 
   if (!word) return { status: "empty" };
 
-  // ✅ Check for Cyrillic
   const cyrillicRegex = /^[\u0400-\u04FF]/;
   if (!cyrillicRegex.test(word[0])) {
     return { status: "not-cyrillic" };
