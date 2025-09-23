@@ -23,12 +23,10 @@ async function startRound(io, roomDoc) {
   const duration = Math.max(3, isNaN(timerVal) ? 60 : timerVal);
   const endAt = new Date(Date.now() + duration * 1000);
 
-  const alphabet = "АБВГДЃЕЖЗЅИЈКЛЉМНЊОПРСТЌУФХЦЧЏШ".split("");
-
   const categoryIds = (roomDoc.categories || []).map(String);
   const categoryMeta = await fetchCategoryMeta(categoryIds);
 
-  // letters from validLetters in category
+  // сите валидни букви од категориите
   const validLetters = new Set();
   for (const cat of categoryMeta) {
     for (const l of cat.validLetters || []) {
@@ -37,35 +35,22 @@ async function startRound(io, roomDoc) {
     }
   }
 
-  // ако нема валидни букви → скипни рундата
-  if (validLetters.size === 0) {
-    io.to(roomCode).emit("roundSkipped", {
-      currentRound: (roomDoc.currentRound || 0) + 1,
-      totalRounds: roomDoc.rounds,
-      reason: "no-valid-words",
-      serverNow: Date.now(),
-    });
+  // иницијализирај runtime сет за искористени букви
+  if (!rt.usedLetters) rt.usedLetters = new Set();
 
-    // пауза пред следна рунда (2 секунди)
-    setTimeout(async () => {
-      const freshRoom = await Room.findOneAndUpdate(
-        { _id: roomDoc._id },
-        { $inc: { currentRound: 1 } }, // само зголеми рунда
-        { new: true }
-      );
-      if (freshRoom && freshRoom.currentRound <= freshRoom.rounds) {
-        await startRound(io, freshRoom);
-      }
-    }, 2000);
+  // филтрирај искористени букви
+  let pool = Array.from(validLetters).filter((l) => !rt.usedLetters.has(l));
 
-    return;
+  // ако сите се искористени → ресетирај
+  if (pool.length === 0) {
+    rt.usedLetters.clear();
+    pool = Array.from(validLetters);
   }
 
-  // нормално избери буква од валидни
-  const pool = Array.from(validLetters);
+  // избери буква
   const idx = Math.floor(Math.random() * pool.length);
   const letter = pool[idx];
-  
+  rt.usedLetters.add(letter);
 
   const nextRound = (roomDoc.currentRound || 0) + 1;
 

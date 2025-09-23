@@ -73,17 +73,26 @@ export default function RoomPage() {
     (room.host._id === currentUserId || room.host === currentUserId);
 
   // ---- Handlers ----
+  // const handleLeave = async () => {
+  //   try {
+  //     await api.post("/room/leave", { code: room.code }); // update DB
+  //     socket.emit("leaveRoom", { code: room.code }); // unsubscribe socket
+  //     navigate("/main");
+  //   } catch (err) {
+  //     console.error("❌ Failed to leave room:", err);
+  //     alert("Не успеавте да ја напуштите собата.");
+  //   }
+  // };
   const handleLeave = async () => {
     try {
-      await api.post("/room/leave", { code: room.code }); // update DB
-      socket.emit("leaveRoom", { code: room.code }); // unsubscribe socket
+      await api.post(`/room/${room.code}/leave`); // 👈 правилен URL
+      socket.emit("leaveRoom", { code: room.code }); // може и да се тргне ако server веќе емитува
       navigate("/main");
     } catch (err) {
       console.error("❌ Failed to leave room:", err);
       alert("Не успеавте да ја напуштите собата.");
     }
   };
-
   const handleStartGame = async () => {
     await api.patch("/room/update-settings", {
       code: room.code,

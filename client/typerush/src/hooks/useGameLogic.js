@@ -500,13 +500,14 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   const handleLeaveRoom = useCallback(async () => {
     try {
       // 1. Update server DB
-      await api.post(`/room/${code}/leave`, { userId: currentUserId });
+      await api.post(`/room/${code}/leave`);
 
       // 2. Tell other clients via socket
       socket.emit("leaveRoom", { code, userId: currentUserId });
 
       // 3. Navigate away
       navigate("/main");
+      console.log("Left from modal");
     } catch (err) {
       console.error("❌ Failed to leave room:", err);
       // optional: still try to navigate

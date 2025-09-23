@@ -16,7 +16,7 @@ export default function LetterBackground({ children }) {
           const color = "var(--primary)";
           const delay = Math.random() * 6;
           const duration = 4 + Math.random() * 4;
-          const opacity = 0.2 + Math.random() * 0.6;
+          const opacity = 0.2 + Math.random() * 0.2;
 
           return (
             <span

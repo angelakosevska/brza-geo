@@ -34,7 +34,6 @@ export default function GamePage() {
     hasMoreRounds,
     hostId,
     isHost,
-    wpEarned,
     handleChange,
     handleSubmit,
     handleStopRound,
@@ -96,7 +95,7 @@ export default function GamePage() {
           <PlayersList
             players={players}
             className="w-full h-full"
-            showLeave={true}
+            showLeave={false}
             onLeave={handleLeaveRoom}
             hostId={hostId}
           />
@@ -128,7 +127,6 @@ export default function GamePage() {
         playerNameById={playerNameById}
         finalTotals={finalTotals}
         finalWinners={finalWinners}
-        wpEarned={wpEarned}
         isHost={isHost}
         onBackToRoom={handleBackToRoom}
         onLeaveToMain={handleLeaveRoom}

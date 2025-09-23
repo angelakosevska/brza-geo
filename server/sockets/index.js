@@ -16,8 +16,7 @@ const { endGame } = require("./gameManager");
 
 module.exports = (io) => {
   io.on("connection", (socket) => {
-    console.log("🔌 Socket connected:", socket.id);
-    socket.data = {}; // will hold { roomCode, userId }
+    socket.data = {}; // holds { roomCode, userId }
 
     // ------------------- JOIN ROOM -------------------
     socket.on("joinRoom", async ({ code, userId }) => {
@@ -36,13 +35,12 @@ module.exports = (io) => {
       if (!room) return socket.emit("error", "Room not found");
       await bumpActivity(roomCode);
 
-      // Notify all players
       io.to(roomCode).emit("playersUpdated", {
         players: (room.players || []).map(stringifyId),
       });
       io.to(roomCode).emit("roomUpdated", { room });
 
-      // Sync state for the new joiner if game already running
+      // Sync state for late joiner if the game already started
       await syncLateJoiner(socket, room, userId);
     });
 
@@ -61,7 +59,7 @@ module.exports = (io) => {
       const { roomCode, userId } = socket.data || {};
       if (!roomCode || !userId) return;
 
-      // Grace period to allow reconnection
+      // Allow a grace period for reconnection before removing
       setTimeout(async () => {
         const stillConnected = Array.from(io.sockets.sockets.values()).some(
           (s) => s.data?.roomCode === roomCode && s.data?.userId === userId
@@ -74,11 +72,7 @@ module.exports = (io) => {
 
     // ------------------- START GAME -------------------
     socket.on("startGame", async (payload = {}) => {
-      const roomCode = (
-        payload.code ||
-        socket.data.roomCode ||
-        ""
-      ).toUpperCase();
+      const roomCode = (payload.code || socket.data.roomCode || "").toUpperCase();
       const { userId } = socket.data || {};
       if (!roomCode || !userId) return;
 
@@ -90,10 +84,7 @@ module.exports = (io) => {
         return socket.emit("error", "Only the host can start");
 
       const settings = {
-        rounds: Math.max(
-          1,
-          Math.min(20, Number(payload.rounds) || room.rounds)
-        ),
+        rounds: Math.max(1, Math.min(20, Number(payload.rounds) || room.rounds)),
         timer: Math.max(3, Math.min(300, Number(payload.timer) || room.timer)),
         categories: Array.isArray(payload.categories)
           ? payload.categories
@@ -134,11 +125,8 @@ module.exports = (io) => {
       const { roomCode, userId } = socket.data || {};
       if (!roomCode || !userId) return;
 
-      // No answers at all? Skip.
-      if (
-        !answers ||
-        Object.values(answers).every((v) => !String(v || "").trim())
-      ) {
+      // Skip if no answers
+      if (!answers || Object.values(answers).every((v) => !String(v || "").trim())) {
         return;
       }
 
@@ -147,13 +135,13 @@ module.exports = (io) => {
       );
       if (!room?.started || !room.currentRound) return;
 
-      // Check cutoff
+      // Enforce cutoff time (small buffer allowed)
       const cutoff = room.roundEndTime
         ? new Date(room.roundEndTime).getTime() + 150
         : 0;
       if (cutoff && Date.now() > cutoff) return;
 
-      // Replace submission
+      // Replace existing submission
       await Room.updateOne(
         { code: roomCode, "roundsData.roundNumber": room.currentRound },
         { $pull: { "roundsData.$.submissions": { player: userId } } }
@@ -169,7 +157,7 @@ module.exports = (io) => {
 
       await bumpActivity(roomCode);
 
-      // End round if mode = ALL_SUBMIT
+      // End round automatically if mode = ALL_SUBMIT
       if ((room.endMode || "ALL_SUBMIT") === "ALL_SUBMIT") {
         await checkAllSubmitted(io, roomCode, room.currentRound);
       }
@@ -186,10 +174,10 @@ module.exports = (io) => {
       if (!room?.started || !room.currentRound) return;
       if ((room.endMode || "ALL_SUBMIT") !== "PLAYER_STOP") return;
 
-      // Force all clients to submit
+      // Force all clients to submit immediately
       io.to(roomCode).emit("forceSubmit", { code: roomCode });
 
-      // After a short wait, end the round
+      // End round after a short wait
       setTimeout(async () => {
         const rt = getRuntime(roomCode);
         if (rt.ending) return;
@@ -204,7 +192,7 @@ module.exports = (io) => {
       }, FORCE_SUBMIT_WAIT_MS);
     });
 
-    // ------------------- NEXT ROUND (skip break) -------------------
+    // ------------------- NEXT ROUND -------------------
     socket.on("nextRound", async () => {
       const { roomCode, userId } = socket.data || {};
       if (!roomCode || !userId) return;
@@ -213,7 +201,7 @@ module.exports = (io) => {
         "host started currentRound rounds"
       );
       if (!room?.started) return;
-      if (String(room.host) !== String(userId)) return; // only host
+      if (String(room.host) !== String(userId)) return; // only host can skip break
 
       const rt = getRuntime(roomCode);
       clearAllTimers(rt);

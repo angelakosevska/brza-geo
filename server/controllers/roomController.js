@@ -50,7 +50,8 @@ exports.joinRoom = async (req, res) => {
   try {
     const userId = req.user.userId;
     let room = await Room.findOne({ code: code.toUpperCase() });
-    if (!room) return res.status(404).json({ message: res.__("room_not_found") });
+    if (!room)
+      return res.status(404).json({ message: res.__("room_not_found") });
 
     if (!room.players.some((id) => id.toString() === userId)) {
       room.players.push(userId);
@@ -74,27 +75,65 @@ exports.joinRoom = async (req, res) => {
 /**
  * Leave a room
  */
+// exports.leaveRoom = async (req, res) => {
+//   const { code } = req.body;
+//   try {
+//     const userId = req.user.userId;
+
+//     let room = await Room.findOne({ code });
+//     if (!room) return res.status(404).json({ message: res.__("room_not_found") });
+
+//     room.players = room.players.filter((id) => id.toString() !== userId);
+
+//     if (room.host.toString() === userId) {
+//       room.host = room.players.length > 0 ? room.players[0] : null;
+//     }
+
+//     await room.save();
+
+//     room = await Room.findOne({ code })
+//       .populate("players")
+//       .populate("host")
+//       .populate("categories");
+
+//     const io = getIO();
+//     io.to(code).emit("roomUpdated", { room });
+
+//     res.json({ message: res.__("left_room_success"), room });
+//     console.log("👋 Player left room:", { code, userId });
+//   } catch (err) {
+//     console.error("❌ Error leaving room:", err);
+//     res.status(500).json({ message: res.__("failed_leave_room") });
+//   }
+// };
+
 exports.leaveRoom = async (req, res) => {
-  const { code } = req.body;
+  const { code } = req.params; // 👈 земи од URL params
   try {
     const userId = req.user.userId;
 
     let room = await Room.findOne({ code });
-    if (!room) return res.status(404).json({ message: res.__("room_not_found") });
+    if (!room) {
+      return res.status(404).json({ message: res.__("room_not_found") });
+    }
 
+    // тргни го играчот од листата
     room.players = room.players.filter((id) => id.toString() !== userId);
 
-    if (room.host.toString() === userId) {
+    // ако бил host → пренеси хостирањето на првиот преостанат или null
+    if (room.host?.toString() === userId) {
       room.host = room.players.length > 0 ? room.players[0] : null;
     }
 
     await room.save();
 
+    // репопулирај за ажуриран state
     room = await Room.findOne({ code })
       .populate("players")
       .populate("host")
       .populate("categories");
 
+    // емитирај на сите клиенти во таа соба дека е апдејтната
     const io = getIO();
     io.to(code).emit("roomUpdated", { room });
 
@@ -117,7 +156,8 @@ exports.getRoom = async (req, res) => {
       .populate("host")
       .populate("categories");
 
-    if (!room) return res.status(404).json({ message: res.__("room_not_found") });
+    if (!room)
+      return res.status(404).json({ message: res.__("room_not_found") });
     res.json({ room });
   } catch (err) {
     console.error("❌ Error fetching room:", err);
@@ -136,7 +176,8 @@ exports.updateSettings = async (req, res) => {
       .populate("players")
       .populate("host");
 
-    if (!room) return res.status(404).json({ message: res.__("room_not_found") });
+    if (!room)
+      return res.status(404).json({ message: res.__("room_not_found") });
 
     const hostId = getHostId(room.host);
     if (hostId !== req.user.userId) {
@@ -174,7 +215,8 @@ exports.updateCategories = async (req, res) => {
       .populate("players")
       .populate("host");
 
-    if (!room) return res.status(404).json({ message: res.__("room_not_found") });
+    if (!room)
+      return res.status(404).json({ message: res.__("room_not_found") });
 
     const hostId = getHostId(room.host);
     if (hostId !== req.user.userId) {
