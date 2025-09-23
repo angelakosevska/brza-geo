@@ -79,7 +79,7 @@ export default function RoomSettingsForm({
             </SelectTrigger>
             <SelectContent>
               {Array.from({ length: 25 }, (_, i) => (
-                <SelectItem key={i + 1} value={String(i + 1)}>
+                <SelectItem key={i + 1} value={String(i + 1)} className="hover:bg-[var(--secondary)]/20 hover:text-[var(--secondary)]">
                   {i + 1}
                 </SelectItem>
               ))}

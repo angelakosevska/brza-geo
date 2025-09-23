@@ -4,6 +4,7 @@ import { CardFooter } from "@/components/ui/card";
 import TRTitle from "@/components/TRTitle";
 import { useNavigate } from "react-router-dom";
 import HowToPlay from "@/components/HowToPlay";
+import InfoAccordion from "@/components/InfoAccordion";
 
 // Main Welcome component – this is the first screen users see
 export default function Welcome() {
