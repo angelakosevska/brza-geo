@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import GlassCard from "@/components/global/GlassCard";
 import { Button } from "@/components/ui/button";
-import { Award, Medal, Trophy } from "lucide-react"; 
+import { Award, Medal, Trophy } from "lucide-react";
 
 export default function FinalResultsModal({
   show = false,
@@ -10,7 +10,6 @@ export default function FinalResultsModal({
   finalTotals = {},
   finalWinners = [],
   isHost = false,
-  wpEarned,
   onBackToRoom,
   onLeaveToMain,
   onStartNewGame,
@@ -33,6 +32,10 @@ export default function FinalResultsModal({
       return String(ida) < String(idb) ? -1 : 1;
     });
   }, [finalTotals, playerNameById]);
+
+  // горе во компонентата, после sorted
+  const myPoints = finalTotals[currentUserId] || 0;
+  const myWpEarned = Math.floor(myPoints / 2);
 
   const winnerNames =
     finalWinners.length > 0
@@ -166,7 +169,8 @@ export default function FinalResultsModal({
                     ${
                       isCurrent
                         ? " " + className
-                        : className || "bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 border border-[var(--text)]/10"
+                        : className ||
+                          "bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 border border-[var(--text)]/10"
                     }
                   `}
                 >
@@ -187,11 +191,14 @@ export default function FinalResultsModal({
           </div>
 
           {/* Word Power XP */}
-          {wpEarned > 0 && (
+          {myWpEarned > 0 && (
             <div className="mt-4 font-semibold text-[var(--primary)] text-lg text-center">
-              Добивте {" "}{" "}{" "}
-              <span className="bg-[var(--primary)]/20 px-3 py-4 rounded-full text-[var(--secondary)]"> +{wpEarned}</span>
-              {" "}{" "}{" "}Word Power!
+              Добивте{" "}
+              <span className="bg-[var(--primary)]/20 px-3 py-4 rounded-full text-[var(--secondary)]">
+                {" "}
+                +{myWpEarned}
+              </span>{" "}
+              Word Power!
             </div>
           )}
 

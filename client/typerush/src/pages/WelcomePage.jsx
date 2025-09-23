@@ -61,7 +61,7 @@ export default function Welcome() {
                 className="md:hidden"
                 onClick={() => setShowHowToPlay((prev) => !prev)}
               >
-                {showHowToPlay ? "Затовори" : "Како да играш"}
+                {showHowToPlay ? "Затвори" : "Како да играш"}
               </Button>
             )}
           </CardFooter>

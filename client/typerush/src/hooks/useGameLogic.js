@@ -497,10 +497,22 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   }, [code, navigate]);
 
   // Leave room → back to main menu
-  const handleLeaveRoom = useCallback(() => {
-    socket.emit("leaveRoom", { code });
-    navigate("/main");
-  }, [code, navigate]);
+  const handleLeaveRoom = useCallback(async () => {
+    try {
+      // 1. Update server DB
+      await api.post(`/room/${code}/leave`, { userId: currentUserId });
+
+      // 2. Tell other clients via socket
+      socket.emit("leaveRoom", { code, userId: currentUserId });
+
+      // 3. Navigate away
+      navigate("/main");
+    } catch (err) {
+      console.error("❌ Failed to leave room:", err);
+      // optional: still try to navigate
+      navigate("/main");
+    }
+  }, [code, currentUserId, navigate]);
 
   // Stay in final results modal
   const handleStayHere = useCallback(() => {
@@ -536,9 +548,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     showFinal,
     finalTotals,
     finalWinners,
-    wpEarned: currentUserId
-      ? Math.floor((finalTotals[currentUserId] || 0) / 2)
-      : 0,
 
     // Handlers
     handleChange,

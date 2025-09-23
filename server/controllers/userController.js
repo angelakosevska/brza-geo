@@ -37,18 +37,7 @@ exports.getProfile = async (req, res) => {
   }
 };
 
-/**
- * POST /api/user/:id/addWP
- * Add Word Power (XP) to a user and recalc level.
- *
- * Input:
- * - req.body.amount → number of XP points to add
- *
- * Returns:
- * - updated wordPower
- * - updated level
- * - updated progress (same as profile)
- */
+
 exports.addWordPowerToUser = async (req, res) => {
   try {
     const { amount } = req.body;

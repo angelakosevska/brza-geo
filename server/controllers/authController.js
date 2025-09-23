@@ -25,7 +25,6 @@ exports.register = async (req, res) => {
       minLowercase: 1,
       minUppercase: 1,
       minNumbers: 1,
-      minSymbols: 1,
     })
   ) {
     return res.status(400).json({ message: res.__("password_not_strong") });
@@ -199,7 +198,6 @@ exports.resetPassword = async (req, res) => {
       minLowercase: 1,
       minUppercase: 1,
       minNumbers: 1,
-      minSymbols: 1,
     })
   ) {
     return res.status(400).json({ message: res.__("password_not_strong") });

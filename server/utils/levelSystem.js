@@ -32,7 +32,7 @@ function addWordPower(user, amount) {
 /**
  * Compute progress toward the next level for a given Word Power amount.
  *
- * Returns:
+ * Returns: for Level Card
  * - wpAtLevelStart → XP accumulated at the beginning of this level
  * - wpForNextLevel → XP needed to go from current level → next
  * - currentLevelWP → XP already earned in this level
