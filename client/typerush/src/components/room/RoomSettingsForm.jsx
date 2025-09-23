@@ -104,7 +104,7 @@ export default function RoomSettingsForm({
               {Array.from({ length: 18 }, (_, i) => {
                 const value = (i + 1) * 10; // 10, 20, ..., 180
                 return (
-                  <SelectItem key={value} value={String(value)} className="hover:bg-[var(--primary)]/20">
+                  <SelectItem key={value} value={String(value)} className="hover:bg-[var(--secondary)]/20 hover:text-[var(--secondary)]">
                     {value} сек.
                   </SelectItem>
                 );

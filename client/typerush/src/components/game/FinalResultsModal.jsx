@@ -192,7 +192,7 @@ export default function FinalResultsModal({
 
           {/* Word Power XP */}
           {myWpEarned > 0 && (
-            <div className="mt-4 font-semibold text-[var(--primary)] text-lg text-center">
+            <div className="mt-4 font-semibold text-[var(--text)] text-lg text-center">
               Добивте{" "}
               <span className="bg-[var(--primary)]/20 px-3 py-4 rounded-full text-[var(--secondary)]">
                 {" "}

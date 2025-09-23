@@ -12,27 +12,21 @@ const SelectTrigger = React.forwardRef(
     <SelectPrimitive.Trigger
       ref={ref}
       className={cn(
-        "shadow-xs px-4 py-2 outline-none w-full min-w-0 text-[var(--text)]/70 transition-all",
+        "group shadow-xs px-4 py-2 outline-none w-full min-w-0 text-[var(--text)]/70 transition-all",
         "border-2 border-[var(--primary)] bg-transparent rounded-3xl",
-        "placeholder:selection:bg-[var(--primary)] placeholder:selection:text-[var(--background)]/70",
-        "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-        "focus-visible:ring-[2px] focus-visible:ring-[var(--secondary)]/20 focus-visible:border-[var(--primary)]/50",
-        "aria-invalid:ring-destructive/20 aria-invalid:border-destructive",
         "flex h-10 items-center justify-between whitespace-nowrap [&>span]:line-clamp-1",
-
         className
       )}
       {...props}
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <ChevronDown className="opacity-50 w-4 h-4" />
+        <ChevronDown className="opacity-50 w-4 h-4 group-data-[state=open]:rotate-180 transition-transform duration-200" />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   )
 );
 SelectTrigger.displayName = "SelectTrigger";
-
 const SelectScrollUpButton = React.forwardRef(
   ({ className, ...props }, ref) => (
     <SelectPrimitive.ScrollUpButton
@@ -113,22 +107,20 @@ const SelectItem = React.forwardRef(
       ref={ref}
       className={cn(
         // base
-        "relative flex items-center cursor-pointer select-none rounded-md outline-none w-full text-sm",
+        "relative flex items-center justify-center cursor-pointer select-none rounded-md outline-none w-full text-sm",
         // padding (bigger on mobile)
         "py-3 px-4 md:py-2 md:px-3",
         // states
         "focus:bg-accent focus:text-accent-foreground",
         "hover:bg-[var(--primary)]/10", // hover effect
-        "data-[state=checked]:bg-[var(--primary)]/20 data-[state=checked]:text-[var(--primary)] font-semibold", // selected state
+        "data-[state=checked]:bg-[var(--secondary)]/20 data-[state=checked]:text-[var(--secondary)] font-semibold", // selected state
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         className
       )}
       {...props}
     >
       <span className="right-2 absolute flex justify-center items-center w-4 h-4">
-        <SelectPrimitive.ItemIndicator>
-      
-        </SelectPrimitive.ItemIndicator>
+        <SelectPrimitive.ItemIndicator></SelectPrimitive.ItemIndicator>
       </span>
       <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
     </SelectPrimitive.Item>
