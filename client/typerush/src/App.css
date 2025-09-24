@@ -24,3 +24,36 @@
   scrollbar-width: thin; /* slim bar */
   scrollbar-color: var(--primary) transparent; /* thumb / track */
 }
+
+.winner-border {
+  position: relative;
+  border-radius: 1rem; /* мора да биде исто со GlassCard */
+  overflow: hidden;
+}
+
+.winner-border::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  padding: 3px; /* дебелина на бордерот */
+  border-radius: inherit;
+  background: linear-gradient(90deg, gold, orange, red, magenta, violet);
+  background-size: 300% 300%;
+  animation: gradient-move 6s linear infinite;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+@keyframes gradient-move {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}

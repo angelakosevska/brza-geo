@@ -16,9 +16,9 @@ async function scoreRound(round, categories, letter) {
   const catMap = new Map(categoryDocs.map((c) => [String(c._id), c]));
 
   // Containers for results
-  const answersByCategory = {};   // all player answers by category
-  const countsByCategory = {};    // how many times each word was used
-  const noWordsByCategory = {};   // categories that have no words for this letter
+  const answersByCategory = {}; // all player answers by category
+  const countsByCategory = {}; // how many times each word was used
+  const noWordsByCategory = {}; // categories that have no words for this letter
 
   // Process each category
   for (const categoryId of categories) {
@@ -48,11 +48,11 @@ async function scoreRound(round, categories, letter) {
 
       return {
         player: String(submission.player),
-        raw,            // raw user input
-        normalized,     // lowercased/trimmed
-        startsCorrect,  // starts with the round letter?
+        raw, // raw user input
+        normalized, // lowercased/trimmed
+        startsCorrect, // starts with the round letter?
         inDict: isExact, // valid word only if exact match
-        isExact,        // exact dictionary match
+        isExact, // exact dictionary match
       };
     });
 
@@ -69,9 +69,9 @@ async function scoreRound(round, categories, letter) {
   }
 
   // Final results containers
-  const scores = {};           // total points per player
-  const details = {};          // per-player, per-category breakdown
-  const answersByPlayer = {};  // raw answers by player
+  const scores = {}; // total points per player
+  const details = {}; // per-player, per-category breakdown
+  const answersByPlayer = {}; // raw answers by player
 
   // Evaluate each player's submissions
   for (const submission of round.submissions || []) {
@@ -109,17 +109,40 @@ async function scoreRound(round, categories, letter) {
       };
 
       // Scoring rules
+      // if (!answer.raw) {
+      //   result.reason = "empty"; // no input
+      // } else if (!answer.startsCorrect) {
+      //   result.reason = "wrong-letter"; // wrong starting letter
+      // } else if (!answer.inDict) {
+      //   result.reason = "not-in-dictionary"; // not found in dictionary
+      // } else {
+      //   // Valid dictionary word — assign points based on uniqueness
+      //   if (count === 1) result.points = 10;   // unique exact word
+      //   else if (count === 2) result.points = 4; // used by 2 players
+      //   else result.points = 2;                  // used by 3+ players
+      //   totalPoints += result.points;
+      // }
       if (!answer.raw) {
         result.reason = "empty"; // no input
+        result.valid = false;
+        result.unique = false;
+        result.points = 0;
       } else if (!answer.startsCorrect) {
-        result.reason = "wrong-letter"; // wrong starting letter
+        result.reason = "wrong-letter";
       } else if (!answer.inDict) {
-        result.reason = "not-in-dictionary"; // not found in dictionary
+        result.reason = "not-in-dictionary";
       } else {
-        // Valid dictionary word — assign points based on uniqueness
-        if (count === 1) result.points = 10;   // unique exact word
-        else if (count === 2) result.points = 4; // used by 2 players
-        else result.points = 2;                  // used by 3+ players
+        // Valid dictionary word — assign points
+        if (count === 1) {
+          result.points = 10;
+          result.unique = true;
+        } else if (count === 2) {
+          result.points = 4;
+          result.unique = false;
+        } else {
+          result.points = 2;
+          result.unique = false;
+        }
         totalPoints += result.points;
       }
 

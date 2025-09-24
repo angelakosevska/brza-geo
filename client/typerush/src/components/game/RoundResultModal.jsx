@@ -108,7 +108,11 @@ export default function RoundResultsModal({
 
                     // Decide icon + text + color
                     let badgeIcon, badgeText, badgeClass;
-                    if (info.valid && info.unique) {
+                    if (info.value === "" || info.reason === "празно") {
+                      badgeIcon = <XCircle className="w-4 h-4 text-gray-400" />;
+                      badgeText = "празно";
+                      badgeClass = "text-gray-400";
+                    } else if (info.valid && info.unique) {
                       badgeIcon = (
                         <CheckCircle className="w-4 h-4 text-emerald-600" />
                       );

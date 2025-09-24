@@ -2,6 +2,7 @@ import { useEffect, useMemo } from "react";
 import GlassCard from "@/components/global/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Award, Medal, Trophy } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function FinalResultsModal({
   show = false,
@@ -116,16 +117,12 @@ export default function FinalResultsModal({
 
       {/* Modal card */}
       <div className="absolute inset-0 flex justify-center items-center p-4">
-        <GlassCard className="relative p-6 w-full max-w-3xl text-[var(--text)]">
-          {/* Close button */}
-          <button
-            onClick={onRequestClose}
-            aria-label="Затвори"
-            className="top-3 right-3 absolute opacity-70 hover:opacity-100 px-2 py-1 rounded-full focus:outline-none focus:ring-[var(--accent)] focus:ring-2 text-sm"
-          >
-            ✕
-          </button>
-
+        {/* <GlassCard className="relative p-6 w-full max-w-3xl text-[var(--text)]"> */}
+        <GlassCard
+          className={`relative p-6 w-full max-w-3xl text-[var(--text)] ${
+            finalWinners.includes(currentUserId) ? "winner-border" : ""
+          }`}
+        >
           {/* Header */}
           <div className="flex flex-wrap justify-between items-center gap-3 mb-4 pr-8">
             <div id="final-results-title" className="font-bold text-xl">
@@ -140,18 +137,30 @@ export default function FinalResultsModal({
           </div>
 
           {/* Winners */}
-          <div className="mb-4">
-            {winnerNames ? (
+          {finalWinners.includes(currentUserId) ? (
+            <div className="flex flex-col items-center">
+              <Trophy className="mb-2 w-12 h-12 text-yellow-500" />
+              <div className="font-bold text-[var(--text)] text-2xl">
+                Честитки{" "}
+                <span className="text-[var(--secondary)]">
+                  {playerNameById[currentUserId] || "Ти"}!
+                </span>
+              </div>
+              <div className="opacity-80 text-lg">Ти си победник! 🏆</div>
+            </div>
+          ) : winnerNames ? (
+            <div className="flex flex-col items-center">
+              <Trophy className="mb-2 w-12 h-12 text-yellow-500" />
               <div className="text-lg">
                 Победни{finalWinners.length > 1 ? "ци" : "к"}:{" "}
                 <span className="font-semibold text-[var(--secondary)]">
                   {winnerNames}
                 </span>
               </div>
-            ) : (
-              <div className="text-lg">Нема победници</div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="mb-6 text-lg text-center">Нема победници</div>
+          )}
 
           {/* Final table */}
           <div className="space-y-2 pr-1 max-h-[55vh] overflow-auto">
@@ -191,17 +200,21 @@ export default function FinalResultsModal({
           </div>
 
           {/* Word Power XP */}
+
           {myWpEarned > 0 && (
-            <div className="mt-4 font-semibold text-[var(--text)] text-lg text-center">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 100 }}
+              className="mt-6 font-bold text-lg text-center"
+            >
               Добивте{" "}
-              <span className="bg-[var(--primary)]/20 px-3 py-4 rounded-full text-[var(--secondary)]">
-                {" "}
+              <span className="bg-[var(--primary)]/20 px-3 py-2 rounded-full text-[var(--secondary)]">
                 +{myWpEarned}
               </span>{" "}
               Word Power!
-            </div>
+            </motion.div>
           )}
-
           {/* Actions */}
           <div className="flex flex-wrap justify-end items-center gap-2 mt-6">
             <Button variant="ghost" onClick={onLeaveToMain}>
