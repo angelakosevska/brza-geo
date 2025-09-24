@@ -24,7 +24,7 @@ export default function LobbyCard({ onCreate, onJoin, joinCode, setJoinCode }) {
             <PlusCircle className="w-4 h-4 text-[var(--background)]" />
             Креирај соба
           </Button>
-          <p className="mt-1 text-[var(--text)] text-xs md:text-sm">
+          <p className="mt-1 text-[var(--text)]/70 text-xs md:text-sm">
             Креирај соба и играј со пријателите
           </p>
         </div>
@@ -59,7 +59,7 @@ export default function LobbyCard({ onCreate, onJoin, joinCode, setJoinCode }) {
               Влези во собата
             </Button>
           </div>
-          <p className="mt-1 text-[var(--text)] text-xs md:text-sm">
+          <p className="mt-1 text-[var(--text)]/70 text-xs md:text-sm">
             Внеси го кодот што го сподели пријателот
           </p>
         </div>

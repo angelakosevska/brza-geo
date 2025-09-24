@@ -90,7 +90,7 @@ export default function CategoryAnswersCard({
           <div className="font-semibold text-[var(--primary)] text-base sm:text-lg">
             Внеси ги твоите одговори
           </div>
-          <div className="opacity-70 text-xs sm:text-sm">
+          {/* <div className="opacity-70 text-xs sm:text-sm">
             {mode !== "play"
               ? "Резултати помеѓу рунди."
               : waitingForRound
@@ -99,6 +99,21 @@ export default function CategoryAnswersCard({
               ? "Испратено. Не можеш да уредуваш."
               : (timeLeft ?? 0) > 0
               ? "Можеш да уредуваш додека не истече времето."
+              : "Времето истече."}
+          </div> */}
+          <div className="opacity-70 text-xs sm:text-sm">
+            {mode !== "play"
+              ? "Резултати помеѓу рунди."
+              : waitingForRound
+              ? "Чекам да почне рундата…"
+              : submitted
+              ? "Испратено. Не можеш да уредуваш."
+              : (timeLeft ?? 0) > 0
+              ? showSubmit
+                ? "Треба да кликнеш „Испрати“ пред да истече времето за да се зачуваат твоите одговори."
+                : showStop
+                ? "Кликни „Стоп“ откако ќе ги пополниш сите полиња и стопирај ја играта за сите. Одговорите на сите ќе се превземат автоматски"
+                : "Можеш да уредуваш додека не истече времето."
               : "Времето истече."}
           </div>
         </div>

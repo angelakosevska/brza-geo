@@ -23,7 +23,7 @@ export default function ForgotPasswordForm({ onSubmit }) {
 
         <Input
           type="email"
-          placeholder="Enter your email"
+          placeholder="Внеси го твојот е-маил"
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}

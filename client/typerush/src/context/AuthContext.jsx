@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
+import { resetSessionErrorGuard } from "@/lib/axios"; // reset guard on login
 
 const AuthContext = createContext();
 
@@ -13,22 +14,35 @@ export function AuthProvider({ children }) {
 
     if (storedToken && storedUser) {
       try {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser)); // 🚀 користи user од localStorage
+        // Decode token to check expiry
+        const decoded = jwtDecode(storedToken);
+        const now = Date.now() / 1000; // current time in seconds
+
+        if (decoded.exp && decoded.exp < now) {
+          // Token is expired -> clear auth
+          console.warn("Stored JWT is expired. Logging out user.");
+          logout();
+        } else {
+          setToken(storedToken);
+          setUser(JSON.parse(storedUser));
+        }
       } catch (err) {
-        console.error("Invalid stored user");
+        console.error("Invalid stored token or user data", err);
         logout();
       }
     }
   }, []);
 
   const login = (jwtToken, userData) => {
-    // jwtToken + userData доаѓаат од backend
+    // jwtToken + userData come from backend
     localStorage.setItem("token", jwtToken);
     localStorage.setItem("user", JSON.stringify(userData));
 
     setToken(jwtToken);
     setUser(userData);
+
+    // Reset session expired guard for fresh login
+    resetSessionErrorGuard();
   };
 
   const logout = () => {

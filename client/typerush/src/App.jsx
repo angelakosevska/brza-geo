@@ -1,9 +1,18 @@
 import { Toaster } from "sonner";
 import "./App.css";
-
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import AppRoutes from "./routes";
+import { useError } from "./hooks/useError";
+import { setAxiosUtils } from "./lib/axios";
 
 function App() {
+  const navigate = useNavigate();
+  const { showError } = useError();
+
+  useEffect(() => {
+    setAxiosUtils({ navigate, showError });
+  }, [navigate, showError]);
   return (
     <>
       <AppRoutes />
