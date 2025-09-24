@@ -31,8 +31,8 @@ export default function Welcome() {
   return (
     <div className="flex md:flex-row flex-col w-full min-h-[80vh]">
       {/* Left side – logo, title, and buttons */}
-      <div className="flex justify-center items-center p-6 w-full md:w-1/2">
-        <div className="flex flex-col items-center gap-6 w-full max-w-[50vh] text-center">
+      <div className="flex justify-center items-center my-auto p-6 w-full md:w-1/2 align-center">
+        <div className="flex flex-col items-center gap-6 max-w-[50vh] text-center nw-full align-center">
           {/* Logo */}
           <img
             src="/tr2.svg"

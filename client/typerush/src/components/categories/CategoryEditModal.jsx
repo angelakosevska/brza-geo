@@ -15,6 +15,7 @@ export default function CategoryEditModal({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [words, setWords] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   // Sync when category changes
   useEffect(() => {
@@ -34,7 +35,7 @@ export default function CategoryEditModal({
 
       {/* Modal body */}
       <div className="absolute inset-0 flex justify-center items-center p-4">
-        <GlassCard className="relative p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+        <GlassCard className="relative p-4 w-full sm:max-w-[90vw] lg:max-w-[70vw] lg:max-h-[80vh] overflow-y-auto">
           {/* Header */}
           <div className="flex justify-between items-center mb-4">
             <h2 className="font-bold text-[var(--primary)] text-lg">
@@ -62,7 +63,7 @@ export default function CategoryEditModal({
               <Textarea
                 value={words}
                 onChange={(e) => setWords(e.target.value)}
-                placeholder="Зборови (запирка)"
+                placeholder="Зборови (одделени со запирка на кирилица)"
                 className="h-28"
               />
             </div>
@@ -75,13 +76,40 @@ export default function CategoryEditModal({
           {/* Footer actions */}
           {canEdit && (
             <div className="flex justify-between items-center gap-4 mt-6">
-              <Button
+              {/* <Button
                 variant="destructive"
                 size="sm"
                 onClick={() => onDelete(category._id)}
               >
                 Избриши
-              </Button>
+              </Button> */}
+              {!confirmDelete ? (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setConfirmDelete(true)}
+                >
+                  Избриши
+                </Button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span className="text-[var(--text)] text-sm">Сигурно?</span>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => onDelete(category._id)}
+                  >
+                    Да
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setConfirmDelete(false)}
+                  >
+                    Откажи
+                  </Button>
+                </div>
+              )}
               <Button
                 size="sm"
                 onClick={() =>
