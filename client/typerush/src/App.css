@@ -38,7 +38,15 @@
   inset: 0;
   padding: 3px; /* дебелина на бордерот */
   border-radius: inherit;
-  background: linear-gradient(90deg, #25b790, #9e4dd4, #f88a79);
+  background: linear-gradient(
+    90deg,
+    #25b790 0%,
+    #37cda5 33%,
+    #9e4dd4 33%,
+    #c287e8 66%,
+    #f88a79 66%,
+    #ff7e6b 100%
+  );
   background-size: 300% 300%;
   animation: gradient-move 10s linear infinite;
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
