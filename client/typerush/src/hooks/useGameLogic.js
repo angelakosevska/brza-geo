@@ -384,20 +384,10 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       if (typeof rounds === "number") setTotalRounds(rounds);
     };
 
-    // Force submit triggered (e.g. by host)
+    // Force submit triggered
     const handleForceSubmit = () => {
       socket.emit("submitAnswers", { code, answers: answersRef.current });
       setSubmitted(true);
-    };
-
-    // Round skipped
-    const handleRoundSkipped = (payload) => {
-      if (payload.currentRound != null) setCurrentRound(payload.currentRound);
-      if (payload.totalRounds != null) setTotalRounds(payload.totalRounds);
-
-      setLetter(null);
-      setCategories([]);
-      setEndAt(null);
     };
 
     // Word Power updated for a player
@@ -416,7 +406,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     socket.on("roomState", handleRoomState);
     socket.on("settingsUpdated", handleSettingsUpdated);
     socket.on("forceSubmit", handleForceSubmit);
-    socket.on("roundSkipped", handleRoundSkipped);
     socket.on("playerWPUpdated", handleWPUpdate);
 
     // Cleanup
@@ -429,7 +418,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       socket.off("roomState", handleRoomState);
       socket.off("settingsUpdated", handleSettingsUpdated);
       socket.off("forceSubmit", handleForceSubmit);
-      socket.off("roundSkipped", handleRoundSkipped);
       socket.off("playerWPUpdated", handleWPUpdate);
     };
   }, [code, normalizeId, currentUserId]);
@@ -493,6 +481,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   // Go back to room (lobby)
   const handleBackToRoom = useCallback(() => {
     socket.emit("backToLobby", { code });
+
     navigate(`/room/${code}`);
   }, [code, navigate]);
 
