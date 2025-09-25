@@ -1,11 +1,13 @@
 import { Progress } from "@/components/ui/progress";
 import GlassCard from "@/components/global/GlassCard";
 import { useAuth } from "@/context/AuthContext";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-/**
- * Displays the player's level, Word Power, and progress toward next level.
- * Expects data directly from the backend profile API.
- */
 export default function LevelCard({
   level,
   wordPower,
@@ -19,6 +21,7 @@ export default function LevelCard({
     <GlassCard className="flex flex-col gap-4 p-5">
       {/* Header: Level badge + username */}
       <div className="flex items-center gap-4">
+        {/* Level badge со SVG (оригиналниот) */}
         <div
           className="flex justify-center items-center rounded-full w-16 h-16 font-bold text-[#ebfaf6] text-2xl"
           style={{
@@ -34,6 +37,8 @@ export default function LevelCard({
         >
           {level}
         </div>
+
+        {/* Username */}
         <span className="font-semibold text-[var(--text)] text-lg truncate">
           {user?.username}
         </span>
@@ -41,15 +46,39 @@ export default function LevelCard({
 
       {/* WP info */}
       <div className="flex flex-col w-full">
-        <div className="flex justify-between mb-1 text-[var(--text)] text-xs sm:text-sm">
-         
-          <span>
-            {currentLevelWP} / {wpForNextLevel} WP
-          </span>
+        <div className="flex justify-end mb-1 text-[var(--text)] text-xs sm:text-sm">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="cursor-help">
+                  {currentLevelWP} / {wpForNextLevel} WP
+                </span>
+              </TooltipTrigger>
+              <TooltipContent className="bg-[var(--background)] border border-[var(--primary)] text-[var(--text)]">
+                Word Power освоени на ова ниво. Наполни ја лентата за да
+                преминеш на следно ниво.
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
-        <Progress value={progressPercent} className="w-full h-3" />
-        <div className="flex justify-end mt-1 text-[var(--text)] text-xs sm:text-sm">
-          <span title="Вкупно поени од сите нивоа">Вкупно: {wordPower} WP</span>
+
+        {/* Progress bar со градиент fill */}
+        <Progress
+          value={progressPercent}
+          className="[&>div]:bg-gradient-to-r [&>div]:from-[#25b790] [&>div]:via-[#9e4dd4] [&>div]:to-[#ff7e6b] w-full h-3"
+        />
+
+        <div className="flex justify-start mt-1 text-[var(--text)] text-xs sm:text-sm">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="cursor-help">Вкупно: {wordPower} WP</span>
+              </TooltipTrigger>
+              <TooltipContent className="bg-[var(--background)] border border-[var(--primary)] text-[var(--text)]">
+                Вкупно Word Power од сите нивоа.
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
     </GlassCard>
