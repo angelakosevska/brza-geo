@@ -41,10 +41,10 @@
   background: linear-gradient(
     90deg,
     #25b790 0%,
-    #37cda5 33%,
-    #9e4dd4 33%,
-    #c287e8 66%,
-    #f88a79 66%,
+    #37cda5 20%,
+    #9e4dd4 40%,
+    #c287e8 60%,
+    #f88a79 80%,
     #ff7e6b 100%
   );
   background-size: 300% 300%;
