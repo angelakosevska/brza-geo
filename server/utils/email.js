@@ -2,20 +2,21 @@ const transporter = require("./mailer");
 
 exports.sendWelcomeEmail = async (user) => {
   await transporter.sendMail({
-    from: '"Type Rush" <no-reply@typerush.mk>',
+    from: '"Type Rush" <brza.geografija17@gmail.com>',
     to: user.email,
-    subject: "Welcome to Type Rush!",
-    html: `<p>Hi ${user.username},<br/>Welcome to Type Rush! Let's get typing! 🚀</p>`,
+    subject: "Добредојде во Type Rush!",
+    text: `Здраво ${user.username}, твојот код е ${code}. Важи 15 минути.`,
+    html: `<p>Здраво ${user.username},<br/>Добре дојде во Type Rush! Повикај ги пријателите и забавувајте се!</p>`,
   });
 };
 
 exports.sendPasswordResetEmail = async (user, code) => {
   await transporter.sendMail({
-    from: '"Type Rush" <no-reply@typerush.mk>',
+    from: '"Type Rush" <brza.geografija17@gmail.com>',
     to: user.email,
-    subject: "🔐 Your Type Rush Password Reset Code",
-    html: `<p>Hi ${user.username},</p>
-           <p>Your password reset code is: <strong>${code}</strong></p>
-           <p>It expires in 15 minutes.</p>`,
+    subject: "Твојот код за промена на лозинка на Type Rush.",
+    html: `<p>Здраво ${user.username},</p>
+           <p>Твојот код за промена на лозинката е: <strong>${code}</strong></p>
+           <p>Внимавај, истекува за 15 минути.</p>`,
   });
 };
