@@ -149,7 +149,7 @@ exports.login = async (req, res) => {
 
 // ========== REQUEST RESET ==========
 /**
- * POST /api/auth/request-reset
+ * POST /api/auth/request-password-reset
  * Request a password reset code via email
  */
 exports.requestPasswordReset = async (req, res) => {
