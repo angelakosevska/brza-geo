@@ -3,6 +3,7 @@ try {
   require("dotenv").config();
 } catch (_) {}
 
+const transporter = require("./utils/mailer");
 // Import core dependencies
 const express = require("express");
 const cors = require("cors");
@@ -44,21 +45,21 @@ app.use(express.json());
 
 // Configure i18n (internationalization) for English and Macedonian
 i18n.configure({
-  locales: ["en", "mk"],             // supported languages
+  locales: ["en", "mk"], // supported languages
   directory: __dirname + "/locales", // translation files location
-  defaultLocale: "en",               // fallback language
-  autoReload: true,                  // reload files on change (dev mode)
-  objectNotation: true,              // allow nested keys with dot notation
-  queryParameter: "lang",            // switch language via ?lang=mk
+  defaultLocale: "en", // fallback language
+  autoReload: true, // reload files on change (dev mode)
+  objectNotation: true, // allow nested keys with dot notation
+  queryParameter: "lang", // switch language via ?lang=mk
 });
 app.use(i18n.init); // attach i18n middleware
 
 // API routes
-app.use("/api/auth", require("./routes/auth"));         // authentication (register/login/etc.)
-app.use("/api/game", require("./routes/game"));         // game-related endpoints
-app.use("/api/room", require("./routes/room"));         // room management endpoints
-app.use("/api/categories", require("./routes/category"));// category management endpoints
-app.use("/api/user", require("./routes/user"));         // user profile endpoints
+app.use("/api/auth", require("./routes/auth")); // authentication (register/login/etc.)
+app.use("/api/game", require("./routes/game")); // game-related endpoints
+app.use("/api/room", require("./routes/room")); // room management endpoints
+app.use("/api/categories", require("./routes/category")); // category management endpoints
+app.use("/api/user", require("./routes/user")); // user profile endpoints
 
 // Health check route
 app.get("/healthz", (_req, res) => res.send("ok"));
@@ -82,7 +83,6 @@ mongoose
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err);
   });
-
 
 // Export Socket.IO instance for use in other modules
 module.exports.io = io;
