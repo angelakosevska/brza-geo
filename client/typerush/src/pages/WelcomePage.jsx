@@ -49,7 +49,7 @@ export default function Welcome() {
             {/* Button to go to login/register */}
             <Button
               size="lg"
-              className="w-[30vw]"
+              className="sm:w-[80vw] lg:w-[30vw]"
               onClick={() => navigate("/auth")}
             >
               Најави се или регистрирај се

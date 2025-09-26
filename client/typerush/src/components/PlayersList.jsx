@@ -43,13 +43,13 @@ export default function PlayersList({
               key={player._id ?? idx}
               className={`flex items-center gap-1 px-3 py-1 rounded-full border-2 transition-all ${
                 isHost
-                  ? "border-[var(--secondary)] bg-[var(--secondary)]/20 font-semibold shadow-[0_0_10px_var(--secondary)] "
-                  : "border-[var(--primary)] bg-[var(--background)]/60"
+                  ? "border-[var(--secondary)] bg-[var(--secondary)]/20 font-semibold shadow-[0_0_5px_var(--secondary)] "
+                  : "border-[var(--primary)] bg-[var(--primary)]/20"
               }`}
             >
               {player.username || "Unknown"}
               {isHost && (
-                <Crown className="drop-shadow-[0_0_6px_var(--secondary)] w-4 h-4 text-[var(--secondary)]" />
+                <Crown className="drop-shadow-[0_0_1px_var(--secondary)] w-4 h-4 text-[var(--secondary)]" />
               )}
             </li>
           );
