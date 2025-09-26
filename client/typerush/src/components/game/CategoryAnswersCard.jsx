@@ -202,7 +202,7 @@ export default function CategoryAnswersCard({
             return (
               <GlassCard
                 key={id}
-                className="flex flex-col p-4 text-[var(--text)]"
+                className="flex flex-col gap-1 text-[var(--text)]"
               >
                 <label
                   htmlFor={`answer-${id}`}
@@ -221,10 +221,8 @@ export default function CategoryAnswersCard({
                   onChange={(e) => handleChange(id, e.target.value)}
                   disabled={disabled}
                   aria-label={`${categoryLabels[id] || id} answer`}
-                  className={`${
-                    borderColors[status] || ""
-                  } focus-visible:ring-2 focus-visible:ring-[var(--primary)]`}
                   ref={setInputRef(id)}
+                  status={status}
                 />
 
                 <span

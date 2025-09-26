@@ -14,12 +14,29 @@ const inputFocus =
 const inputInvalid =
   "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive";
 
-function Input({ className, type, ...props }) {
+function Input({ className, type, status, ...props }, ref) {
+  const borderColors = {
+    exact: "border-green-500 focus-visible:ring-green-200",
+    typo: "border-yellow-500 focus-visible:ring-yellow-200",
+    "no-words": "border-orange-500 focus-visible:ring-orange-200",
+    "wrong-letter": "border-red-500 focus-visible:ring-red-200",
+    "not-in-dictionary": "border-red-500 focus-visible:ring-red-200",
+    "not-cyrillic": "border-red-500 focus-visible:ring-red-200",
+    empty: "border-gray-300",
+  };
+
   return (
     <input
+      ref={ref}
       type={type}
       data-slot="input"
-      className={cn(inputBase, inputFocus, inputInvalid, className)}
+      className={cn(
+        inputBase,
+        inputFocus,
+        inputInvalid,
+        borderColors[status] || "",
+        className
+      )}
       {...props}
     />
   );
