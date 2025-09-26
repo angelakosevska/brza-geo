@@ -11,7 +11,9 @@ if (!DEV && !SOCKET_URL) {
 }
 
 export const socket = io(SOCKET_URL, {
-  path: "/socket.io",        // Render serves socket.io here
+  path: "/socket.io", // Render serves socket.io here
   transports: ["websocket", "polling"], // fallback if ws fails
-  withCredentials: false,    // only true if backend sets cookies
+  auth: {
+    token: localStorage.getItem("token"), 
+  }, // only true if backend sets cookies
 });
