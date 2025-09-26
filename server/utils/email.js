@@ -7,7 +7,7 @@ exports.sendWelcomeEmail = async (user) => {
   const msg = {
     to: user.email,
     from: {
-      email: process.env.SENDGRID_FROM, // ова мора да биде верифициран sender во SendGrid
+      email: process.env.SENDGRID_FROM,
       name: "Type Rush",
     },
     subject: "Добредојде во Type Rush!",

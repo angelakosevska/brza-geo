@@ -3,7 +3,6 @@ try {
   require("dotenv").config();
 } catch (_) {}
 
-const transporter = require("./utils/mailer");
 // Import core dependencies
 const express = require("express");
 const cors = require("cors");
@@ -93,13 +92,19 @@ server.listen(PORT, "0.0.0.0", () => {
   console.log(`⚡ Server running on http://localhost:${PORT}`);
 });
 
+const sgMail = require("@sendgrid/mail");
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
 app.get("/test-email", async (req, res) => {
   try {
-    await transporter.sendMail({
-      from: '"Type Rush" <brza.geografija17@gmail.com>', // истиот email што ти е verified во SendGrid
-      to: "kosevska90@gmail.com",
+    await sgMail.send({
+      to: "kosevska90@gmail.com", // тест email
+      from: {
+        email: process.env.SENDGRID_FROM, // мора да биде верифициран sender во SendGrid
+        name: "Type Rush",
+      },
       subject: "Test Email from Type Rush",
-      text: "Ова е тест порака од Nodemailer + SendGrid 🎉",
+      text: "Ова е тест порака од SendGrid 🎉",
     });
     res.send("✅ Email sent!");
   } catch (err) {
