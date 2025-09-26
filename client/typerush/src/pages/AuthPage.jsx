@@ -47,7 +47,7 @@ export default function AuthPage() {
       showSuccess(`Добре дојде, ${user.username}!`);
       navigate("/main");
     } catch (err) {
-      const message = err.response?.data?.message || "Login failed";
+      const message = err.response?.data?.message || "Неуспешна најава!";
       showError(message);
     } finally {
       setLoading(false);
