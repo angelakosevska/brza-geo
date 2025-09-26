@@ -95,7 +95,7 @@ export default function GamePage() {
           <PlayersList
             players={players}
             className="w-full h-full"
-            showLeave={false}
+            showLeave={true}
             onLeave={handleLeaveRoom}
             hostId={hostId}
           />

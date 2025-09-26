@@ -173,6 +173,7 @@ async function endRound(io, roomCode) {
   }
 }
 
+//for standard mode
 async function checkAllSubmitted(io, roomCode, roundNumber) {
   const room = await Room.findOne({ code: roomCode }).select(
     "players roundsData"
