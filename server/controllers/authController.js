@@ -225,18 +225,3 @@ exports.resetPassword = async (req, res) => {
 
   res.status(200).json({ message: res.__("password_reset_successful") });
 };
-
-app.get("/test-email", async (req, res) => {
-  try {
-    await transporter.sendMail({
-      from: '"Type Rush" <brza.geografija17@gmail.com>',
-      to: "kosevska90@gmail.com",
-      subject: "Test Email from Type Rush",
-      text: "Ова е тест порака од Nodemailer + SendGrid 🎉",
-    });
-    res.send("✅ Email sent!");
-  } catch (err) {
-    console.error("❌ Email error:", err);
-    res.status(500).send("Failed to send email");
-  }
-});
