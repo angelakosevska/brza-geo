@@ -25,7 +25,7 @@ const registerSchema = z
         6,
         "Лозинката мора да има најмалку 8 карактери од кои најмалку една голема, една мала буква и еден број."
       ),
-    confirmPassword: z.string().min(6, "Потврдата на лозинка е задолжителна"),
+    confirmPassword: z.string().min(8, "Потврдата на лозинка е задолжителна"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     path: ["confirmPassword"],
