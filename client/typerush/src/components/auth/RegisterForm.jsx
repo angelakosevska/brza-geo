@@ -11,7 +11,6 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useNavigate } from "react-router-dom";
 
 // Zod schema за валидација на регистрација
 const registerSchema = z
@@ -44,11 +43,9 @@ export function RegisterForm({ handleRegister, onFlip }) {
     },
   });
 
-
   const onSubmit = (data) => {
     // ќе му пуштиме на handleRegister готов објект
     handleRegister({ preventDefault: () => {} }, data);
-
   };
 
   return (
