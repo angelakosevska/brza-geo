@@ -2,6 +2,12 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import GlassCard from "../global/GlassCard";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function ForgotPasswordForm({ onSubmit }) {
   const [email, setEmail] = useState("");
@@ -30,9 +36,22 @@ export default function ForgotPasswordForm({ onSubmit }) {
           required
         />
 
-        <Button className="mt-2 w-full" type="submit">
-          Испрати линк за промена на лозинка
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button className="mt-2 w-full" type="submit">
+                Испрати лозинка
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              Провери ја е-поштата (и spam/junk папката)
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        <p className="text-[var(--text)]/70 text-xs text-center">
+          По испраќањето, провери ја е-поштата (и spam/junk папката).
+        </p>
       </form>
     </GlassCard>
   );
