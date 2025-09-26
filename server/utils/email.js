@@ -1,4 +1,4 @@
-const transporter = require("../mailer");
+const transporter = require("./mailer");
 
 exports.sendWelcomeEmail = async (user) => {
   await transporter.sendMail({
