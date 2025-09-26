@@ -72,7 +72,11 @@ module.exports = (io) => {
 
     // ------------------- START GAME -------------------
     socket.on("startGame", async (payload = {}) => {
-      const roomCode = (payload.code || socket.data.roomCode || "").toUpperCase();
+      const roomCode = (
+        payload.code ||
+        socket.data.roomCode ||
+        ""
+      ).toUpperCase();
       const { userId } = socket.data || {};
       if (!roomCode || !userId) return;
 
@@ -84,7 +88,10 @@ module.exports = (io) => {
         return socket.emit("error", "Only the host can start");
 
       const settings = {
-        rounds: Math.max(1, Math.min(20, Number(payload.rounds) || room.rounds)),
+        rounds: Math.max(
+          1,
+          Math.min(20, Number(payload.rounds) || room.rounds)
+        ),
         timer: Math.max(3, Math.min(300, Number(payload.timer) || room.timer)),
         categories: Array.isArray(payload.categories)
           ? payload.categories
@@ -120,26 +127,30 @@ module.exports = (io) => {
       });
     });
 
-    // ------------------- SUBMIT ANSWERS -------------------
-    socket.on("submitAnswers", async ({ answers }) => {
+    // ------------------- SUBMIT ANSWERS standard mode -------------------
+    socket.on("submitAnswers", async ({ answers, forced = false }) => {
       const { roomCode, userId } = socket.data || {};
       if (!roomCode || !userId) return;
-
-      // Skip if no answers
-      if (!answers || Object.values(answers).every((v) => !String(v || "").trim())) {
-        return;
-      }
 
       const room = await Room.findOne({ code: roomCode }).select(
         "started currentRound roundEndTime players endMode"
       );
       if (!room?.started || !room.currentRound) return;
 
-      // Enforce cutoff time (small buffer allowed)
+      // If not forced and no answers → ignore
+      if (
+        !forced &&
+        (!answers ||
+          Object.values(answers).every((v) => !String(v || "").trim()))
+      ) {
+        return;
+      }
+
+      // Enforce cutoff only for non-forced submits
       const cutoff = room.roundEndTime
         ? new Date(room.roundEndTime).getTime() + 150
         : 0;
-      if (cutoff && Date.now() > cutoff) return;
+      if (!forced && cutoff && Date.now() > cutoff) return;
 
       // Replace existing submission
       await Room.updateOne(
@@ -150,12 +161,14 @@ module.exports = (io) => {
         { code: roomCode, "roundsData.roundNumber": room.currentRound },
         {
           $push: {
-            "roundsData.$.submissions": { player: userId, answers, points: 0 },
+            "roundsData.$.submissions": {
+              player: userId,
+              answers: answers || {}, // empty if forced
+              points: 0,
+            },
           },
         }
       );
-
-      await bumpActivity(roomCode);
 
       // End round automatically if mode = ALL_SUBMIT
       if ((room.endMode || "ALL_SUBMIT") === "ALL_SUBMIT") {

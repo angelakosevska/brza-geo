@@ -3,6 +3,12 @@ import GlassCard from "@/components/global/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Award, Medal, Trophy } from "lucide-react";
 import { motion } from "framer-motion";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function FinalResultsModal({
   show = false,
@@ -19,6 +25,12 @@ export default function FinalResultsModal({
   currentUserId,
 }) {
   if (!show) return null;
+
+  const dummyPlayers = [
+    { id: "demo1", name: "Bot Alpha", points: 42 },
+    { id: "demo2", name: "Bot Beta", points: 37 },
+    { id: "demo3", name: "Bot Gamma", points: 25 },
+  ];
 
   const sorted = useMemo(() => {
     const entries = Object.entries(finalTotals);
@@ -119,7 +131,7 @@ export default function FinalResultsModal({
       <div className="absolute inset-0 flex justify-center items-center p-4">
         {/* <GlassCard className="relative p-6 w-full max-w-3xl text-[var(--text)]"> */}
         <GlassCard
-          className={`relative p-6 w-full max-w-3xl text-[var(--text)] ${
+          className={`relative p-6 w-full lg:max-w-[60vw] sm:max-w-[90vw] max-h-[90vh] text-[var(--text)] overflow-y-auto ${
             finalWinners.includes(currentUserId) ? "winner-border" : ""
           }`}
         >
@@ -163,7 +175,7 @@ export default function FinalResultsModal({
           )}
 
           {/* Final table */}
-          <div className="space-y-2 pr-1 max-h-[55vh] overflow-auto">
+          <div className="space-y-2 pr-1 max-h-[60vh] overflow-auto">
             {sorted.map(([pid, pts], idx) => {
               const place = placeByRow[idx];
               const name = playerNameById[pid] || String(pid).slice(-5);
@@ -193,7 +205,12 @@ export default function FinalResultsModal({
                   </div>
 
                   {/* Points */}
-                  <div className="font-mono">#{pts}</div>
+                  <div>
+                    <span className="bg-[var(--text)]/20 px-3 py-1 rounded-full font-mono">
+                      {pts}
+                    </span>{" "}
+                    поени
+                  </div>
                 </div>
               );
             })}
@@ -216,14 +233,42 @@ export default function FinalResultsModal({
             </motion.div>
           )}
           {/* Actions */}
+
           <div className="flex flex-wrap justify-end items-center gap-2 mt-6">
-            <Button variant="ghost" onClick={onLeaveToMain}>
-              Излези во Мени
-            </Button>
-            <Button variant="outline" onClick={onBackToRoom}>
-              Назад во Соба
-            </Button>
-            {isHost && <Button onClick={onStartNewGame}>Нова Игра</Button>}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" onClick={onLeaveToMain}>
+                    Излези во Мени
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Напушти ја играта и врати се во главното мени</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" onClick={onBackToRoom}>
+                    Назад во Соба
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Врати се во собата и чекај домаќинот да започне нова игра (со новии опции)</p>
+                </TooltipContent>
+              </Tooltip>
+
+              {isHost && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button onClick={onStartNewGame}>Нова Игра</Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Започни нова партија со истите играчи и опции</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </TooltipProvider>
           </div>
         </GlassCard>
       </div>

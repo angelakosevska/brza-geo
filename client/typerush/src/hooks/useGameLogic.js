@@ -952,7 +952,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
 
     // Force-submit → stop timer and send answers
     const handleForceSubmit = () => {
-      socket.emit("submitAnswers", { code, answers: answersRef.current });
+      socket.emit("submitAnswers", { code, answers: answersRef.current, forced: true });
       setSubmitted(true);
       setLoading(true);
       setEndAt(null);

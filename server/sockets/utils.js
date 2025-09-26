@@ -79,7 +79,6 @@ const fetchCategoryMeta = async (categoryIds) => {
   }
 };
 
-
 module.exports = {
   computeFinalScores,
   stringifyId,

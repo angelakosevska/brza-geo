@@ -87,10 +87,17 @@ async function startRound(io, roomDoc) {
   });
 
   // auto-end round
+  // auto-end round
   rt.roundTO = setTimeout(async () => {
     if (!rt.ending && myGen === rt.gen) {
       rt.ending = true;
       try {
+        // 🔥 tell all clients to auto-submit what they have
+        io.to(roomCode).emit("forceSubmit", { code: roomCode });
+
+        // small delay so clients can send answers before scoring
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
         await endRound(io, roomCode);
       } finally {
         rt.ending = false;

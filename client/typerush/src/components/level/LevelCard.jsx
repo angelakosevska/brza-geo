@@ -54,7 +54,7 @@ export default function LevelCard({
                   {currentLevelWP} / {wpForNextLevel} WP
                 </span>
               </TooltipTrigger>
-              <TooltipContent className="bg-[var(--background)] border border-[var(--primary)] text-[var(--text)]">
+              <TooltipContent>
                 Word Power освоени на ова ниво. Наполни ја лентата за да
                 преминеш на следно ниво.
               </TooltipContent>
@@ -74,7 +74,7 @@ export default function LevelCard({
               <TooltipTrigger asChild>
                 <span className="cursor-help">Вкупно: {wordPower} WP</span>
               </TooltipTrigger>
-              <TooltipContent className="bg-[var(--background)] border border-[var(--primary)] text-[var(--text)]">
+              <TooltipContent >
                 Вкупно Word Power од сите нивоа.
               </TooltipContent>
             </Tooltip>
