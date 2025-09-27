@@ -16,7 +16,7 @@ import * as z from "zod";
 
 const loginSchema = z.object({
   login: z.string().min(1, "Полето е задолжително"),
-  password: z.string().min(6, "Лозинката мора да има најмалку 8 карактери"),
+  password: z.string().min(8, "Лозинката мора да има најмалку 8 карактери"),
 });
 
 export function LoginForm({ handleLogin, onFlip, onForgotPassword }) {

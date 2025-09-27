@@ -47,6 +47,8 @@ const UserSchema = new mongoose.Schema({
     type: Number,
     default: 1, // current level of the player
   },
+  currentSessionId: { type: String, default: null }, // active session
+  lastLoginAt: { type: Date },
 });
 
 // Export User model
