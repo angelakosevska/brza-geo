@@ -23,7 +23,7 @@ exports.submitAnswers = async (req, res) => {
     // Prevent duplicate submissions
     const existing = await Submission.findOne({
       room: room._id,
-      user: req.user.userId,
+      user: req.user.id,
       round: currentRound,
     });
     if (existing) {
@@ -82,7 +82,7 @@ exports.submitAnswers = async (req, res) => {
     // Save submission
     const submission = new Submission({
       room: room._id,
-      user: req.user.userId,
+      user: req.user.id,
       round: currentRound,
       letter,
       words,
@@ -90,7 +90,7 @@ exports.submitAnswers = async (req, res) => {
 
     await submission.save();
 
-    const user = await User.findById(req.user.userId);
+    const user = await User.findById(req.user.id);
     io.to(code).emit("playerSubmittedUpdate", { username: user.username });
 
     res.status(201).json({ message: res.__("answers_saved") });

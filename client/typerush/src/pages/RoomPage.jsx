@@ -18,14 +18,13 @@ export default function RoomPage() {
   const [room, setRoom] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ---- Fetch latest room from backend ----
+  // ---- Fetch room data from backend ----
   const fetchRoom = useCallback(async () => {
     try {
       const res = await api.get(`/room/${code}`);
       setRoom(res.data.room);
     } catch (err) {
-      const msg =
-        err.response?.data?.message || "Грешка при вчитување на собата.";
+      const msg = err.response?.data?.message || "Error loading room.";
       alert(msg);
       navigate("/main");
     } finally {
@@ -37,11 +36,11 @@ export default function RoomPage() {
     fetchRoom();
   }, [fetchRoom]);
 
-  // ---- Join room socket ----
+  // ---- Join room via socket ----
   useEffect(() => {
-    if (!room?.code || !currentUserId) return;
-    socket.emit("joinRoom", { code: room.code, userId: currentUserId });
-  }, [room?.code, currentUserId]);
+    if (!room?.code) return;
+    socket.emit("joinRoom", { code: room.code }); // server gets userId from token
+  }, [room?.code]);
 
   // ---- Sync room updates from server ----
   useEffect(() => {
@@ -64,35 +63,28 @@ export default function RoomPage() {
     };
   }, [code, navigate]);
 
-  if (loading)
-    return <div className="mt-10 text-center">Се вчитува собата...</div>;
+  if (loading) {
+    return <div className="mt-10 text-center">Loading room...</div>;
+  }
   if (!room) return null;
 
   const isHost =
     room.host &&
     (room.host._id === currentUserId || room.host === currentUserId);
 
-  // ---- Handlers ----
-  // const handleLeave = async () => {
-  //   try {
-  //     await api.post("/room/leave", { code: room.code }); // update DB
-  //     socket.emit("leaveRoom", { code: room.code }); // unsubscribe socket
-  //     navigate("/main");
-  //   } catch (err) {
-  //     console.error("❌ Failed to leave room:", err);
-  //     alert("Не успеавте да ја напуштите собата.");
-  //   }
-  // };
+  // ---- Leave room ----
   const handleLeave = async () => {
     try {
-      await api.post(`/room/${room.code}/leave`); // 👈 правилен URL
-      socket.emit("leaveRoom", { code: room.code }); // може и да се тргне ако server веќе емитува
+      await api.post(`/room/${room.code}/leave`); // update DB
+      socket.emit("leaveRoom", { code: room.code }); // notify socket
       navigate("/main");
     } catch (err) {
       console.error("❌ Failed to leave room:", err);
-      alert("Не успеавте да ја напуштите собата.");
+      alert("Failed to leave the room.");
     }
   };
+
+  // ---- Start game (host only) ----
   const handleStartGame = async () => {
     await api.patch("/room/update-settings", {
       code: room.code,
@@ -100,9 +92,10 @@ export default function RoomPage() {
       timer: room.timer,
       endMode: room.endMode || "ALL_SUBMIT",
     });
-    socket.emit("startGame");
+    socket.emit("startGame", { code: room.code }); // explicitly pass code
   };
 
+  // ---- Update room settings ----
   const handleUpdateSettings = async ({ rounds, timer, endMode }) => {
     await api.patch("/room/update-settings", {
       code: room.code.toUpperCase(),
@@ -112,6 +105,7 @@ export default function RoomPage() {
     });
   };
 
+  // ---- Update room categories ----
   const handleUpdateCategories = async (categories) => {
     await api.patch("/room/update-categories", {
       code: room.code.toUpperCase(),
@@ -137,7 +131,7 @@ export default function RoomPage() {
         />
       </div>
 
-      {/* Row 2: Settings + Categories + Placeholder */}
+      {/* Row 2: Settings + Categories + Selected Categories */}
       <div className="flex lg:flex-row flex-col gap-1 w-full">
         <RoomSettingsForm
           room={room}

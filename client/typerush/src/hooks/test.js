@@ -5,7 +5,7 @@ import { useError } from "@/hooks/useError";
 import { useLoading } from "@/context/LoadingContext";
 
 // =====================================================
-// 🕹️ useGameLogic Hook
+// 🎮 useGameLogic Hook
 // Centralized state + logic for the game lifecycle
 //
 // Responsibilities:
@@ -59,10 +59,9 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   const joinedRef = useRef(false);
 
   // ---------- HELPERS ----------
-  const { showError, showSuccess, showInfo } = useError();
+  const { showSuccess } = useError();
   const { setLoading } = useLoading();
 
-  // Keep answers/timer fresh inside refs
   useEffect(() => {
     answersRef.current = answers;
   }, [answers]);
@@ -70,13 +69,11 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     endAtRef.current = endAt;
   }, [endAt]);
 
-  // Normalize Mongo ID or string
   const normalizeId = useCallback(
     (v) => (typeof v === "string" ? v : v?._id ?? String(v ?? "")),
     []
   );
 
-  // Identify if current user is the host
   const isHost = useMemo(
     () =>
       Boolean(
@@ -85,11 +82,9 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     [hostId, currentUserId]
   );
 
-  // True when waiting for round start
   const waitingForRound = !letter || !categories?.length || !endAt;
 
   // ---------- API ----------
-  // Fetch initial room state (players, host, settings)
   const fetchRoom = useCallback(async () => {
     try {
       const res = await api.get(`/room/${code}`);
@@ -114,10 +109,9 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   useEffect(() => {
     if (!code || !currentUserId) return;
 
-    // Join room after socket connects
     const tryJoin = () => {
       if (socket.connected && !joinedRef.current) {
-        socket.emit("joinRoom", { code, userId: currentUserId });
+        socket.emit("joinRoom", { code });
         joinedRef.current = true;
       }
     };
@@ -127,7 +121,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     return () => socket.off("connect", tryJoin);
   }, [code, currentUserId, fetchRoom]);
 
-  // Cleanup: leave room on unmount
+  // Leave room when unmounted
   useEffect(() => {
     return () => {
       if (joinedRef.current) {
@@ -138,7 +132,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   }, [code]);
 
   // ---------- TIMERS ----------
-  // Round countdown
   useEffect(() => {
     const interval = setInterval(() => {
       if (!endAt) return;
@@ -149,7 +142,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     return () => clearInterval(interval);
   }, [endAt, serverOffsetMs]);
 
-  // Break countdown
   useEffect(() => {
     const interval = setInterval(() => {
       if (!breakEndAt) return;
@@ -161,7 +153,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   }, [breakEndAt, serverOffsetMs]);
 
   // ---------- AUTO-SUBMISSION ----------
-  // Submit automatically when timer hits 0
   useEffect(() => {
     if (timeLeft === 0 && endAt && !submitted && mode === "play") {
       socket.emit("submitAnswers", { code, answers: answersRef.current });
@@ -169,7 +160,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     }
   }, [timeLeft, endAt, submitted, mode, code]);
 
-  // Submit automatically on page unload/refresh
   useEffect(() => {
     const onBeforeUnload = () => {
       if (!submitted && endAtRef.current && mode === "play") {
@@ -180,104 +170,8 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
   }, [submitted, mode, code]);
 
-  // ---------- STATE REHYDRATION ----------
-  // Re-sync state with server (e.g. on reconnect)
-  useEffect(() => {
-    socket.emit("getRoundState", { code }, (state) => {
-      if (!state) return;
-
-      const {
-        currentRound: cr,
-        totalRounds: tr,
-        letter,
-        categories,
-        categoryMeta,
-        roundEndTime,
-        breakEndTime,
-        serverNow,
-        hasSubmitted,
-        phase,
-        endMode,
-      } = state;
-
-      if (endMode) setEndMode(endMode);
-      if (cr != null) setCurrentRound(cr);
-      if (tr != null) setTotalRounds(tr);
-      setLetter(letter || null);
-      setCategories((categories || []).map(String));
-
-      const labelMap = (categoryMeta || []).reduce((acc, { id, name }) => {
-        acc[String(id)] = name;
-        return acc;
-      }, {});
-      setCategoryLabels(labelMap);
-
-      setEndAt(roundEndTime || null);
-      if (typeof serverNow === "number") {
-        setServerOffsetMs(serverNow - Date.now());
-      }
-
-      // Sync current phase
-      if (breakEndTime) {
-        setMode("review");
-        setShowResults(true);
-        setBreakEndAt(breakEndTime);
-      } else if (phase === "review") {
-        setMode("review");
-        setShowResults(true);
-        setShowFinal(false);
-      } else if (phase === "final") {
-        setMode("review");
-        setShowResults(false);
-        setShowFinal(true);
-      } else {
-        setMode("play");
-        setShowResults(false);
-        setShowFinal(false);
-      }
-
-      // Sync submission state
-      if (phase === "play" || (!phase && roundEndTime)) {
-        setSubmitted(Boolean(hasSubmitted));
-        if (!hasSubmitted) setAnswers({});
-      }
-    });
-  }, [code]);
-
-  // ---------- FETCH DICTIONARIES ----------
-  // Download dictionary words for categories
-  useEffect(() => {
-    if (!categories || categories.length === 0) return;
-
-    const fetchDicts = async () => {
-      try {
-        const res = await api.get("/categories", {
-          params: { ids: categories.join(",") },
-        });
-
-        const dicts = {};
-        const labels = {};
-
-        for (const cat of res.data.categories || []) {
-          dicts[cat._id] = (cat.words || []).map((w) =>
-            String(w).trim().toLowerCase()
-          );
-          labels[cat._id] = cat.displayName?.mk || cat.name;
-        }
-
-        setDictByCategory(dicts);
-        setCategoryLabels((prev) => ({ ...prev, ...labels }));
-      } catch (err) {
-        console.error("❌ Failed to fetch category dicts:", err);
-      }
-    };
-
-    fetchDicts();
-  }, [categories]);
-
   // ---------- SOCKET EVENTS ----------
   useEffect(() => {
-    // When round starts
     const handleRoundStarted = (payload) => {
       const {
         currentRound,
@@ -316,7 +210,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       if (!hasSubmitted) setAnswers({});
     };
 
-    // When round results arrive
     const handleRoundResults = ({
       scores,
       answers,
@@ -339,7 +232,6 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       }
     };
 
-    // When game ends → show final
     const handleGameEnded = (payload) => {
       setShowResults(false);
       setBreakEndAt(null);
@@ -355,12 +247,10 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       }
     };
 
-    // Players updated
     const handlePlayersUpdated = ({ players: list }) => {
       setPlayers(list || []);
     };
 
-    // Room updated (host, settings, players)
     const handleRoomUpdated = ({ room }) => {
       if (!room) return;
       setHostId(normalizeId(room.host));
@@ -377,78 +267,49 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       }
     };
 
-    // Room reset → back to lobby
-    const handleRoomState = (state) => {
-      if (state?.started === false) {
-        setMode("review");
-        setShowResults(false);
-        setShowFinal(false);
-        setEndAt(null);
-        setBreakEndAt(null);
-        setCurrentRound(0);
-      }
-    };
-
-    // Settings changed (rounds/endMode)
     const handleSettingsUpdated = ({ endMode, rounds }) => {
       if (typeof endMode === "string") setEndMode(endMode);
       if (typeof rounds === "number") setTotalRounds(rounds);
     };
 
-    // Force-submit → stop timer and send answers
     const handleForceSubmit = () => {
-      socket.emit("submitAnswers", { code, answers: answersRef.current, forced: true });
+      socket.emit("submitAnswers", {
+        code,
+        answers: answersRef.current,
+        forced: true,
+      });
       setSubmitted(true);
       setLoading(true);
       setEndAt(null);
       setTimeLeft(0);
     };
 
-    // Word Power updated (only show toast for current user)
     const handleWPUpdate = ({ userId, wordPower, level }) => {
       if (String(userId) === String(currentUserId)) {
-        showSuccess(`Доби поени! Сега имаш ${wordPower} WP • Ниво ${level}`);
+        showSuccess(`You gained points! Now at ${wordPower} WP • Level ${level}`);
       }
     };
 
-    // Register listeners
     socket.on("roundStarted", handleRoundStarted);
     socket.on("roundResults", handleRoundResults);
     socket.on("gameEnded", handleGameEnded);
     socket.on("playersUpdated", handlePlayersUpdated);
     socket.on("roomUpdated", handleRoomUpdated);
-    socket.on("roomState", handleRoomState);
     socket.on("settingsUpdated", handleSettingsUpdated);
     socket.on("forceSubmit", handleForceSubmit);
     socket.on("playerWPUpdated", handleWPUpdate);
 
-    // Cleanup listeners
     return () => {
       socket.off("roundStarted", handleRoundStarted);
       socket.off("roundResults", handleRoundResults);
       socket.off("gameEnded", handleGameEnded);
       socket.off("playersUpdated", handlePlayersUpdated);
       socket.off("roomUpdated", handleRoomUpdated);
-      socket.off("roomState", handleRoomState);
       socket.off("settingsUpdated", handleSettingsUpdated);
       socket.off("forceSubmit", handleForceSubmit);
       socket.off("playerWPUpdated", handleWPUpdate);
     };
   }, [code, normalizeId, currentUserId]);
-
-  // ---------- DEFENSIVE UNLOCK ----------
-  // If client desync happens → re-enable inputs
-  useEffect(() => {
-    if (
-      mode === "play" &&
-      endAt &&
-      timeLeft > 0 &&
-      submitted &&
-      Object.keys(answersRef.current || {}).length === 0
-    ) {
-      setSubmitted(false);
-    }
-  }, [mode, endAt, timeLeft, submitted]);
 
   // ---------- HANDLERS ----------
   const handleChange = useCallback((key, val) => {
@@ -461,16 +322,16 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     setSubmitted(true);
     setLoading(true);
     setEndAt(null);
-    setTimeLeft(0); // stop timer
+    setTimeLeft(0);
   }, [submitted, mode, code]);
 
   const handleStopRound = useCallback(() => {
     if (mode !== "play" || endMode !== "PLAYER_STOP") return;
-    socket.emit("playerStopRound", { code, answers: answersRef.current });
+    socket.emit("playerStopRound", { code });
     setSubmitted(true);
     setLoading(true);
     setEndAt(null);
-    setTimeLeft(0); // stop timer
+    setTimeLeft(0);
   }, [mode, endMode, code]);
 
   const handleNextRound = useCallback(() => {
@@ -491,13 +352,13 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
   const handleLeaveRoom = useCallback(async () => {
     try {
       await api.post(`/room/${code}/leave`);
-      socket.emit("leaveRoom", { code, userId: currentUserId });
+      socket.emit("leaveRoom", { code });
       navigate("/main");
     } catch (err) {
       console.error("❌ Failed to leave room:", err);
-      navigate("/main"); // fallback
+      navigate("/main");
     }
-  }, [code, currentUserId, navigate]);
+  }, [code, navigate]);
 
   const handleStayHere = useCallback(() => {
     setShowFinal(false);

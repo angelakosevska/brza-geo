@@ -10,7 +10,7 @@ const getHostId = (host) => (host?._id ? host._id.toString() : host.toString());
  */
 exports.createRoom = async (req, res) => {
   try {
-    const hostId = req.user.userId;
+    const hostId = req.user.id;
     let code;
     let exists = true;
 
@@ -48,7 +48,7 @@ exports.createRoom = async (req, res) => {
 exports.joinRoom = async (req, res) => {
   const { code } = req.body;
   try {
-    const userId = req.user.userId;
+    const userId = req.user.id;
     let room = await Room.findOne({ code: code.toUpperCase() });
     if (!room)
       return res.status(404).json({ message: res.__("room_not_found") });
@@ -72,45 +72,11 @@ exports.joinRoom = async (req, res) => {
   }
 };
 
-/**
- * Leave a room
- */
-// exports.leaveRoom = async (req, res) => {
-//   const { code } = req.body;
-//   try {
-//     const userId = req.user.userId;
-
-//     let room = await Room.findOne({ code });
-//     if (!room) return res.status(404).json({ message: res.__("room_not_found") });
-
-//     room.players = room.players.filter((id) => id.toString() !== userId);
-
-//     if (room.host.toString() === userId) {
-//       room.host = room.players.length > 0 ? room.players[0] : null;
-//     }
-
-//     await room.save();
-
-//     room = await Room.findOne({ code })
-//       .populate("players")
-//       .populate("host")
-//       .populate("categories");
-
-//     const io = getIO();
-//     io.to(code).emit("roomUpdated", { room });
-
-//     res.json({ message: res.__("left_room_success"), room });
-//     console.log("👋 Player left room:", { code, userId });
-//   } catch (err) {
-//     console.error("❌ Error leaving room:", err);
-//     res.status(500).json({ message: res.__("failed_leave_room") });
-//   }
-// };
 
 exports.leaveRoom = async (req, res) => {
   const { code } = req.params; // 👈 земи од URL params
   try {
-    const userId = req.user.userId;
+    const userId = req.user.id;
 
     let room = await Room.findOne({ code });
     if (!room) {
@@ -180,7 +146,7 @@ exports.updateSettings = async (req, res) => {
       return res.status(404).json({ message: res.__("room_not_found") });
 
     const hostId = getHostId(room.host);
-    if (hostId !== req.user.userId) {
+    if (hostId !== req.user.id) {
       return res.status(403).json({ message: res.__("only_host_update") });
     }
 
@@ -219,7 +185,7 @@ exports.updateCategories = async (req, res) => {
       return res.status(404).json({ message: res.__("room_not_found") });
 
     const hostId = getHostId(room.host);
-    if (hostId !== req.user.userId) {
+    if (hostId !== req.user.id) {
       return res.status(403).json({ message: res.__("only_host_update") });
     }
 
