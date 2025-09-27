@@ -124,10 +124,12 @@ async function endRound(io, roomCode) {
   const categories = (room.categories || []).map(String);
   const letter = (room.letter || "").toUpperCase();
 
+  
   const { scores, details, answersByPlayer } = await scoreRound(
     round,
     categories,
-    letter
+    letter,
+    room.currentGameId
   );
 
   for (const submission of round.submissions || []) {

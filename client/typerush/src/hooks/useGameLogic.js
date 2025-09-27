@@ -46,7 +46,7 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
 
   const [breakEndAt, setBreakEndAt] = useState(null); // break end timestamp
   const [breakLeft, setBreakLeft] = useState(0); // seconds remaining for break
-
+  const [reviewWords, setReviewWords] = useState([]);
   const [showFinal, setShowFinal] = useState(false);
   const [finalTotals, setFinalTotals] = useState({});
   const [finalWinners, setFinalWinners] = useState([]);
@@ -397,7 +397,11 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
 
     // Force-submit → stop timer and send answers
     const handleForceSubmit = () => {
-      socket.emit("submitAnswers", { code, answers: answersRef.current, forced: true });
+      socket.emit("submitAnswers", {
+        code,
+        answers: answersRef.current,
+        forced: true,
+      });
       setSubmitted(true);
       setLoading(true);
       setEndAt(null);
@@ -408,6 +412,24 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     const handleWPUpdate = ({ userId, wordPower, level }) => {
       if (String(userId) === String(currentUserId)) {
         showSuccess(`Доби поени! Сега имаш ${wordPower} WP • Ниво ${level}`);
+      }
+    };
+    const handleWordMarked = ({ categoryId, word }) => {
+      showSuccess(`Зборот „${word}“ е пратен на админ за преглед!`);
+    };
+    const handleReviewError = (message) => {
+      showError(message || "Грешка при праќање на зборот за преглед.");
+    };
+
+    const handleReviewWordsUpdated = (list) => {
+      setReviewWords(list || []);
+    };
+
+    const handleReviewVoteRegistered = ({ success, message }) => {
+      if (success) {
+        showSuccess(message || "Гласот е запишан ✅");
+      } else {
+        showError(message || "Неуспешно гласање ❌");
       }
     };
 
@@ -421,6 +443,11 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     socket.on("settingsUpdated", handleSettingsUpdated);
     socket.on("forceSubmit", handleForceSubmit);
     socket.on("playerWPUpdated", handleWPUpdate);
+    socket.on("wordMarkedForReview", handleWordMarked);
+    socket.on("error", handleReviewError);
+    socket.on("reviewWordsUpdated", handleReviewWordsUpdated);
+    socket.on("reviewVoteRegistered", handleReviewVoteRegistered);
+    socket.on("reviewWordDecided", handleReviewWordDecided);
 
     // Cleanup listeners
     return () => {
@@ -433,8 +460,13 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
       socket.off("settingsUpdated", handleSettingsUpdated);
       socket.off("forceSubmit", handleForceSubmit);
       socket.off("playerWPUpdated", handleWPUpdate);
+      socket.off("wordMarkedForReview", handleWordMarked);
+      socket.off("error", handleReviewError);
+      socket.off("reviewWordsUpdated", handleReviewWordsUpdated);
+      socket.off("reviewVoteRegistered", handleReviewVoteRegistered);
+      socket.off("reviewWordDecided", handleReviewWordDecided);
     };
-  }, [code, normalizeId, currentUserId]);
+  }, [code, normalizeId, currentUserId, showSuccess, showError]);
 
   // ---------- DEFENSIVE UNLOCK ----------
   // If client desync happens → re-enable inputs
@@ -472,6 +504,20 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     setEndAt(null);
     setTimeLeft(0); // stop timer
   }, [mode, endMode, code]);
+
+  const handleVoteReview = useCallback((reviewId, valid) => {
+    if (!reviewId) return;
+    socket.emit("voteReviewWord", { reviewId, valid });
+  }, []);
+
+const handleReviewWordDecided = ({ status, word, player, points }) => {
+  if (String(player) !== String(currentUserId)) return;
+  if (status === "accepted") {
+    showSuccess(`✅ Зборот „${word}“ е прифатен! +${points || 0} поени`);
+  } else if (status === "rejected") {
+    showError(`❌ Зборот „${word}“ е одбиен`);
+  }
+};
 
   const handleNextRound = useCallback(() => {
     if (!isHost) return;
@@ -522,6 +568,8 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     answers,
     submitted,
     mode,
+    reviewWords,
+    onVoteReview: handleVoteReview,
     hasMoreRounds,
     showResults,
     roundScores,

@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const categoryController = require("../controllers/categoryController");
-const verifyToken = require("../middleware/auth"); // JWT middleware
+const verifyToken = require("../middleware/verifyToken"); // JWT middleware
 
 //  Public routes
 router.get("/", categoryController.getCategories);

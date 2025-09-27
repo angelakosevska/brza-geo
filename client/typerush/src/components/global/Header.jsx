@@ -1,5 +1,13 @@
-import { UserRound, LogOut, Sun, Moon, Monitor, Check } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import {
+  UserRound,
+  LogOut,
+  Sun,
+  Moon,
+  Monitor,
+  Check,
+  ShieldCheck,
+} from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -15,6 +23,8 @@ export default function Header() {
   const { user, logout } = useAuth();
   const [theme, setTheme] = useState("system");
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAdminPage = location.pathname.startsWith("/admin/review-panel");
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") || "system";
@@ -36,7 +46,9 @@ export default function Header() {
     const root = document.documentElement;
 
     if (mode === "system") {
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const prefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      ).matches;
       if (prefersDark) {
         root.classList.add("dark");
       } else {
@@ -55,15 +67,15 @@ export default function Header() {
   const ThemeItem = ({ mode, icon: Icon, label }) => (
     <DropdownMenuItem
       onClick={() => applyTheme(mode)}
-      className={`flex items-center justify-between gap-2 text-md lg:text-lg cursor-pointer ${
+      className={`flex items-center justify-between gap-2 text-md lg:text-lg cursor-pointer hover:bg-[var(--secondary)]/20 ${
         theme === mode
           ? "text-[var(--primary)] font-semibold"
-          : "text-[var(--text)] hover:text-[var(--accent)]"
+          : "text-[var(--text)]"
       }`}
     >
-      <div className="flex items-center gap-2">
-        <Icon className="w-5 h-5" />
-        {label}
+      <div className="group flex items-center gap-2">
+        <Icon className="w-5 h-5 text-[var(--text)] group-hover:text-[var(--secondary)]" />
+        <span className="group-hover:text-[var(--secondary)]">{label}</span>
       </div>
       {theme === mode && <Check className="w-4 h-4 text-[var(--primary)]" />}
     </DropdownMenuItem>
@@ -106,7 +118,38 @@ export default function Header() {
               </span>
             </div>
 
-            <DropdownMenuSeparator />
+            {/* Admin Panel link (only for admins) */}
+            {user?.role === "admin" && (
+              <DropdownMenuItem
+                onClick={() => navigate("/admin/review-panel")}
+                className={`flex items-center gap-2 text-md lg:text-lg cursor-pointer group
+      ${
+        isAdminPage
+          ? "bg-[var(--secondary)]/20 text-[var(--secondary)]"
+          : "hover:bg-[var(--secondary)]/20"
+      }
+    `}
+              >
+                <ShieldCheck
+                  className={`w-5 h-5 ${
+                    isAdminPage
+                      ? "text-[var(--secondary)]"
+                      : "text-[var(--primary)] group-hover:text-[var(--secondary)]"
+                  }`}
+                />
+                <span
+                  className={`${
+                    isAdminPage
+                      ? "text-[var(--secondary)]"
+                      : "text-[var(--text)] group-hover:text-[var(--secondary)]"
+                  }`}
+                >
+                  Админ панел
+                </span>
+              </DropdownMenuItem>
+            )}
+
+            <DropdownMenuSeparator className="bg-[var(--glass)]/5 mx-auto border-0 w-[95%] h-px" />
 
             {/* Theme switcher */}
             <ThemeItem mode="light" icon={Sun} label="Светла тема" />
@@ -121,10 +164,12 @@ export default function Header() {
                 logout();
                 navigate("/auth");
               }}
-              className="flex items-center gap-2 font-bold text-md lg:text-lg cursor-pointer"
+              className="group flex items-center gap-2 hover:bg-[var(--secondary)]/20 font-bold text-md lg:text-lg cursor-pointer"
             >
-              <LogOut className="w-5 h-5 text-[var(--accent)]" />
-              <span className="text-[var(--accent)]">Одјави се</span>
+              <LogOut className="w-5 h-5 text-[var(--accent)] group-hover:text-[var(--secondary)]" />
+              <span className="text-[var(--accent)] group-hover:text-[var(--secondary)]">
+                Одјави се
+              </span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

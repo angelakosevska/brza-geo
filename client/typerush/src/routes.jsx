@@ -12,7 +12,8 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import InvitationPage from "./pages/InvitationPage";
 import PrivateRoute from "./components/PrivateRoute";
 import { useAuth } from "@/context/AuthContext";
-import Loader from "@/components/global/Loader"; 
+import Loader from "@/components/global/Loader";
+import AdminReviewPanelPage from "./pages/admin/AdminReviewPanelPage";
 
 export default function AppRoutes() {
   const { user, loading } = useAuth();
@@ -23,7 +24,6 @@ export default function AppRoutes() {
 
   return (
     <Routes>
-      {/* Welcome → if you are logged in navigate to /main*/}
       <Route element={<Layout />}>
         <Route
           path="/"
@@ -60,6 +60,14 @@ export default function AppRoutes() {
           element={
             <PrivateRoute>
               <GamePage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin/review-panel"
+          element={
+            <PrivateRoute>
+              <AdminReviewPanelPage />
             </PrivateRoute>
           }
         />

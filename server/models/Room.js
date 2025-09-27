@@ -62,7 +62,7 @@ const roomSchema = new mongoose.Schema(
     started: { type: Boolean, default: false }, // has the game started
     letter: { type: String, default: null }, // active letter for this round
     roundEndTime: { type: Date, default: null }, // timestamp when round should end
-
+    currentGameId: { type: mongoose.Schema.Types.ObjectId, ref: "Game" },
     // Complete history of all played rounds in this room
     roundsData: { type: [RoundSchema], default: [] },
 

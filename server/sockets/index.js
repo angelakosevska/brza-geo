@@ -13,13 +13,15 @@ const {
   syncLateJoiner,
 } = require("./roundManager");
 const { endGame } = require("./gameManager");
+const { registerReviewHandlers } = require("./review");
+const Game = require("../models/Game");
 
 module.exports = (io) => {
   io.on("connection", (socket) => {
     // socket.data.user is already set in ioInstance.js after auth
-    // here we’ll only attach the current room code
+    
     socket.data.roomCode = null;
-
+    registerReviewHandlers(io, socket);
     // ------------------- JOIN ROOM -------------------
     socket.on("joinRoom", async ({ code }) => {
       const roomCode = (code || "").toUpperCase();
@@ -77,7 +79,11 @@ module.exports = (io) => {
 
     // ------------------- START GAME -------------------
     socket.on("startGame", async (payload = {}) => {
-      const roomCode = (payload.code || socket.data.roomCode || "").toUpperCase();
+      const roomCode = (
+        payload.code ||
+        socket.data.roomCode ||
+        ""
+      ).toUpperCase();
       const userId = socket.data.user?.id;
       if (!roomCode || !userId) return;
 
@@ -90,7 +96,10 @@ module.exports = (io) => {
       }
 
       const settings = {
-        rounds: Math.max(1, Math.min(20, Number(payload.rounds) || room.rounds)),
+        rounds: Math.max(
+          1,
+          Math.min(20, Number(payload.rounds) || room.rounds)
+        ),
         timer: Math.max(3, Math.min(300, Number(payload.timer) || room.timer)),
         categories: Array.isArray(payload.categories)
           ? payload.categories
@@ -99,6 +108,15 @@ module.exports = (io) => {
           ? payload.endMode
           : room.endMode || "ALL_SUBMIT",
       };
+
+      const newGame = await Game.create({
+        roomCode,
+        players: room.players || [],
+        rounds: settings.rounds,
+        categories: settings.categories,
+        roundsData: [],
+        winners: [],
+      });
 
       const updatedRoom = await Room.findOneAndUpdate(
         { code: roomCode },
@@ -109,6 +127,7 @@ module.exports = (io) => {
             letter: null,
             roundEndTime: null,
             roundsData: [],
+            currentGameId: newGame._id,
             ...settings,
           },
         },
@@ -119,6 +138,7 @@ module.exports = (io) => {
       await startRound(io, updatedRoom);
 
       io.to(roomCode).emit("gameStarted", {
+        gameId: newGame._id,
         totalRounds: updatedRoom.rounds,
         timer: updatedRoom.timer,
         categories: (updatedRoom.categories || []).map(String),

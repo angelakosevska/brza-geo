@@ -59,7 +59,7 @@ app.use("/api/game", require("./routes/game")); // game-related endpoints
 app.use("/api/room", require("./routes/room")); // room management endpoints
 app.use("/api/categories", require("./routes/category")); // category management endpoints
 app.use("/api/user", require("./routes/user")); // user profile endpoints
-
+app.use("/api/admin", require("./routes/admin")); //admin review routes
 // Health check route
 app.get("/healthz", (_req, res) => res.send("ok"));
 
@@ -94,21 +94,3 @@ server.listen(PORT, "0.0.0.0", () => {
 
 const sgMail = require("@sendgrid/mail");
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-
-app.get("/test-email", async (req, res) => {
-  try {
-    await sgMail.send({
-      to: "kosevska90@gmail.com", // тест email
-      from: {
-        email: process.env.SENDGRID_FROM, // мора да биде верифициран sender во SendGrid
-        name: "Type Rush",
-      },
-      subject: "Test Email from Type Rush",
-      text: "Ова е тест порака од SendGrid 🎉",
-    });
-    res.send("✅ Email sent!");
-  } catch (err) {
-    console.error("❌ Email error:", err);
-    res.status(500).send("Failed to send email");
-  }
-});

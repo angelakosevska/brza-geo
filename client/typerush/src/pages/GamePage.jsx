@@ -51,6 +51,8 @@ export default function GamePage() {
     handleLeaveRoom,
     handlePlayAgain,
     handleStayHere,
+    reviewWords,
+    onVoteReview,
   } = useGameLogic({ code, currentUserId, navigate });
 
   return (
@@ -115,9 +117,11 @@ export default function GamePage() {
         answerDetails={answerDetails}
         roundScores={roundScores}
         breakLeft={breakLeft}
+        reviewWords={reviewWords}
         hasMoreRounds={hasMoreRounds}
         onNextRound={handleNextRound}
         currentUserId={currentUserId}
+        onVoteReview={onVoteReview}
       />
 
       {/* Final results modal */}

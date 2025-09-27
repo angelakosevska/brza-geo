@@ -21,7 +21,9 @@ async function verifyToken(req, res, next) {
 
     if (user.currentSessionId !== decoded.sid) {
       // sid mismatch means the user logged in somewhere else
-      return res.status(401).json({ message: "Сесијата е невалидна. Најавете се повторно." });
+      return res
+        .status(401)
+        .json({ message: "Сесијата е невалидна. Најавете се повторно." });
     }
 
     // Attach the user and session info for downstream routes

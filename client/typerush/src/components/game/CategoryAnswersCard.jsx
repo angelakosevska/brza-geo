@@ -1,8 +1,10 @@
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
 import GlassCard from "@/components/global/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { validateAnswer } from "@/lib/validateAnswer";
+import { socket } from "@/lib/socket";            // 👈 користи го real socket
+import { useError } from "@/hooks/useError";       // 👈 за toasts
 
 // Lucide icons
 import {
@@ -16,26 +18,16 @@ import {
 // Ensures the value always starts with the round letter
 function ensureStartsWithLetter(value, letter) {
   if (!letter) return value ?? "";
-  const L = letter[0]; // just the first char
+  const L = letter[0];
   let v = value ?? "";
-
-  // Always at least the letter
   if (v.length === 0) return L;
-
-  // If first char is wrong → fix it
   if (v[0].toUpperCase() !== L.toUpperCase()) {
     v = L + v.slice(1);
-  } else {
-    // Fix case if needed
-    if (v[0] !== L) {
-      v = L + v.slice(1);
-    }
+  } else if (v[0] !== L) {
+    v = L + v.slice(1);
   }
-
-  // Collapse duplicates like "КК..." → "К..."
   const dup = new RegExp(`^${L}{2,}`, "i");
   v = v.replace(dup, L);
-
   return v;
 }
 
@@ -47,9 +39,9 @@ export default function CategoryAnswersCard({
   onChange,
   submitted = false,
   timeLeft = 0,
-  enforceStartsWith = true, // force locked first letter
+  enforceStartsWith = true,
   className = "",
-  mode = "play", // "play" | "review"
+  mode = "play",
   waitingForRound = false,
   showSubmit,
   showStop,
@@ -57,17 +49,9 @@ export default function CategoryAnswersCard({
   onStop,
   dictByCategory = {},
 }) {
-  // ========== UI COLORS ==========
-  const borderColors = {
-    exact: "border-green-500",
-    typo: "border-yellow-500",
-    "no-words": "border-orange-500",
-    "wrong-letter": "border-red-500",
-    "not-in-dictionary": "border-red-500",
-    "not-cyrillic": "border-red-500",
-    empty: "border-gray-300",
-  };
+  const { showInfo } = useError();
 
+  // ========== UI HELPERS ==========
   const textMessages = {
     exact: "Точен збор",
     typo: "Мала грешка (прифатено)",
@@ -116,7 +100,6 @@ export default function CategoryAnswersCard({
 
       const ref = inputRefs.current[id];
       if (ref && before !== val) {
-        // Keep caret at least after the first letter
         const pos = Math.max(1, ref.selectionStart ?? 1);
         requestAnimationFrame(() => {
           try {
@@ -126,6 +109,16 @@ export default function CategoryAnswersCard({
       }
     }
     onChange?.(id, val);
+  };
+
+  // ========== MARK FOR REVIEW ==========
+  const handleMarkForReview = (categoryId, value) => {
+    const word = String(value || "").trim();
+    // не праќај ако е празно или е само првата буква
+    if (!word || (letter && word.length <= 1)) {
+      return showInfo("Напиши го целиот збор пред да го пратиш.");
+    }
+    socket.emit("markWordForReview", { categoryId, word });
   };
 
   // ========== RENDER ==========
@@ -190,7 +183,6 @@ export default function CategoryAnswersCard({
         <div className="gap-1 grid md:grid-cols-2 lg:grid-cols-3">
           {categories.map((id) => {
             const rawValue = answers[id];
-            // Always seed with letter if empty
             const value =
               rawValue == null || rawValue === ""
                 ? letter || ""
@@ -199,11 +191,12 @@ export default function CategoryAnswersCard({
             const dictWords = dictByCategory[String(id)] || [];
             const { status } = validateAnswer(value, letter, dictWords);
 
+            const canSuggest =
+              !submitted &&
+              (status === "not-in-dictionary" || status === "no-words");
+
             return (
-              <GlassCard
-                key={id}
-                className="flex flex-col gap-1 text-[var(--text)]"
-              >
+              <GlassCard key={id} className="flex flex-col gap-1 text-[var(--text)]">
                 <label
                   htmlFor={`answer-${id}`}
                   className="mb-1 font-medium text-sm sm:text-base truncate"
@@ -225,14 +218,27 @@ export default function CategoryAnswersCard({
                   status={status}
                 />
 
-                <span
-                  className={`text-xs mt-1 flex items-center gap-1 ${
-                    textColors[status] || "text-gray-400"
-                  }`}
-                >
-                  {icons[status]}
-                  {textMessages[status]}
-                </span>
+                <div className="flex justify-between items-center mt-1">
+                  <span
+                    className={`text-xs flex items-center gap-1 ${
+                      textColors[status] || "text-gray-400"
+                    }`}
+                  >
+                    {icons[status]}
+                    {textMessages[status]}
+                  </span>
+
+                  {canSuggest && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleMarkForReview(id, value)}
+                      className="hover:bg-[var(--secondary)] ml-2 px-2 py-1 hover:text-white text-xs"
+                    >
+                      ✅ За преглед
+                    </Button>
+                  )}
+                </div>
               </GlassCard>
             );
           })}
