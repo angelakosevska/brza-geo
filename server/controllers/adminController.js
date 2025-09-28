@@ -6,7 +6,8 @@ exports.getReviews = async (req, res) => {
   try {
     const { status = "pending" } = req.query;
     const reviews = await ReviewWord.find({ status })
-      .populate("submittedBy", "username email", "category", "name")
+      .populate({ path: "submittedBy", select: "username email" })
+      .populate({ path: "category", select: "name" })
       .sort({ createdAt: -1 })
       .limit(100);
 
