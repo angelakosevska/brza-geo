@@ -33,9 +33,6 @@ export default function RoundResultsModal({
     if (!reviewsByCat[catId]) reviewsByCat[catId] = [];
     reviewsByCat[catId].push(rw);
   });
-  const myVote = rw.votes?.find(
-    (v) => String(v.player) === String(currentUserId)
-  );
 
   return (
     <div className="z-50 fixed inset-0" role="dialog" aria-modal="true">
@@ -170,6 +167,9 @@ export default function RoundResultsModal({
                         Предложени зборови за додавање во категоријата:
                       </div>
                       {reviewsByCat[String(cid)].map((rw) => {
+                        const myVote = rw.votes?.find(
+                          (v) => String(v.player) === String(currentUserId)
+                        );
                         let statusIcon = null;
                         if (rw.status === "accepted") {
                           statusIcon = (
