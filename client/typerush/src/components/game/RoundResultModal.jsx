@@ -159,7 +159,6 @@ export default function RoundResultsModal({
                   })}
                 </div>
 
-                {/* ---------- REVIEW WORDS SECTION ---------- */}
                 {reviewsByCat[String(cid)] &&
                   reviewsByCat[String(cid)].length > 0 && (
                     <div className="mt-3 p-2 border-[var(--text)]/20 border-t">
@@ -170,6 +169,7 @@ export default function RoundResultsModal({
                         const myVote = rw.votes?.find(
                           (v) => String(v.player) === String(currentUserId)
                         );
+
                         let statusIcon = null;
                         if (rw.status === "accepted") {
                           statusIcon = (
@@ -180,6 +180,9 @@ export default function RoundResultsModal({
                             <XCircle className="w-4 h-4 text-rose-600" />
                           );
                         }
+
+                        const isOwnWord =
+                          String(rw.submittedBy) === String(currentUserId);
 
                         return (
                           <div
@@ -195,8 +198,8 @@ export default function RoundResultsModal({
                               {statusIcon}
                             </div>
 
-                            {/* If still pending → show vote buttons */}
-                            {rw.status === "pending" && (
+                            {/* If still pending → show vote buttons, but not for own word */}
+                            {rw.status === "pending" && !isOwnWord && (
                               <div className="flex gap-2">
                                 <Button
                                   size="xs"
