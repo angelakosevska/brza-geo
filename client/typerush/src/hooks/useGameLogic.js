@@ -422,14 +422,14 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     };
 
     const handleReviewWordsUpdated = (list) => {
-      setReviewWords(list || []);
+      setReviewWords(list.filter((rw) => rw.roundNumber === Number(currentRound)));
     };
 
     const handleReviewVoteRegistered = ({ success, message }) => {
       if (success) {
-        showSuccess(message || "Гласот е запишан ✅");
+        showSuccess(message || "Гласаше");
       } else {
-        showError(message || "Неуспешно гласање ❌");
+        showError(message || "Неуспешно гласање");
       }
     };
 
@@ -510,14 +510,14 @@ export default function useGameLogic({ code, currentUserId, navigate }) {
     socket.emit("voteReviewWord", { reviewId, valid });
   }, []);
 
-const handleReviewWordDecided = ({ status, word, player, points }) => {
-  if (String(player) !== String(currentUserId)) return;
-  if (status === "accepted") {
-    showSuccess(`✅ Зборот „${word}“ е прифатен! +${points || 0} поени`);
-  } else if (status === "rejected") {
-    showError(`❌ Зборот „${word}“ е одбиен`);
-  }
-};
+  const handleReviewWordDecided = ({ status, word, player, points }) => {
+    if (String(player) !== String(currentUserId)) return;
+    if (status === "accepted") {
+      showSuccess(`✅ Зборот „${word}“ е прифатен! +${points || 0} поени`);
+    } else if (status === "rejected") {
+      showError(`❌ Зборот „${word}“ е одбиен`);
+    }
+  };
 
   const handleNextRound = useCallback(() => {
     if (!isHost) return;

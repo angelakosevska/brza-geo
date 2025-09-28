@@ -3,7 +3,7 @@ export function validateAnswer(raw, letter, dictWords = []) {
   const word = (raw || "").trim().toLowerCase();
   const upperLetter = (letter || "").toUpperCase();
 
-  if (!word) return { status: "empty" };
+  // if (!word) return { status: "empty" };
 
   const cyrillicRegex = /^[\u0400-\u04FF]/;
   if (!cyrillicRegex.test(word[0])) {

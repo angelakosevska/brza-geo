@@ -12,14 +12,14 @@ export default function RoundResultsModal({
   playerNameById = {},
   answerDetails = {},
 
-  reviewWords = [], // 👈 Words sent for review
+  reviewWords = [],
   currentUserId,
 
   breakLeft = null,
   hasMoreRounds,
   onNextRound,
   onRequestClose,
-  onVoteReview, // 👈 Callback for voting
+  onVoteReview,
 }) {
   if (!show) return null;
 
@@ -33,6 +33,9 @@ export default function RoundResultsModal({
     if (!reviewsByCat[catId]) reviewsByCat[catId] = [];
     reviewsByCat[catId].push(rw);
   });
+  const myVote = rw.votes?.find(
+    (v) => String(v.player) === String(currentUserId)
+  );
 
   return (
     <div className="z-50 fixed inset-0" role="dialog" aria-modal="true">
@@ -164,7 +167,7 @@ export default function RoundResultsModal({
                   reviewsByCat[String(cid)].length > 0 && (
                     <div className="mt-3 p-2 border-[var(--text)]/20 border-t">
                       <div className="mb-1 font-semibold text-xs">
-                        Suggested words:
+                        Предложени зборови за додавање во категоријата:
                       </div>
                       {reviewsByCat[String(cid)].map((rw) => {
                         let statusIcon = null;
@@ -181,12 +184,13 @@ export default function RoundResultsModal({
                         return (
                           <div
                             key={rw._id}
-                            className="flex justify-between items-center bg-[var(--background)]/40 px-2 py-1 rounded-md"
+                            className="flex flex-col justify-between items-center gap-1 bg-[var(--background)]/40 px-2 py-1 rounded-md"
                           >
                             <div className="flex items-center gap-2 text-sm">
                               <span>{rw.word}</span>
                               <span className="opacity-70 text-xs">
-                                (by {playerNameById[rw.submittedBy] || "player"})
+                                (by {playerNameById[rw.submittedBy] || "player"}
+                                )
                               </span>
                               {statusIcon}
                             </div>
@@ -196,16 +200,34 @@ export default function RoundResultsModal({
                               <div className="flex gap-2">
                                 <Button
                                   size="xs"
-                                  variant="outline"
-                                  className="hover:bg-green-500 hover:text-white"
+                                  variant={
+                                    myVote?.valid === true
+                                      ? "default"
+                                      : "outline"
+                                  }
+                                  disabled={!!myVote}
+                                  className={
+                                    myVote?.valid === true
+                                      ? "bg-green-500 text-white"
+                                      : "hover:bg-green-500 hover:text-white"
+                                  }
                                   onClick={() => onVoteReview?.(rw._id, true)}
                                 >
                                   <ThumbsUp className="w-4 h-4" />
                                 </Button>
                                 <Button
                                   size="xs"
-                                  variant="outline"
-                                  className="hover:bg-red-500 hover:text-white"
+                                  variant={
+                                    myVote?.valid === false
+                                      ? "default"
+                                      : "outline"
+                                  }
+                                  disabled={!!myVote}
+                                  className={
+                                    myVote?.valid === false
+                                      ? "bg-red-500 text-white"
+                                      : "hover:bg-red-500 hover:text-white"
+                                  }
                                   onClick={() => onVoteReview?.(rw._id, false)}
                                 >
                                   <ThumbsDown className="w-4 h-4" />

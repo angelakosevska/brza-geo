@@ -32,11 +32,14 @@ const reviewWordSchema = new mongoose.Schema({
     default: "pending",
   },
 
+
+  awarded: { type: Boolean, default: false },
+
   createdAt: { type: Date, default: Date.now },
   decidedAt: { type: Date },
 });
 
-// Индекс за побрзо пребарување
+
 reviewWordSchema.index({ gameId: 1, roundNumber: 1 });
 
 module.exports = mongoose.model("ReviewWord", reviewWordSchema);

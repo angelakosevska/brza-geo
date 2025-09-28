@@ -1,10 +1,10 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import GlassCard from "@/components/global/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { validateAnswer } from "@/lib/validateAnswer";
-import { socket } from "@/lib/socket";            // 👈 користи го real socket
-import { useError } from "@/hooks/useError";       // 👈 за toasts
+import { socket } from "@/lib/socket"; // 👈 користи го real socket
+import { useError } from "@/hooks/useError"; // 👈 за toasts
 
 // Lucide icons
 import {
@@ -50,6 +50,7 @@ export default function CategoryAnswersCard({
   dictByCategory = {},
 }) {
   const { showInfo } = useError();
+  const [suggested, setSuggested] = useState(new Set());
 
   // ========== UI HELPERS ==========
   const textMessages = {
@@ -114,11 +115,16 @@ export default function CategoryAnswersCard({
   // ========== MARK FOR REVIEW ==========
   const handleMarkForReview = (categoryId, value) => {
     const word = String(value || "").trim();
-    // не праќај ако е празно или е само првата буква
     if (!word || (letter && word.length <= 1)) {
       return showInfo("Напиши го целиот збор пред да го пратиш.");
     }
+    if (suggested.has(word.toLowerCase())) {
+      return showInfo("Овој збор веќе е предложен.");
+    }
+
     socket.emit("markWordForReview", { categoryId, word });
+    // 👇 додај го зборот во suggested state
+    setSuggested((prev) => new Set(prev).add(word.toLowerCase()));
   };
 
   // ========== RENDER ==========
@@ -196,7 +202,10 @@ export default function CategoryAnswersCard({
               (status === "not-in-dictionary" || status === "no-words");
 
             return (
-              <GlassCard key={id} className="flex flex-col gap-1 text-[var(--text)]">
+              <GlassCard
+                key={id}
+                className="flex flex-col gap-1 text-[var(--text)]"
+              >
                 <label
                   htmlFor={`answer-${id}`}
                   className="mb-1 font-medium text-sm sm:text-base truncate"
@@ -233,9 +242,16 @@ export default function CategoryAnswersCard({
                       size="sm"
                       variant="outline"
                       onClick={() => handleMarkForReview(id, value)}
-                      className="hover:bg-[var(--secondary)] ml-2 px-2 py-1 hover:text-white text-xs"
+                      disabled={suggested.has(value.toLowerCase())}
+                      className={`ml-2 px-2 py-1 text-xs ${
+                        suggested.has(value.toLowerCase())
+                          ? "bg-[var(--primary)] text-white"
+                          : "hover:bg-[var(--secondary)] hover:text-white"
+                      }`}
                     >
-                      ✅ За преглед
+                      {suggested.has(value.toLowerCase())
+                        ? "Предложено"
+                        : "За преглед"}
                     </Button>
                   )}
                 </div>

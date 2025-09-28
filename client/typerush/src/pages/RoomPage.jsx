@@ -8,6 +8,7 @@ import CategorySelector from "@/components/room/CategorySelector";
 import RoomSettingsForm from "@/components/room/RoomSettingsForm";
 import api from "@/lib/axios";
 import SelectedCategoriesPanel from "@/components/room/SelectedCategoriesPanel";
+import { useLoading } from "@/context/LoadingContext";
 
 export default function RoomPage() {
   const { code } = useParams();
@@ -16,11 +17,12 @@ export default function RoomPage() {
   const currentUserId = user?.id;
 
   const [room, setRoom] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { loading, setLoading } = useLoading(); // ✅ use context
 
   // ---- Fetch room data from backend ----
   const fetchRoom = useCallback(async () => {
     try {
+      setLoading(true); // start loader
       const res = await api.get(`/room/${code}`);
       setRoom(res.data.room);
     } catch (err) {
@@ -28,9 +30,9 @@ export default function RoomPage() {
       alert(msg);
       navigate("/main");
     } finally {
-      setLoading(false);
+      setLoading(false); // stop loader
     }
-  }, [code, navigate]);
+  }, [code, navigate, setLoading]);
 
   useEffect(() => {
     fetchRoom();
@@ -64,8 +66,14 @@ export default function RoomPage() {
   }, [code, navigate]);
 
   if (loading) {
-    return <div className="mt-10 text-center">Loading room...</div>;
+    // ✅ show your global spinner/overlay instead of plain text
+    return (
+      <div className="flex justify-center items-center h-[70vh]">
+        <div className="border-[var(--primary)] border-t-[3px] rounded-full w-12 h-12 animate-spin loader" />
+      </div>
+    );
   }
+
   if (!room) return null;
 
   const isHost =
@@ -75,8 +83,8 @@ export default function RoomPage() {
   // ---- Leave room ----
   const handleLeave = async () => {
     try {
-      await api.post(`/room/${room.code}/leave`); // update DB
-      socket.emit("leaveRoom", { code: room.code }); // notify socket
+      await api.post(`/room/${room.code}/leave`);
+      socket.emit("leaveRoom", { code: room.code });
       navigate("/main");
     } catch (err) {
       console.error("❌ Failed to leave room:", err);
@@ -92,7 +100,7 @@ export default function RoomPage() {
       timer: room.timer,
       endMode: room.endMode || "ALL_SUBMIT",
     });
-    socket.emit("startGame", { code: room.code }); // explicitly pass code
+    socket.emit("startGame", { code: room.code });
   };
 
   // ---- Update room settings ----

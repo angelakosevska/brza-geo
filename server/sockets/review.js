@@ -37,37 +37,53 @@ function registerReviewHandlers(io, socket) {
 
   // ---- VOTE REVIEW WORD ----
   socket.on("voteReviewWord", async ({ reviewId, valid }) => {
-  try {
-    const userId = socket.data.user?.id;
-    if (!userId) return;
+    try {
+      const userId = socket.data.user?.id;
+      if (!userId) return;
 
-    const review = await ReviewWord.findById(reviewId);
-    if (!review || review.status !== "pending") return;
+      const review = await ReviewWord.findById(reviewId);
+      if (!review || review.status !== "pending") return;
 
-    // prevent duplicate vote
-    const already = review.votes.find((v) => String(v.player) === String(userId));
-    if (already) return;
+      // ❌ Авторот не смее да гласа за свој збор
+      if (String(review.submittedBy) === String(userId)) {
+        return socket.emit("reviewVoteRegistered", {
+          success: false,
+          message: "Не можеш да гласаш за сопствениот збор.",
+        });
+      }
 
-    review.votes.push({ player: userId, valid });
-    await review.save();
+      // ❌ Спречи дупликат глас
+      const already = review.votes.find(
+        (v) => String(v.player) === String(userId)
+      );
+      if (already) {
+        return socket.emit("reviewVoteRegistered", {
+          success: false,
+          message: "Веќе гласавте за овој збор.",
+        });
+      }
 
-    // check if enough votes reached
-    const totalVotes = review.votes.length;
-    const approvals = review.votes.filter((v) => v.valid).length;
-
-    // Example rule: majority approves OR 3+ approvals
-    if (approvals >= 2 && approvals > totalVotes / 2) {
-      review.status = "accepted";
-      review.decidedAt = new Date();
+      // ✅ Додај нов глас
+      review.votes.push({ player: userId, valid });
       await review.save();
 
-      const Room = require("../models/Room");
-      const room = await Room.findOne({ code: review.roomCode });
-      if (room) {
+      // ---------- ЛОГИКА ЗА ПОЕНИ ----------
+      const totalVotes = review.votes.length;
+      const approvals = review.votes.filter((v) => v.valid).length;
+
+      // Ако има доволно approve (пример ≥2 и мнозинство) и сè уште нема поени дадено
+      if (!review.awarded && approvals >= 2 && approvals > totalVotes / 2) {
+        review.awarded = true; // ✅ означи дека поени се дадени
+        await review.save();
+
+        // Додели поени на играчот
         await Room.updateOne(
-          { code: review.roomCode, "roundsData.roundNumber": review.roundNumber },
           {
-            $inc: { "roundsData.$[r].submissions.$[s].points": 5 }, // +10 points
+            code: review.roomCode,
+            "roundsData.roundNumber": review.roundNumber,
+          },
+          {
+            $inc: { "roundsData.$[r].submissions.$[s].points": 5 },
           },
           {
             arrayFilters: [
@@ -76,45 +92,45 @@ function registerReviewHandlers(io, socket) {
             ],
           }
         );
+
+        // Извести ги сите
+        io.to(review.roomCode).emit("reviewWordDecided", {
+          status: "accepted",
+          word: review.word,
+          player: review.submittedBy,
+          points: 5,
+        });
       }
 
-      // notify everyone
-      io.to(review.roomCode).emit("reviewWordDecided", {
-        status: "accepted",
-        word: review.word,
-        player: review.submittedBy,
-        points: 10,
-      });
-    } else if (totalVotes >= 3 && approvals === 0) {
-      // all voted reject
-      review.status = "rejected";
-      review.decidedAt = new Date();
-      await review.save();
+      // Ако сите гласале reject (пример ≥3 и 0 approvals) → само update статус
+      if (totalVotes >= 3 && approvals === 0) {
+        review.status = "rejected";
+        review.decidedAt = new Date();
+        await review.save();
 
-      io.to(review.roomCode).emit("reviewWordDecided", {
-        status: "rejected",
-        word: review.word,
-        player: review.submittedBy,
+        io.to(review.roomCode).emit("reviewWordDecided", {
+          status: "rejected",
+          word: review.word,
+          player: review.submittedBy,
+        });
+      }
+
+      // Секогаш прати освежена листа
+      const list = await ReviewWord.find({
+        roomCode: review.roomCode,
+        roundNumber: review.roundNumber,
+      }).lean();
+      io.to(review.roomCode).emit("reviewWordsUpdated", list);
+
+      socket.emit("reviewVoteRegistered", { success: true });
+    } catch (err) {
+      console.error("❌ voteReviewWord error:", err);
+      socket.emit("reviewVoteRegistered", {
+        success: false,
+        message: "Грешка при гласање.",
       });
     }
-
-    // broadcast updated list so RoundResultsModal refreshes
-    const list = await ReviewWord.find({
-      roomCode: review.roomCode,
-      roundNumber: review.roundNumber,
-    }).lean();
-    io.to(review.roomCode).emit("reviewWordsUpdated", list);
-
-    socket.emit("reviewVoteRegistered", { success: true });
-  } catch (err) {
-    console.error("❌ voteReviewWord error:", err);
-    socket.emit("reviewVoteRegistered", {
-      success: false,
-      message: "Грешка при гласање.",
-    });
-  }
-});
-
+  });
 }
 
 module.exports = { registerReviewHandlers };
