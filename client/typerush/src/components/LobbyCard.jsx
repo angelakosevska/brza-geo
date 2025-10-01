@@ -10,8 +10,8 @@ export default function LobbyCard({ onCreate, onJoin, joinCode, setJoinCode }) {
   };
 
   return (
-    <GlassCard className="flex-col justify-center items-center p-4 h-full">
-      <div className="flex flex-col justify-center items-center gap-6 w-full max-w-sm">
+    <GlassCard className="flex-col justify-center items-center p-4 h-full ">
+      <div className="flex flex-col justify-center items-start gap-6 w-full max-w-sm">
         {/* --- Host section --- */}
         <div className="flex flex-col items-center w-full text-center">
           <h4 className="mb-2 font-semibold text-[var(--primary)] text-base md:text-lg">

@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import api from "@/lib/axios";
 import GlassCard from "@/components/global/GlassCard";
 import { Button } from "@/components/ui/button";
+import { useLoading } from "@/context/LoadingContext";
 import {
   CheckCircle,
   XCircle,
@@ -19,7 +20,7 @@ import {
 
 export default function AdminReviewPanelPage() {
   const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { setLoading } = useLoading(false);
 
   // Sorting state
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
@@ -90,17 +91,6 @@ export default function AdminReviewPanelPage() {
     }
     setSortConfig({ key, direction });
   };
-
-  // Loading screen
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <GlassCard className="p-6 text-[var(--text)] text-center animate-pulse">
-          Се вчитуваат зборовите за преглед...
-        </GlassCard>
-      </div>
-    );
-  }
 
   // Main content
   return (

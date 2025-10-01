@@ -93,7 +93,7 @@ export default function MainPage() {
   };
 
   return (
-    <div className="gap-1 grid grid-cols-1 lg:grid-cols-3 mx-auto w-full max-w-[95vw]">
+    <div className="gap-1 grid grid-cols-1 lg:grid-cols-3 w-full">
       {/* 1. Left column – LevelCard + Info */}
       <div className="flex flex-col gap-1 order-1 col-span-1">
         <LevelCard
@@ -111,7 +111,7 @@ export default function MainPage() {
       </div>
 
       {/* 2. Middle column – Game Lobby */}
-      <div className="order-2 col-span-1">
+      <div className="order-2 col-span-1 gap-1">
         <LobbyCard
           onCreate={handleCreateRoom}
           onJoin={handleJoinRoom}

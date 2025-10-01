@@ -27,7 +27,6 @@
 
 .winner-border {
   position: relative;
-  border-radius: 1rem; 
   overflow: hidden;
 }
 
@@ -36,15 +35,15 @@
   pointer-events: none;
   position: absolute;
   inset: 0;
-  padding: 3px; /* дебелина на бордерот */
+  padding: 3px;
   border-radius: inherit;
   background: linear-gradient(
     45deg,
     #25b790 0%,
-    #37cda5 20%,
-    #9e4dd4 40%,
-    #c287e8 60%,
-    #f88a79 80%,
+    #9e4dd4 20%,
+    #f88a79 40%,
+    #37cda5 60%,
+    #c287e8 80%,
     #ff7e6b 100%
   );
   background-size: 300% 300%;

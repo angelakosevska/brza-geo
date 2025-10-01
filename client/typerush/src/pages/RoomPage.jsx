@@ -17,7 +17,7 @@ export default function RoomPage() {
   const currentUserId = user?.id;
 
   const [room, setRoom] = useState(null);
-  const { loading, setLoading } = useLoading(); // ✅ use context
+  const { setLoading } = useLoading();
 
   // ---- Fetch room data from backend ----
   const fetchRoom = useCallback(async () => {
@@ -65,14 +65,7 @@ export default function RoomPage() {
     };
   }, [code, navigate]);
 
-  if (loading) {
-    // ✅ show your global spinner/overlay instead of plain text
-    return (
-      <div className="flex justify-center items-center h-[70vh]">
-        <div className="border-[var(--primary)] border-t-[3px] rounded-full w-12 h-12 animate-spin loader" />
-      </div>
-    );
-  }
+
 
   if (!room) return null;
 
@@ -125,7 +118,7 @@ export default function RoomPage() {
   return (
     <div className="flex flex-col gap-1 mx-auto w-full max-w-[90vw]">
       {/* Row 1: Players + Room Code */}
-      <div className="flex lg:flex-row flex-col gap-1 w-full h-full">
+      <div className="flex lg:flex-row flex-col gap-1 w-full h-auto">
         <PlayersList
           players={room.players}
           onLeave={handleLeave}
@@ -140,7 +133,7 @@ export default function RoomPage() {
       </div>
 
       {/* Row 2: Settings + Categories + Selected Categories */}
-      <div className="flex lg:flex-row flex-col gap-1 w-full">
+      <div className="flex lg:flex-row flex-col gap-1 w-full h-full">
         <RoomSettingsForm
           room={room}
           onUpdate={handleUpdateSettings}

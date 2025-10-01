@@ -18,7 +18,7 @@ export default function GlassCard({
         rounded-3xl md:rounded-4xl        
         shadow-xl
         shadow-gray-500/20    
-        sm:p-6 md:p-8  
+        p-4
         flex flex-col
         ${className}
       `}

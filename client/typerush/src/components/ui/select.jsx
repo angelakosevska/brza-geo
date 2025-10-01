@@ -80,7 +80,7 @@ const SelectContent = React.forwardRef(
       >
         <SelectScrollUpButton />
         <SelectPrimitive.Viewport
-          className="gap-2 grid grid-cols-5 md:grid-cols-4" // 3 колони мобилен, 4 desktop
+          className="gap-2 grid sm:grid-cols-3 md:grid-cols-5" 
         >
           {children}
         </SelectPrimitive.Viewport>
