@@ -11,8 +11,8 @@
   "reset_code_invalid": "Невалиден код за ресетирање",
   "reset_code_expired": "Кодот за ресетирање е истечен",
   "password_reset_success": "Лозинката е успешно променета",
-  "reset_email_sent": "reset_email_sent",
-  "password_reset_successful": "password_reset_successful",
+  "reset_email_sent": "Е-пошта за промена на лозинката е испратена!",
+  "password_reset_successful": "Лозинката е променета!",
 
   "room_not_found": "Собата не постои.",
   "failed_create_room": "Неуспешно креирање на соба.",
