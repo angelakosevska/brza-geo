@@ -68,7 +68,7 @@ export default function RoundResultsModal({
                   variant="outline"
                   title="Next round"
                 >
-                  {hasMoreRounds ? "Start next round" : "Skip waiting"}
+                  {hasMoreRounds ? "Следна рунда" : "Конечни резултати"}
                 </Button>
               )}
             </div>

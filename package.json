@@ -10,6 +10,7 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
+    "framer-motion": "^12.23.22",
     "i18n": "^0.15.1",
     "i18next": "^25.3.2",
     "react-hook-form": "^7.62.0",
