@@ -14,6 +14,10 @@ import {
   Award,
   FolderPlus,
   Layers,
+  Gamepad2,
+  FolderOpen,
+  SendHorizontal,
+  Star,
 } from "lucide-react";
 
 export default function InfoAccordion() {
@@ -71,6 +75,15 @@ export default function InfoAccordion() {
     },
   ];
 
+  // Унифициран стил за иконите на секциите
+  const sectionIcon = (Icon, colorClass) => (
+    <div
+      className={`flex justify-center items-center rounded-full w-8 h-8 shrink-0 ${colorClass}`}
+    >
+      <Icon className="w-5 h-5" />
+    </div>
+  );
+
   return (
     <GlassCard className="flex-col flex-1/3 gap-2 p-4 h-full">
       <h2 className="mb-2 font-bold text-[var(--primary)] text-xl">
@@ -79,7 +92,8 @@ export default function InfoAccordion() {
       <Accordion type="single" collapsible>
         {/* How to play */}
         <AccordionItem value="howto">
-          <AccordionTrigger className="text-[var(--primary)] hover:text-[var(--primary)]/50 text-lg transition-colors">
+          <AccordionTrigger className="flex items-center gap-2 text-[var(--primary)] hover:text-[var(--primary)]/50 text-lg transition-colors">
+            {sectionIcon(PlayCircle, "text-[var(--accent)] bg-[var(--accent)]/20")}
             Како да играш
           </AccordionTrigger>
           <AccordionContent>
@@ -108,7 +122,8 @@ export default function InfoAccordion() {
 
         {/* Modes */}
         <AccordionItem value="modes">
-          <AccordionTrigger className="text-[var(--primary)] hover:text-[var(--primary)]/50 text-lg transition-colors">
+          <AccordionTrigger className="flex items-center gap-2 text-[var(--primary)] hover:text-[var(--primary)]/50 text-lg transition-colors">
+            {sectionIcon(Gamepad2, "text-[var(--secondary)] bg-[var(--secondary)]/20")}
             Модови
           </AccordionTrigger>
           <AccordionContent className="space-y-4">
@@ -134,7 +149,8 @@ export default function InfoAccordion() {
 
         {/* Categories */}
         <AccordionItem value="categories">
-          <AccordionTrigger className="text-[var(--primary)] hover:text-[var(--primary)]/50 text-lg transition-colors">
+          <AccordionTrigger className="flex items-center gap-2 text-[var(--primary)] hover:text-[var(--primary)]/50 text-lg transition-colors">
+            {sectionIcon(FolderOpen, "text-[var(--accent)] bg-[var(--accent)]/20")}
             Категории
           </AccordionTrigger>
           <AccordionContent>
@@ -160,8 +176,39 @@ export default function InfoAccordion() {
             </ul>
           </AccordionContent>
         </AccordionItem>
+
+        {/* Suggest Words */}
+        <AccordionItem value="suggestions">
+          <AccordionTrigger className="flex items-center gap-2 text-[var(--primary)] hover:text-[var(--primary)]/50 text-lg transition-colors">
+            {sectionIcon(SendHorizontal, "text-[var(--secondary)] bg-[var(--secondary)]/20")}
+           Предложи збор
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="bg-[var(--primary)]/10 hover:bg-[var(--primary)]/20 p-3 rounded-lg transition">
+              <p className="text-[var(--text)]/80 text-sm">
+                Во текот на играта, доколку сметаш дека одреден збор треба да
+                биде додаден во категоријата за конкретната буква, можеш да го
+                испратиш како предлог за преглед. Предлогот автоматски се праќа
+                до администраторот, кој одлучува дали ќе го одобри и додаде во
+                официјалната листа на зборови.
+              </p>
+              <p className="text-[var(--text)]/80 text-sm mt-2">
+                Меѓу рундите, играчите можат да гласаат дали го прифаќаат
+                одговорот — ако повеќето го одобрат, играчот што го предложил
+                може да добие бонус од{" "}
+                <span className="font-semibold text-[var(--accent)]">
+                  +5 поени
+                </span>
+                .
+              </p>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* Points and Levels */}
         <AccordionItem value="levelup">
-          <AccordionTrigger className="text-[var(--primary)] hover:text-[var(--primary)]/50 text-lg transition-colors">
+          <AccordionTrigger className="flex items-center gap-2 text-[var(--primary)] hover:text-[var(--primary)]/50 text-lg transition-colors">
+            {sectionIcon(Star, "text-[var(--accent)] bg-[var(--accent)]/20")}
             Поени и Нивоа
           </AccordionTrigger>
           <AccordionContent>
