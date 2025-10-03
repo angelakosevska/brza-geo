@@ -52,8 +52,14 @@ export default function CategorySelector({
   };
 
   // Split categories
-  const defaultCategories = categories.filter((c) => c.isDefault);
-  const playerCategories = categories.filter((c) => !c.isDefault);
+  // Split and sort categories alphabetically by name
+  const defaultCategories = categories
+    .filter((c) => c.isDefault)
+    .sort((a, b) => a.name.localeCompare(b.name, "mk"));
+
+  const playerCategories = categories
+    .filter((c) => !c.isDefault)
+    .sort((a, b) => a.name.localeCompare(b.name, "mk"));
 
   // Reusable render
   const renderCategoryList = (list) => (
@@ -88,7 +94,7 @@ export default function CategorySelector({
   );
 
   return (
-    <GlassCard className={className }>
+    <GlassCard className={className}>
       {loading ? (
         <div className="p-4 text-[var(--glass)] text-sm">Вчитување...</div>
       ) : (
