@@ -61,7 +61,7 @@ api.interceptors.response.use(
 );
 
 export function resetSessionErrorGuard() {
-  // Call this after successful login to allow showing the toast again
+ 
   hasShownSessionError = false;
 }
 

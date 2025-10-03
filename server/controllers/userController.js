@@ -38,30 +38,30 @@ exports.getProfile = async (req, res) => {
 };
 
 
-exports.addWordPowerToUser = async (req, res) => {
-  try {
-    const { amount } = req.body;
+// exports.addWordPowerToUser = async (req, res) => {
+//   try {
+//     const { amount } = req.body;
 
-    let user = await User.findById(req.params.id);
-    if (!user) {
-      return res.status(404).json({ message: res.__("user_not_found") });
-    }
+//     let user = await User.findById(req.params.id);
+//     if (!user) {
+//       return res.status(404).json({ message: res.__("user_not_found") });
+//     }
 
-    // Add XP + recalc level
-    addWordPower(user, amount);
-    await user.save();
+//     // Add XP + recalc level
+//     addWordPower(user, amount);
+//     await user.save();
 
-    // Compute progress details
-    const progress = getLevelProgress(user.wordPower);
+//     // Compute progress details
+//     const progress = getLevelProgress(user.wordPower);
 
-    res.json({
-      wordPower: user.wordPower,
-      level: user.level,
-      ...progress,
-      message: res.__("word_power_updated"),
-    });
-  } catch (err) {
-    console.error("❌ addWordPowerToUser error:", err);
-    res.status(500).json({ message: res.__("failed_update_wordpower") });
-  }
-};
+//     res.json({
+//       wordPower: user.wordPower,
+//       level: user.level,
+//       ...progress,
+//       message: res.__("word_power_updated"),
+//     });
+//   } catch (err) {
+//     console.error("❌ addWordPowerToUser error:", err);
+//     res.status(500).json({ message: res.__("failed_update_wordpower") });
+//   }
+// };
