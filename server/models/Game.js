@@ -1,29 +1,28 @@
 const mongoose = require("mongoose");
 
-// Schema for storing finished or ongoing games
+// Schema for storing finished games (game history)
 const GameSchema = new mongoose.Schema({
-  // Code of the room this game belongs to (e.g. "ABCD")
+  // Room code this game belongs to
   roomCode: String,
 
-  // Players who participated in the game (references User documents)
+  // Players who participated
   players: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 
-  // Total number of rounds in the game
+  // Total rounds played
   rounds: Number,
 
-  // List of category IDs or names used in this game
+  // Categories used in the game
   categories: [String],
 
-  // Snapshot of round-by-round data (submissions, scores, letters, etc.)
-  // Usually copied from Room state at the end of each round
+  // Round-by-round snapshot (submissions, scores, letters, etc.)
   roundsData: Array,
 
-  // References to winning players (can be multiple in case of a tie)
+  // Winning players (can be multiple in case of a tie)
   winners: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 
-  // Creation timestamp for when the game record was stored
+  // Timestamp when the game was stored
   createdAt: { type: Date, default: Date.now },
 });
 
-// Export the Game model
+// Export model
 module.exports = mongoose.model("Game", GameSchema);

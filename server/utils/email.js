@@ -1,6 +1,5 @@
 const sgMail = require("@sendgrid/mail");
 
-// земаме API KEY од .env
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 exports.sendWelcomeEmail = async (user) => {

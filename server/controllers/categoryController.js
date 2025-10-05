@@ -1,7 +1,7 @@
 const Category = require("../models/Category");
 
 /**
- * Helpers
+ * Helper
  */
 function normalizeWordsInput(words) {
   if (!words) return [];

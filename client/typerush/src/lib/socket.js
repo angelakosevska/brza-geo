@@ -13,7 +13,10 @@ if (!DEV && !SOCKET_URL) {
 export const socket = io(SOCKET_URL, {
   path: "/socket.io", // Render serves socket.io here
   transports: ["websocket", "polling"], // fallback if ws fails
+  autoConnect: false,
   auth: {
-    token: localStorage.getItem("token"), 
+    token: localStorage.getItem("token"),
   }, // only true if backend sets cookies
 });
+socket.on("connect", () => console.log("✅ Socket connected:", socket.id));
+socket.on("disconnect", () => console.log("❌ Socket disconnected"));

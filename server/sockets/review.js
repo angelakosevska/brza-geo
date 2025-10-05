@@ -1,6 +1,7 @@
 const ReviewWord = require("../models/ReviewWord");
 const Room = require("../models/Room");
 
+//Add word for review and voting points from players
 function registerReviewHandlers(io, socket) {
   // ---- MARK WORD FOR REVIEW ----
   socket.on("markWordForReview", async ({ categoryId, word }) => {
@@ -44,7 +45,7 @@ function registerReviewHandlers(io, socket) {
       const review = await ReviewWord.findById(reviewId);
       if (!review || review.status !== "pending") return;
 
-      // ❌ Авторот не смее да гласа за свој збор
+      // Cant vote for your word
       if (String(review.submittedBy) === String(userId)) {
         return socket.emit("reviewVoteRegistered", {
           success: false,
@@ -52,7 +53,7 @@ function registerReviewHandlers(io, socket) {
         });
       }
 
-      // ❌ Спречи дупликат глас
+      // Duplicate vote
       const already = review.votes.find(
         (v) => String(v.player) === String(userId)
       );
@@ -63,20 +64,18 @@ function registerReviewHandlers(io, socket) {
         });
       }
 
-      // ✅ Додај нов глас
       review.votes.push({ player: userId, valid });
       await review.save();
 
-      // ---------- ЛОГИКА ЗА ПОЕНИ ----------
+      // ---------- Logic for points ----------
       const totalVotes = review.votes.length;
       const approvals = review.votes.filter((v) => v.valid).length;
 
-      // Ако има доволно approve (пример ≥2 и мнозинство) и сè уште нема поени дадено
+      //
       if (!review.awarded && approvals >= 2 && approvals > totalVotes / 2) {
         review.awarded = true; // ✅ означи дека поени се дадени
         await review.save();
 
-        // Додели поени на играчот
         await Room.updateOne(
           {
             code: review.roomCode,
@@ -93,7 +92,6 @@ function registerReviewHandlers(io, socket) {
           }
         );
 
-        // Извести ги сите
         io.to(review.roomCode).emit("reviewWordDecided", {
           status: "accepted",
           word: review.word,
@@ -102,7 +100,6 @@ function registerReviewHandlers(io, socket) {
         });
       }
 
-      // Ако сите гласале reject (пример ≥3 и 0 approvals) → само update статус
       if (totalVotes >= 3 && approvals === 0) {
         review.status = "rejected";
         review.decidedAt = new Date();
@@ -115,7 +112,6 @@ function registerReviewHandlers(io, socket) {
         });
       }
 
-      // Секогаш прати освежена листа
       const list = await ReviewWord.find({
         roomCode: review.roomCode,
         roundNumber: review.roundNumber,

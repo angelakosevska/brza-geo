@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { resetSessionErrorGuard } from "@/lib/axios"; // reset guard on login
+import { socket } from "@/lib/socket";
 
 const AuthContext = createContext();
 
@@ -25,6 +26,9 @@ export function AuthProvider({ children }) {
         } else {
           setToken(storedToken);
           setUser(JSON.parse(storedUser));
+
+          socket.auth = { token: storedToken };
+          socket.connect();
         }
       } catch (err) {
         console.error("Invalid stored token or user data", err);
@@ -34,15 +38,15 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = (jwtToken, userData) => {
-    // jwtToken + userData come from backend
     localStorage.setItem("token", jwtToken);
     localStorage.setItem("user", JSON.stringify(userData));
 
     setToken(jwtToken);
     setUser(userData);
-
-    // Reset session expired guard for fresh login
     resetSessionErrorGuard();
+
+    socket.auth = { token: jwtToken };
+    socket.connect();
   };
 
   const logout = () => {
@@ -50,6 +54,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("user");
     setUser(null);
     setToken(null);
+    if (socket.connected) socket.disconnect();
   };
 
   return (

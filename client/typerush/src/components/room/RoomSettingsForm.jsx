@@ -63,7 +63,7 @@ export default function RoomSettingsForm({
 
   return (
     <GlassCard className={className}>
-      <div className="flex flex-col gap-8 p-4 w-full h-full justify-center">
+      <div className="flex flex-col gap-8 p-4 w-full h-full justify-start">
         {/* Select Rounds */}
         <div>
           <label className="block mb-2 font-medium text-[var(--primary)] text-sm">

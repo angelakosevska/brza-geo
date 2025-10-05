@@ -26,7 +26,7 @@ async function startRound(io, roomDoc) {
   const categoryIds = (roomDoc.categories || []).map(String);
   const categoryMeta = await fetchCategoryMeta(categoryIds);
 
-  // сите валидни букви од категориите
+  // valid letters form categories
   const validLetters = new Set();
   for (const cat of categoryMeta) {
     for (const l of cat.validLetters || []) {
@@ -35,19 +35,18 @@ async function startRound(io, roomDoc) {
     }
   }
 
-  // иницијализирај runtime сет за искористени букви
   if (!rt.usedLetters) rt.usedLetters = new Set();
 
-  // филтрирај искористени букви
+  // used letters
   let pool = Array.from(validLetters).filter((l) => !rt.usedLetters.has(l));
 
-  // ако сите се искористени → ресетирај
+  //add all back
   if (pool.length === 0) {
     rt.usedLetters.clear();
     pool = Array.from(validLetters);
   }
 
-  // избери буква
+  // get letter
   const idx = Math.floor(Math.random() * pool.length);
   const letter = pool[idx];
   rt.usedLetters.add(letter);
@@ -86,16 +85,13 @@ async function startRound(io, roomDoc) {
     endMode: updatedRoom.endMode || "ALL_SUBMIT",
   });
 
-  // auto-end round
-  // auto-end round
   rt.roundTO = setTimeout(async () => {
     if (!rt.ending && myGen === rt.gen) {
       rt.ending = true;
       try {
-        // 🔥 tell all clients to auto-submit what they have
+        // tell all clients to auto-submit what they have
         io.to(roomCode).emit("forceSubmit", { code: roomCode });
 
-        // small delay so clients can send answers before scoring
         await new Promise((resolve) => setTimeout(resolve, 300));
 
         await endRound(io, roomCode);
@@ -124,7 +120,6 @@ async function endRound(io, roomCode) {
   const categories = (room.categories || []).map(String);
   const letter = (room.letter || "").toUpperCase();
 
-  
   const { scores, details, answersByPlayer } = await scoreRound(
     round,
     categories,

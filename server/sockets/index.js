@@ -18,8 +18,6 @@ const Game = require("../models/Game");
 
 module.exports = (io) => {
   io.on("connection", (socket) => {
-    // socket.data.user is already set in ioInstance.js after auth
-    
     socket.data.roomCode = null;
     registerReviewHandlers(io, socket);
     // ------------------- JOIN ROOM -------------------

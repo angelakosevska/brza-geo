@@ -37,7 +37,7 @@ exports.getProfile = async (req, res) => {
   }
 };
 
-
+ 
 // exports.addWordPowerToUser = async (req, res) => {
 //   try {
 //     const { amount } = req.body;

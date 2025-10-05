@@ -132,7 +132,7 @@ export default function FinalResultsModal({
         {/* <GlassCard className="relative p-6 w-full max-w-3xl text-[var(--text)]"> */}
         <GlassCard
           className={`relative p-6 w-full lg:max-w-[60vw] sm:max-w-[90vw] max-h-[90vh] text-[var(--text)] overflow-y-auto ${
-            finalWinners.includes(currentUserId) ? "winner-border" : ""
+            finalWinners.includes(currentUserId) ? "border-0 winner-border" : ""
           }`}
         >
           {/* Header */}

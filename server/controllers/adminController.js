@@ -23,7 +23,6 @@ exports.approveReview = async (req, res) => {
     const review = await ReviewWord.findById(req.params.id);
     if (!review) return res.status(404).json({ error: "Review not found" });
 
-    // додај збор во категорија
     await Category.updateOne(
       { _id: review.category },
       { $addToSet: { words: review.word.toLowerCase().trim() } }

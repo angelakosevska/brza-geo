@@ -212,7 +212,7 @@ export default function RoundResultsModal({
         {/* ---------- REVIEW WORDS ---------- */}
         {reviewsByCat[currentCategoryId] &&
           reviewsByCat[currentCategoryId].length > 0 && (
-            <div className="mt-3 p-2 border-t border-[var(--text)]/20">
+            <div className="mt-3 p-3 border-t border-[var(--text)]/20 space-y-2">
               <div className="mb-1 font-semibold text-xs">
                 Предложени зборови за додавање:
               </div>
@@ -236,7 +236,7 @@ export default function RoundResultsModal({
                 return (
                   <div
                     key={rw._id}
-                    className="flex flex-col gap-1 bg-[var(--background)]/40 px-2 py-1 rounded-md"
+                    className="flex flex-row justify-between gap-1 bg-[var(--background)]/40 px-2 py-1 rounded-md"
                   >
                     <div className="flex items-center gap-2 text-sm">
                       <span>{rw.word}</span>
@@ -245,39 +245,47 @@ export default function RoundResultsModal({
                       </span>
                       {statusIcon}
                     </div>
-
                     {rw.status === "pending" && !isOwnWord && (
-                      <div className="flex gap-2">
-                        <Button
-                          size="xs"
-                          variant={
-                            myVote?.valid === true ? "default" : "outline"
-                          }
+                      <div className="flex gap-3 mt-1">
+                        {/* 👍 Like */}
+                        <button
                           disabled={!!myVote}
-                          className={
-                            myVote?.valid === true
-                              ? "bg-green-500 text-white"
-                              : "hover:bg-green-500 hover:text-white"
-                          }
                           onClick={() => onVoteReview?.(rw._id, true)}
+                          className={`w-8 h-8 flex items-center justify-center rounded-full border-2 transition-all
+        ${
+          myVote?.valid === true
+            ? "bg-green-500 border-green-500 text-white shadow-md scale-110"
+            : "border-green-500 text-green-500 hover:bg-green-500/20 hover:scale-105"
+        }`}
                         >
-                          <ThumbsUp className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="xs"
-                          variant={
-                            myVote?.valid === false ? "default" : "outline"
-                          }
+                          <ThumbsUp
+                            className={`w-4 h-4 transition-transform ${
+                              myVote?.valid === true
+                                ? "text-white scale-110"
+                                : "text-green-500"
+                            }`}
+                          />
+                        </button>
+
+                        {/* 👎 Dislike */}
+                        <button
                           disabled={!!myVote}
-                          className={
-                            myVote?.valid === false
-                              ? "bg-red-500 text-white"
-                              : "hover:bg-red-500 hover:text-white"
-                          }
                           onClick={() => onVoteReview?.(rw._id, false)}
+                          className={`w-8 h-8 flex items-center justify-center rounded-full border-2 transition-all
+        ${
+          myVote?.valid === false
+            ? "bg-red-500 border-red-500 text-white shadow-md scale-110"
+            : "border-red-500 text-red-500 hover:bg-red-500/20 hover:scale-105"
+        }`}
                         >
-                          <ThumbsDown className="w-4 h-4" />
-                        </Button>
+                          <ThumbsDown
+                            className={`w-4 h-4 transition-transform ${
+                              myVote?.valid === false
+                                ? "text-white scale-110"
+                                : "text-red-500"
+                            }`}
+                          />
+                        </button>
                       </div>
                     )}
                   </div>
