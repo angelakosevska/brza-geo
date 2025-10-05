@@ -18,10 +18,10 @@ export default function ForgotPasswordForm({ onSubmit }) {
   };
 
   return (
-    <GlassCard>
+    <GlassCard className="lg:max-w-[30vw] sm:max-w-[90vw]">
       <form
         onSubmit={handleSubmit}
-        className="flex flex-col gap-4 mx-auto p-4 w-full max-w-xs"
+        className="flex flex-col gap-4 mx-auto p-4"
       >
         <h2 className="mb-2 font-extrabold text-[var(--primary)] text-xl sm:text-2xl md:text-3xl text-center">
           Заборавена лозинка

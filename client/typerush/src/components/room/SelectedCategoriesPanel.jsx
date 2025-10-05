@@ -35,7 +35,7 @@ export default function SelectedCategoriesPanel({
       </div>
 
       {/* List of categories */}
-      <ul ref={listRef} className="space-y-3 pr-1 max-h-80 overflow-y-auto">
+      <ul ref={listRef} className="space-y-2 pr-1 h-full max-h-[55vh] overflow-y-auto">
         {categories.map((cat) => (
           <li
             key={cat._id || cat.name}

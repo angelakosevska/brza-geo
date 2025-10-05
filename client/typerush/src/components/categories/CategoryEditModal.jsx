@@ -35,7 +35,7 @@ export default function CategoryEditModal({
 
       {/* Modal body */}
       <div className="absolute inset-0 flex justify-center items-center p-4">
-        <GlassCard className="relative p-4 w-full sm:max-w-[90vw] lg:max-w-[70vw] lg:max-h-[80vh] overflow-y-auto">
+        <GlassCard className="relative p-4 w-full sm:max-w-[90vw] lg:max-w-[50vw] lg:max-h-[80vh] overflow-y-auto">
           {/* Header */}
           <div className="flex justify-between items-center mb-4">
             <h2 className="font-bold text-[var(--primary)] text-lg">

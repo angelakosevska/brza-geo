@@ -20,10 +20,10 @@ export default function ResetPasswordForm({ handleReset }) {
   };
 
   return (
-    <GlassCard>
+    <GlassCard className="lg:max-w-[30vw] sm:max-w-[90vw]">
       <form
         onSubmit={onSubmit}
-        className="flex flex-col gap-4 mx-auto p-5 sm:p-8 w-full max-w-xs"
+        className="flex flex-col gap-4 mx-auto p-4  w-full max-w-xs"
       >
         <h2 className="mb-2 font-extrabold text-[var(--primary)] text-xl sm:text-2xl md:text-3xl text-center">
           Промени ја лозинката

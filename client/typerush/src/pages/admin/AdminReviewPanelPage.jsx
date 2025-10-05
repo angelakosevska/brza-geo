@@ -94,7 +94,7 @@ export default function AdminReviewPanelPage() {
 
   // Main content
   return (
-    <GlassCard className="w-full max-w-[90vw] text-[var(--text)]/90 p-4">
+    <GlassCard className="w-full max-w-[90vw] text-[var(--text)]/90 p-4 h-auto ">
       {sortedReviews.length === 0 ? (
         <div className="flex flex-col items-center justify-center opacity-70 py-10">
           <Inbox className="w-10 h-10 text-[var(--text)]/30" />
