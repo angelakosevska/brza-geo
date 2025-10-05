@@ -72,7 +72,7 @@ exports.createCategory = async (req, res) => {
       name: String(name).trim(),
       description: description ? String(description).trim() : "",
       words: normalized,
-      createdBy: req.user?.id || null, // ✅ FIXED HERE
+      createdBy: req.user?.id || null, 
       isDefault: req.user?.role === "admin",
     });
 
@@ -94,7 +94,7 @@ exports.updateCategory = async (req, res) => {
     if (!cat)
       return res.status(404).json({ message: res.__("category_not_found") });
 
-    const userId = req.user?.id; // ✅ FIXED HERE
+    const userId = req.user?.id; 
     const userRole = req.user?.role || "player";
     const isAdmin = userRole === "admin";
     const isCreator = userId && String(cat.createdBy) === String(userId);
@@ -130,7 +130,7 @@ exports.deleteCategory = async (req, res) => {
     if (!cat)
       return res.status(404).json({ message: res.__("category_not_found") });
 
-    const userId = req.user?.id; // ✅ FIXED HERE
+    const userId = req.user?.id;
     const userRole = req.user?.role || "player";
     const isAdmin = userRole === "admin";
     const isCreator = userId && String(cat.createdBy) === String(userId);
