@@ -1,7 +1,7 @@
 const Category = require("../models/Category");
 
 /**
- * Helper
+ * Normalize input words
  */
 function normalizeWordsInput(words) {
   if (!words) return [];
@@ -72,7 +72,7 @@ exports.createCategory = async (req, res) => {
       name: String(name).trim(),
       description: description ? String(description).trim() : "",
       words: normalized,
-      createdBy: req.user?.userId || null,
+      createdBy: req.user?.id || null, // ✅ FIXED HERE
       isDefault: req.user?.role === "admin",
     });
 
@@ -94,7 +94,7 @@ exports.updateCategory = async (req, res) => {
     if (!cat)
       return res.status(404).json({ message: res.__("category_not_found") });
 
-    const userId = req.user?.userId;
+    const userId = req.user?.id; // ✅ FIXED HERE
     const userRole = req.user?.role || "player";
     const isAdmin = userRole === "admin";
     const isCreator = userId && String(cat.createdBy) === String(userId);
@@ -112,7 +112,7 @@ exports.updateCategory = async (req, res) => {
       cat.words = normalizeWordsInput(words);
     }
 
-    await cat.save(); // pre('save') updates validLetters
+    await cat.save();
     return res.json({ category: cat });
   } catch (err) {
     console.error("❌ Error in updateCategory:", err);
@@ -130,7 +130,7 @@ exports.deleteCategory = async (req, res) => {
     if (!cat)
       return res.status(404).json({ message: res.__("category_not_found") });
 
-    const userId = req.user?.userId;
+    const userId = req.user?.id; // ✅ FIXED HERE
     const userRole = req.user?.role || "player";
     const isAdmin = userRole === "admin";
     const isCreator = userId && String(cat.createdBy) === String(userId);
