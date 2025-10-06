@@ -2,14 +2,6 @@ const { extractLetterWords, normalizeWord } = require("./utils");
 const Category = require("../models/Category");
 const ReviewWord = require("../models/ReviewWord"); // ✅ ново
 
-/**
- * Score all submissions for one round.
- * @param {Object} round - The round object from the DB (includes submissions).
- * @param {Array} categories - Array of category IDs used this round.
- * @param {String} letter - The current round letter (uppercase).
- * @param {String} gameId - ID на тековната игра (за ReviewWord lookup).
- * @returns {Object} scores, details, answersByPlayer, noWordsByCategory
- */
 async function scoreRound(round, categories, letter, gameId) {
   const categoryDocs = await Category.find({ _id: { $in: categories } })
     .select("words")

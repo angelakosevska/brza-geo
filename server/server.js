@@ -61,7 +61,7 @@ app.use(i18n.init);
 
 // API routes
 app.use("/api/auth", require("./routes/auth")); // authentication
-app.use("/api/game", require("./routes/game")); // game-related
+//app.use("/api/game", require("./routes/game")); // game-related
 app.use("/api/room", require("./routes/room")); // room management
 app.use("/api/categories", require("./routes/category")); // category management
 app.use("/api/user", require("./routes/user")); // user profile

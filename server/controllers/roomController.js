@@ -2,7 +2,7 @@ const generateUniqueRoomCode = require("../utils/generateUniqueRoomCode");
 const Room = require("../models/Room");
 const { getIO } = require("../sockets/ioInstance");
 
-// Utility: extract hostId consistently (ObjectId vs populated object)
+// Utility: extract hostId consistently 
 const getHostId = (host) => (host?._id ? host._id.toString() : host.toString());
 
 /**

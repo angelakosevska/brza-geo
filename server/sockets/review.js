@@ -73,7 +73,7 @@ function registerReviewHandlers(io, socket) {
 
       //
       if (!review.awarded && approvals >= 2 && approvals > totalVotes / 2) {
-        review.awarded = true; // ✅ означи дека поени се дадени
+        review.awarded = true; 
         await review.save();
 
         await Room.updateOne(

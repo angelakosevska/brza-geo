@@ -8,7 +8,7 @@
  * - Level 3 → 4 requires ~259 XP
  */
 function addWordPower(user, amount) {
-  const BASE = 50;     // Base XP for the first level
+  const BASE = 100;     // Base XP for the first level
   const FACTOR = 1.5;  // Growth factor for next levels
 
   // Add earned Word Power
@@ -18,7 +18,6 @@ function addWordPower(user, amount) {
   let wpNeeded = BASE;
   let wpRemaining = user.wordPower;
 
-  // Deduct XP until not enough for the next level
   while (wpRemaining >= wpNeeded) {
     wpRemaining -= wpNeeded;
     level++;
@@ -29,15 +28,7 @@ function addWordPower(user, amount) {
   return user;
 }
 
-/**
- * Compute progress toward the next level for a given Word Power amount.
- *
- * Returns: for Level Card
- * - wpAtLevelStart → XP accumulated at the beginning of this level
- * - wpForNextLevel → XP needed to go from current level → next
- * - currentLevelWP → XP already earned in this level
- * - progressPercent → percentage toward next level
- */
+
 function getLevelProgress(wordPower) {
   const BASE = 50;
   const FACTOR = 1.5;

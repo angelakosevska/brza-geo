@@ -1,7 +1,7 @@
 const ReviewWord = require("../models/ReviewWord");
 const Category = require("../models/Category");
 
-// GET /api/admin/reviews?status=pending
+//Get all reviews
 exports.getReviews = async (req, res) => {
   try {
     const { status = "pending" } = req.query;
@@ -17,7 +17,7 @@ exports.getReviews = async (req, res) => {
   }
 };
 
-// POST /api/admin/reviews/:id/approve
+//Approve review
 exports.approveReview = async (req, res) => {
   try {
     const review = await ReviewWord.findById(req.params.id);
@@ -38,7 +38,7 @@ exports.approveReview = async (req, res) => {
   }
 };
 
-// POST /api/admin/reviews/:id/reject
+// Reject review
 exports.rejectReview = async (req, res) => {
   try {
     const review = await ReviewWord.findById(req.params.id);

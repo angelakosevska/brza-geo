@@ -60,7 +60,7 @@ export default function AuthPage() {
 
   return (
     <div className="relative flex justify-center items-center w-full min-h-screen">
-      <GlassCard className="lg:max-w-[20vw] sm:max-w-[90vw]">
+      <GlassCard className="lg:max-w-[30vw] sm:max-w-[90vw]">
         <AnimatePresence mode="wait">
           {!showRegister ? (
             <motion.div

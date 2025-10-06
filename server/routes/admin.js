@@ -8,7 +8,7 @@ const {
   rejectReview,
 } = require("../controllers/adminController");
 
-// сите рути поминуваат низ verifyToken + verifyAdmin
+
 router.use(verifyToken, verifyAdmin);
 
 router.get("/reviews", getReviews);

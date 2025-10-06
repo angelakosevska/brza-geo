@@ -96,7 +96,7 @@ export function LoginForm({ handleLogin, onFlip, onForgotPassword }) {
 
         {/* Submit */}
         <Button className="mt-2 w-full" type="submit">
-          Логирај се
+          Најави се
         </Button>
 
         {/* Flip to register */}
