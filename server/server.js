@@ -28,7 +28,9 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 // Define allowed client origins (CORS)
 const allowedOrigins = [
   "http://localhost:5173",
-  process.env.CLIENT_URL,
+  process.env.CLIENT_URL_1,
+  process.env.CLIENT_URL_2,
+
   ...(process.env.CLIENT_URLS ? process.env.CLIENT_URLS.split(",") : []),
 ].filter(Boolean);
 
