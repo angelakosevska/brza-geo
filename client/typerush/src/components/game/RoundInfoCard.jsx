@@ -3,48 +3,57 @@ import GlassCard from "@/components/global/GlassCard";
 export default function RoundInfoCard({
   currentRound,
   totalRounds,
-  timeLeft, // number in seconds (or null/undefined before round)
-  letter, // string like "A" (or null before round)
+  timeLeft,
+  letter,
   waiting = false,
   className = "",
-  
 }) {
   return (
-    <GlassCard className={`p-4 sm:p-5 lg:p-6 ${className}`}>
-      <div className="flex sm:flex-row flex-col sm:justify-between sm:items-center gap-3 sm:gap-6">
-        {/* Left: Round X / Y */}
-        <div className="flex items-center gap-2">
-          <span className="opacity-70 text-[var(--text)] text-xs sm:text-sm uppercase tracking-wide">
-            Рунда
-          </span>
-          <span className="font-medium text-[var(--text)] text-base sm:text-lg lg:text-xl">
-            {currentRound || "-"} / {totalRounds || "-"}
-          </span>
-        </div>
+    <GlassCard
+      className={`px-4 py-3 sm:px-5 sm:py-4 lg:px-6 lg:py-5 ${className}`}
+    >
+      <div className="flex flex-col sm:flex-row items-center justify-center text-[var(--text)] sm:gap-12 lg:gap-16">
+        <div className="grid grid-cols-3 sm:flex sm:flex-row items-center justify-center w-full text-center">
+          {/* Round */}
+          <div className="flex flex-col items-center leading-tight sm:mx-6 lg:mx-8">
+            <span className="text-[10px] sm:text-xs uppercase opacity-60 tracking-wide">
+              Рунда
+            </span>
+            <span className="font-semibold text-sm sm:text-base lg:text-lg">
+              {currentRound || "-"} / {totalRounds || "-"}
+            </span>
+          </div>
 
-        {/* Center: Letter */}
-        <div className="flex justify-center">
-          <div className="flex items-center">
-            <span className="hidden sm:inline opacity-70 mr-2 text-[var(--text)] text-xs sm:text-sm uppercase">
+          {/* Letter */}
+          <div className="flex flex-col items-center justify-center leading-none sm:mx-10 lg:mx-14">
+            <span className="text-[10px] sm:text-xs uppercase opacity-60 tracking-wide mb-0.5">
               Буква
             </span>
-            <span className="font-extrabold text-[var(--secondary)] text-2xl sm:text-3xl lg:text-4xl tracking-widest">
+            <span className="font-extrabold text-[var(--secondary)] text-3xl sm:text-4xl lg:text-5xl tracking-[0.1em]">
               {waiting ? "—" : letter ?? "—"}
             </span>
           </div>
-        </div>
 
-        {/* Right: Timer */}
-        <div className="flex justify-end items-center">
-          <div className="text-[var(--accent)] text-lg sm:text-xl lg:text-2xl">
-            {timeLeft != null ? `${timeLeft}s` : "--"}
+          {/* Timer */}
+          <div className="flex flex-col items-center leading-tight sm:mx-6 lg:mx-8">
+            <span className="text-[10px] sm:text-xs uppercase opacity-60 tracking-wide">
+              Време
+            </span>
+            <span
+              className={`font-semibold text-base sm:text-lg lg:text-xl ${
+                timeLeft <= 5
+                  ? "text-red-500 animate-pulse"
+                  : "text-[var(--accent)]"
+              }`}
+            >
+              {timeLeft != null ? `${timeLeft}s` : "--"}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Helper line for pre-round state */}
       {waiting && (
-        <div className="opacity-70 mt-3 text-[var(--text)] text-sm sm:text-base text-center">
+        <div className="opacity-70 mt-2 text-xs sm:text-sm text-center">
           Започнува нова рунда...
         </div>
       )}

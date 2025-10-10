@@ -10,6 +10,7 @@ import FinalResultsModal from "@/components/game/FinalResultsModal";
 
 // Логика
 import useGameLogic from "@/hooks/useGameLogic";
+import GlassCard from "@/components/global/GlassCard";
 
 export default function GamePage() {
   const { code } = useParams();
@@ -61,14 +62,16 @@ export default function GamePage() {
       <div className="flex-1 gap-1 grid grid-cols-1 lg:grid-cols-4">
         {/* Left: Round info + answers */}
         <div className="flex flex-col gap-1 lg:col-span-3">
-          <RoundInfoCard
-            currentRound={currentRound}
-            totalRounds={totalRounds}
-            timeLeft={endAt ? timeLeft : null}
-            letter={letter}
-            waiting={waitingForRound}
-            code={code}
-          />
+          <div className="sticky top-0 z-30 ">
+            <RoundInfoCard
+              currentRound={currentRound}
+              totalRounds={totalRounds}
+              timeLeft={endAt ? timeLeft : null}
+              letter={letter}
+              waiting={waitingForRound}
+              code={code}
+            />
+          </div>
 
           <CategoryAnswersCard
             title="Внеси ги твоите одговори"
@@ -96,7 +99,7 @@ export default function GamePage() {
         <div className="lg:col-span-1">
           <PlayersList
             players={players}
-            className="w-full h-full"
+            className="w-full h-auto"
             showLeave={true}
             onLeave={handleLeaveRoom}
             hostId={hostId}
