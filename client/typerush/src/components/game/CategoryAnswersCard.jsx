@@ -3,8 +3,8 @@ import GlassCard from "@/components/global/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { validateAnswer } from "@/lib/validateAnswer";
-import { socket } from "@/lib/socket"; // 👈 користи го real socket
-import { useError } from "@/hooks/useError"; // 👈 за toasts
+import { socket } from "@/lib/socket"; 
+import { useError } from "@/hooks/useError"; 
 
 // Lucide icons
 import {
@@ -55,17 +55,15 @@ export default function CategoryAnswersCard({
   // ========== UI HELPERS ==========
   const textMessages = {
     exact: "Точен збор",
-    typo: "Мала грешка (прифатено)",
-    "no-words": "Нема зборови за оваа буква во категоријата",
+    "no-words": "Нема збор во категоријата на оваа буква",
     "wrong-letter": "Почнува со погрешна буква",
-    "not-in-dictionary": "Не е во речникот за оваа категорија",
+    "not-in-dictionary": "Грешен збор",
     "not-cyrillic": "Користи кирилица (А-Ш)",
     empty: "",
   };
 
   const textColors = {
     exact: "text-green-600",
-    typo: "text-yellow-600",
     "no-words": "text-orange-600",
     "wrong-letter": "text-red-600",
     "not-in-dictionary": "text-red-600",
@@ -76,7 +74,7 @@ export default function CategoryAnswersCard({
   const icons = {
     exact: <CheckCircle className="inline w-4 h-4 text-green-600" />,
     typo: <AlertTriangle className="inline w-4 h-4 text-yellow-600" />,
-    "no-words": <BookX className="inline w-4 h-4 text-orange-600" />,
+    "no-words": <BookX className="inline w-4 h-4 text-gray-600" />,
     "wrong-letter": <XCircle className="inline w-4 h-4 text-red-600" />,
     "not-in-dictionary": <BookX className="inline w-4 h-4 text-red-600" />,
     "not-cyrillic": <Languages className="inline w-4 h-4 text-red-600" />,
@@ -123,7 +121,7 @@ export default function CategoryAnswersCard({
     }
 
     socket.emit("markWordForReview", { categoryId, word });
-    // 👇 додај го зборот во suggested state
+
     setSuggested((prev) => new Set(prev).add(word.toLowerCase()));
   };
 
@@ -246,12 +244,12 @@ export default function CategoryAnswersCard({
                       className={`ml-2 px-2 py-1 text-xs ${
                         suggested.has(value.toLowerCase())
                           ? "bg-[var(--primary)] text-white"
-                          : "hover:bg-[var(--secondary)] hover:text-white"
+                          : "hover:bg-[var(--primary)] hover:text-white"
                       }`}
                     >
                       {suggested.has(value.toLowerCase())
                         ? "Предложено"
-                        : "За преглед"}
+                        : "Предложи"}
                     </Button>
                   )}
                 </div>

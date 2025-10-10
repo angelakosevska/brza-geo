@@ -22,7 +22,7 @@ const io = initSocket(server);
 // Load socket event handlers
 require("./sockets/index")(io);
 
-// Configure SendGrid (email service)
+// Configure SendGrid
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 // Define allowed client origins (CORS)
@@ -50,7 +50,7 @@ app.use(
 // Parse JSON request bodies
 app.use(express.json());
 
-// Configure i18n (internationalization)
+// Configure i18n
 i18n.configure({
   locales: ["en", "mk"], // supported languages
   directory: __dirname + "/locales", // translation files location
@@ -82,7 +82,7 @@ mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
     const usedDb =
-      mongoose.connection?.db?.databaseName ??
+      mongoose.connecadd.Booleantion?.db?.databaseName ??
       mongoose.connection?.client?.options?.dbName ??
       "unknown";
     console.log(`✅ MongoDB connected to database: ${usedDb}`);

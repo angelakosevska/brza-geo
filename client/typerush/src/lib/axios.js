@@ -22,7 +22,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Placeholders for navigate and error toast (injected from React)
+// Placeholders for navigate and error toast 
 let navigateFn = null;
 let showErrorFn = null;
 let hasShownSessionError = false; // guard to prevent multiple toasts
