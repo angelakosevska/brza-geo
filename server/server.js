@@ -82,7 +82,7 @@ mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
     const usedDb =
-      mongoose.connecadd.Booleantion?.db?.databaseName ??
+      mongoose.connection?.db?.databaseName ??
       mongoose.connection?.client?.options?.dbName ??
       "unknown";
     console.log(`✅ MongoDB connected to database: ${usedDb}`);

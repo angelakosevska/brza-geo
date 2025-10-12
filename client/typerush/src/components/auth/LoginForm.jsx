@@ -36,71 +36,72 @@ export function LoginForm({ handleLogin, onFlip, onForgotPassword }) {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col gap-4 p-4 sm:p-8 w-full"
+        className="flex flex-col items-center justify-center gap-4 p-4 sm:p-8 w-full"
       >
         <p className="mb-2 font-extrabold text-[var(--primary)] text-xl sm:text-2xl md:text-3xl text-center">
-          Логирај се!
+          Најави се!
         </p>
 
-        {/* Login Identifier (username или email) */}
-        <FormField
-          control={form.control}
-          name="login"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Корисничко име или е-пошта</FormLabel>
-              <FormControl>
-                <Input
-                  type="text"
-                  placeholder="Внеси корисничко име или е-пошта"
-                  autoComplete="username"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="flex flex-col gap-4 w-full max-w-xs sm:max-w-sm">
+          {/* Login Identifier */}
+          <FormField
+            control={form.control}
+            name="login"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Корисничко име или е-пошта</FormLabel>
+                <FormControl>
+                  <Input
+                    type="text"
+                    placeholder="Внеси корисничко име или е-пошта"
+                    autoComplete="username"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        {/* Password */}
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Лозинка</FormLabel>
-              <FormControl>
-                <Input
-                  type="password"
-                  placeholder="Лозинка"
-                  autoComplete="current-password"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          {/* Password */}
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Лозинка</FormLabel>
+                <FormControl>
+                  <Input
+                    type="password"
+                    placeholder="Лозинка"
+                    autoComplete="current-password"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        {/* Forgot password */}
-        <div className="text-right">
-          <Button
-            type="button"
-            variant="link"
-            className="p-0 h-auto text-[var(--primary)] text-xs sm:text-sm"
-            onClick={onForgotPassword}
-          >
-            Заборавена лозинка?
+          {/* Forgot password */}
+          <div className="text-right">
+            <Button
+              type="button"
+              variant="link"
+              className="p-0 h-auto text-[var(--primary)] text-xs sm:text-sm"
+              onClick={onForgotPassword}
+            >
+              Заборавена лозинка?
+            </Button>
+          </div>
+
+          {/* Submit */}
+          <Button className="mt-2 w-full" type="submit">
+            Најави се
           </Button>
         </div>
 
-        {/* Submit */}
-        <Button className="mt-2 w-full" type="submit">
-          Најави се
-        </Button>
-
         {/* Flip to register */}
-
         <div className="mt-4 text-[var(--text)] text-xs sm:text-sm text-center">
           <span className="mr-1">Немаш профил?</span>
           <Button

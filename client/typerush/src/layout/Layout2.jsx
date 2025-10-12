@@ -6,17 +6,17 @@ import Footer from "@/components/global/Footer";
 export default function Layout2() {
   return (
     <LetterBackground>
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col min-h-screen ">
         {/* Centered header */}
-        <div className="mx-auto w-full max-w-[90vw]">
+        <div className="mx-auto w-full  sm:max-w-[90vw] lg:max-w-[70vw]">
           <Header />
         </div>
         {/* Main content matches header width */}
-        <main className="flex flex-1 mx-auto my-1 w-full max-w-[90vw]">
+        <main className="flex flex-1 mx-auto my-1 w-full sm:max-w-[90vw] lg:max-w-[70vw]">
           <Outlet />
         </main>
-        
-        <div className="mx-auto mb-1 w-full max-w-[90vw]">
+
+        <div className="mx-auto mb-1 w-full sm:max-w-[90vw] lg:max-w-[70vw]">
           <Footer />
         </div>
       </div>
