@@ -93,9 +93,9 @@ export default function MainPage() {
   };
 
   return (
-    <div className="gap-1 grid grid-cols-1 lg:grid-cols-3 w-full">
+    <div className="gap-1 grid grid-cols-1 lg:grid-cols-3 w-full mx-auto">
       {/* 1. Left column – LevelCard + Info */}
-      <div className="flex flex-col gap-1 order-1 col-span-1">
+      <div className="flex flex-col  gap-1 order-1 col-span-1 mx-auto w-full">
         <LevelCard
           level={profile?.level || 1}
           wordPower={profile?.wordPower || 0}

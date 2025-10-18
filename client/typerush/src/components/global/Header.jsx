@@ -82,8 +82,8 @@ export default function Header() {
   );
 
   return (
-    <GlassCardHeader className="z-50 mt-2 max-h-25 align-middle">
-      <div className="flex justify-between items-center w-full">
+    <GlassCardHeader className="z-50 mt-2 max-h-25 align-middle mx-auto">
+      <div className="flex justify-between items-center align-middle w-full mx-auto">
         {/* Logo + Title */}
         <div className="flex items-center gap-2">
           <img

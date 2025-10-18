@@ -65,8 +65,6 @@ export default function RoomPage() {
     };
   }, [code, navigate]);
 
-
-
   if (!room) return null;
 
   const isHost =
@@ -116,9 +114,9 @@ export default function RoomPage() {
 
   // ---- UI ----
   return (
-    <div className="flex flex-col gap-1 mx-auto w-full max-w-[90vw]">
+    <div className="flex flex-col gap-1 mx-auto align-middle w-full max-w-[90vw]">
       {/* Row 1: Players + Room Code */}
-      <div className="flex lg:flex-row flex-col gap-1 w-full h-auto">
+      <div className="flex lg:flex-row flex-col gap-1 w-full h-auto mx-auto">
         <PlayersList
           players={room.players}
           onLeave={handleLeave}
