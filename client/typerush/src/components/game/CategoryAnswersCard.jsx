@@ -184,7 +184,7 @@ export default function CategoryAnswersCard({
           Чекам категории…
         </GlassCard>
       ) : (
-        <div className="gap-1 grid md:grid-cols-2 lg:grid-cols-3">
+        <div className="gap-1 grid md:grid-cols-2 lg:grid-cols-3 auto-rows-auto">
           {categories.map((id) => {
             const rawValue = answers[id];
             const value =

@@ -71,7 +71,7 @@ export default function PlayersList({
 }) {
   return (
     <GlassCard
-      className={`p-4 sm:p-5 flex flex-col gap-4 h-auto ${className ?? ""}`}
+      className={`p-4 sm:p-5 flex flex-col gap-4 h-auto  ${className ?? ""}`}
     >
       {/* Header */}
       <div className="flex justify-between items-center">

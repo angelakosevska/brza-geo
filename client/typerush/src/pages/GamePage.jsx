@@ -99,7 +99,7 @@ export default function GamePage() {
         <div className="lg:col-span-1">
           <PlayersList
             players={players}
-            className="w-full h-auto"
+            className="w-full h-auto "
             showLeave={true}
             onLeave={handleLeaveRoom}
             hostId={hostId}
