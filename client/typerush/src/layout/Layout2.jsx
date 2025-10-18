@@ -12,7 +12,7 @@ export default function Layout2() {
           <Header />
         </div>
         {/* Main content matches header width */}
-        <main className="flex flex-1 mx-auto my-1 w-full sm:max-w-[90vw] lg:max-w-[70vw]">
+        <main className="flex flex-1 mx-auto my-1  sm:max-w-[90vw] lg:max-w-[70vw]">
           <Outlet />
         </main>
 
