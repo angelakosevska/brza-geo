@@ -18,11 +18,12 @@ export default function RoomCodeCard({ code, className }) {
 
   return (
     <GlassCard
-      className={`flex flex-col items-center gap-3 p-6 text-center ${className ?? ""}`}
+      className={`flex flex-col items-center gap-3 p-6 text-center ${
+        className ?? ""
+      }`}
     >
       {/* Label */}
-      <h3 className="font-semibold text-[var(--secondary)] text-lg uppercase tracking-wide">
-        Код на собата
+<h3 className="font-semibold text-[var(--secondary)] text-base sm:text-lg md:text-xl lg:text-2xl uppercase tracking-wide">        Код на собата
       </h3>
 
       {/* Room code + copy button */}
