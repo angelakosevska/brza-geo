@@ -37,12 +37,12 @@ export default function InvitationPage() {
           <div className="flex flex-col items-center gap-2">
             <Calendar className="text-[var(--primary)]" />
             <span className="font-medium text-[var(--text)]">Датум</span>
-            <span className="text-[var(--text)]">xx.xx.2025г.</span>
+            <span className="text-[var(--text)]">22.10.2025г.</span>
           </div>
           <div className="flex flex-col items-center gap-2">
             <Clock className="text-[var(--primary)]" />
             <span className="font-medium text-[var(--text)]">Време</span>
-            <span className="text-[var(--text)]">xx:xxh</span>
+            <span className="text-[var(--text)]">09:00h</span>
           </div>
           <div className="flex flex-col items-center gap-2">
             <MapPin className="text-[var(--primary)]" />
