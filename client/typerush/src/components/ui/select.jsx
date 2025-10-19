@@ -79,7 +79,7 @@ const SelectContent = React.forwardRef(
         {...props}
       >
         <SelectScrollUpButton />
-        <SelectPrimitive.Viewport className="gap-2 grid  md:grid-cols-5">
+        <SelectPrimitive.Viewport className="gap-2 grid grid-cols-5 sm:grid-cols-2 md:grid-cols-5">
           {children}
         </SelectPrimitive.Viewport>
         <SelectScrollDownButton />
