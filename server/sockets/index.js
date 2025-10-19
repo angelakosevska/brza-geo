@@ -159,7 +159,9 @@ module.exports = (io) => {
       if (
         !forced &&
         (!answers ||
-          Object.values(answers).every((v) => !String(v || "").trim()))
+          typeof answers !== "object" ||
+          Object.keys(answers).length === 0 ||
+          Object.values(answers).every((v) => v === null || v === undefined))
       ) {
         return;
       }
