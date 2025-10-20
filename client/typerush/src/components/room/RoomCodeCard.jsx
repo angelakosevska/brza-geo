@@ -18,17 +18,28 @@ export default function RoomCodeCard({ code, className }) {
 
   return (
     <GlassCard
-      className={`flex flex-col items-center gap-3 p-6 text-center ${
-        className ?? ""
-      }`}
+      className={`flex flex-col lg:flex-col md:flex-row items-center justify-center gap-1 md:gap-6 p-6 text-center md:text-left ${className ?? ""}`}
     >
       {/* Label */}
-<h3 className="font-semibold text-[var(--secondary)] text-base sm:text-lg md:text-xl lg:text-2xl uppercase tracking-wide">        Код на собата
+      <h3
+        className="
+          font-medium uppercase tracking-wide
+          text-[var(--secondary)]
+          text-sm sm:text-base md:text-lg
+        "
+      >
+        Код на собата
       </h3>
 
       {/* Room code + copy button */}
-      <div className="flex items-center gap-3">
-        <span className="font-extrabold text-[var(--primary)] text-3xl tracking-[0.3em] select-all">
+      <div className="flex items-center justify-center gap-3">
+        <span
+          className="
+            font-bold text-[var(--primary)]
+            text-lg sm:text-xl md:text-2xl
+            tracking-[0.25em] select-all
+          "
+        >
           {code}
         </span>
         <Button
@@ -36,7 +47,10 @@ export default function RoomCodeCard({ code, className }) {
           size="icon"
           onClick={handleCopy}
           aria-label="Копирај го кодот на собата"
-          className="hover:bg-[var(--secondary)]/20 rounded-full transition"
+          className="
+            hover:bg-[var(--secondary)]/20 
+            rounded-full transition
+          "
         >
           {copied ? (
             <Check className="w-5 h-5 text-green-400" />
@@ -48,7 +62,7 @@ export default function RoomCodeCard({ code, className }) {
 
       {/* Feedback */}
       {copied && (
-        <span className="text-green-400 text-xs animate-fade-in">
+        <span className="text-green-400 text-xs sm:text-sm md:text-base animate-fade-in">
           ✔ Копирано во clipboard!
         </span>
       )}

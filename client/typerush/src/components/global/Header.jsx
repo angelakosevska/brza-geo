@@ -31,7 +31,6 @@ export default function Header() {
     setTheme(savedTheme);
     applyTheme(savedTheme);
 
-    // Only listen to system changes if theme = "system"
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handler = () => {
       if (localStorage.getItem("theme") === "system") {
@@ -44,42 +43,50 @@ export default function Header() {
 
   const applyTheme = (mode) => {
     const root = document.documentElement;
-
     if (mode === "system") {
       const prefersDark = window.matchMedia(
         "(prefers-color-scheme: dark)"
       ).matches;
-      if (prefersDark) {
-        root.classList.add("dark");
-      } else {
-        root.classList.remove("dark");
-      }
+      prefersDark ? root.classList.add("dark") : root.classList.remove("dark");
     } else if (mode === "dark") {
-      root.classList.add("dark"); // force dark
+      root.classList.add("dark");
     } else {
-      root.classList.remove("dark"); // force light
+      root.classList.remove("dark");
     }
-
     localStorage.setItem("theme", mode);
     setTheme(mode);
   };
 
-  const ThemeItem = ({ mode, icon: Icon, label }) => (
-    <DropdownMenuItem
-      onClick={() => applyTheme(mode)}
-      className={`flex items-center justify-between gap-2 text-md lg:text-lg cursor-pointer hover:bg-[var(--secondary)]/20 ${
-        theme === mode
-          ? "text-[var(--primary)] font-semibold"
-          : "text-[var(--text)]"
-      }`}
-    >
-      <div className="group flex items-center gap-2">
-        <Icon className="w-5 h-5 text-[var(--text)] group-hover:text-[var(--secondary)]" />
+  const baseItemClass = `
+    flex items-center gap-3 text-md lg:text-lg cursor-pointer
+    rounded-xl transition-all duration-200 select-none px-2 py-2
+    text-left
+  `;
+
+  const ThemeItem = ({ mode, icon: Icon, label }) => {
+    const active = theme === mode;
+
+    return (
+      <DropdownMenuItem
+        onClick={() => applyTheme(mode)}
+        className={`group ${baseItemClass} ${
+          active
+            ? "bg-[var(--primary)]/10 text-[var(--primary)] font-semibold"
+            : "text-[var(--text)] hover:text-[var(--secondary)] hover:bg-[var(--secondary)]/10"
+        }`}
+      >
+        <Icon
+          className={`w-5 h-5 transition-colors duration-200 ${
+            active
+              ? "text-[var(--primary)]"
+              : "text-[var(--text)] group-hover:text-[var(--secondary)]"
+          }`}
+        />
         <span className="group-hover:text-[var(--secondary)]">{label}</span>
-      </div>
-      {theme === mode && <Check className="w-4 h-4 text-[var(--primary)]" />}
-    </DropdownMenuItem>
-  );
+        {active && <Check className="ml-auto w-4 h-4 text-[var(--primary)]" />}
+      </DropdownMenuItem>
+    );
+  };
 
   return (
     <GlassCardHeader className="z-50 mt-2 max-h-25 align-middle mx-auto">
@@ -89,7 +96,7 @@ export default function Header() {
           <img
             src="/tr1.svg"
             alt="Type Rush Logo"
-            className="w-12 h-12 blink-cursor"
+            className="w-12 h-12 cursor-pointer"
             onClick={() => navigate("/invitation")}
           />
           <span
@@ -100,7 +107,7 @@ export default function Header() {
           </span>
         </div>
 
-        {/* Profile DropdownMenu */}
+        {/* Profile Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <UserRound className="w-10 h-10 text-[var(--primary)] cursor-pointer" />
@@ -116,34 +123,31 @@ export default function Header() {
               <span className="font-semibold text-[var(--text)] text-md lg:text-lg">
                 {user?.username || "Корисник"}
               </span>
+              {user?.role === "admin" && (
+                <span className="ml-2 px-2 py-[2px] text-[8px] rounded-full bg-[var(--secondary)]/20 text-[var(--secondary)] font-bold uppercase tracking-wide">
+                  Админ
+                </span>
+              )}
             </div>
 
-            {/* Admin Panel link (only for admins) */}
+            {/* Admin Panel */}
             {user?.role === "admin" && (
               <DropdownMenuItem
                 onClick={() => navigate("/admin/review-panel")}
-                className={`flex items-center gap-2 text-md lg:text-lg cursor-pointer group
-      ${
-        isAdminPage
-          ? "bg-[var(--secondary)]/20 text-[var(--secondary)]"
-          : "hover:bg-[var(--secondary)]/20"
-      }
-    `}
+                className={`group ${baseItemClass} ${
+                  isAdminPage
+                    ? "bg-gradient-to-r from-[var(--primary)]/20 to-[var(--secondary)]/20 text-[var(--primary)] font-semibold shadow-inner"
+                    : "text-[var(--text)] hover:text-[var(--secondary)] hover:bg-[var(--secondary)]/10"
+                }`}
               >
                 <ShieldCheck
-                  className={`w-5 h-5 ${
+                  className={`w-5 h-5 transition-colors duration-200 ${
                     isAdminPage
-                      ? "text-[var(--secondary)]"
-                      : "text-[var(--primary)] group-hover:text-[var(--secondary)]"
-                  }`}
-                />
-                <span
-                  className={`${
-                    isAdminPage
-                      ? "text-[var(--secondary)]"
+                      ? "text-[var(--primary)]"
                       : "text-[var(--text)] group-hover:text-[var(--secondary)]"
                   }`}
-                >
+                />
+                <span className="group-hover:text-[var(--secondary)]">
                   Админ панел
                 </span>
               </DropdownMenuItem>
@@ -151,7 +155,7 @@ export default function Header() {
 
             <DropdownMenuSeparator className="bg-[var(--glass)]/5 mx-auto border-0 w-[95%] h-px" />
 
-            {/* Theme switcher */}
+            {/* Theme Switcher */}
             <ThemeItem mode="light" icon={Sun} label="Светла тема" />
             <ThemeItem mode="dark" icon={Moon} label="Темна тема" />
             <ThemeItem mode="system" icon={Monitor} label="Автоматска" />
@@ -164,10 +168,10 @@ export default function Header() {
                 logout();
                 navigate("/auth");
               }}
-              className="group flex items-center gap-2 hover:bg-[var(--secondary)]/20 font-bold text-md lg:text-lg cursor-pointer"
+              className={`group ${baseItemClass} font-bold text-[var(--accent)] hover:text-[var(--secondary)] hover:bg-[var(--secondary)]/10`}
             >
-              <LogOut className="w-5 h-5 text-[var(--accent)] group-hover:text-[var(--secondary)]" />
-              <span className="text-[var(--accent)] group-hover:text-[var(--secondary)]">
+              <LogOut className="w-5 h-5 transition-colors duration-200 group-hover:text-[var(--secondary)]" />
+              <span className="group-hover:text-[var(--secondary)]">
                 Одјави се
               </span>
             </DropdownMenuItem>
